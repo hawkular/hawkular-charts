@@ -1,0 +1,108 @@
+= http://github.com/hawkular/hawkular-charts[Hawkular Charting Directives]
+
+This project provides AngularJS directives for displaying visual representations of time series data as charts. It uses http://d3js.org[D3] as its charting toolkit and tries to simply creating metrics visualizations by using Angular.js.
+
+== About
+
+The parent project that spurred this project is http://github.com/hawkular/hawkular[Hawkular] - A Metrics engine based on http://cassandra.apache.org/[Cassandra] (there is also an in-memory version). The console in RHQ Metrics uses these charting components and will further push the development of these charting components into the future.
+
+== Charts
+
+image::img/chart-sample.jpg[Charts]
+
+Don't like the charts we have? Take one of the existing charts and modify (coming soon!)
+
+== How to Get
+
+        bower install hawkular-charts --save
+
+Or
+
+*Download:* http://github.com/hawkular/hawkular-charts/blob/master/dist/hawkular-charts.js[hawkular-charts.js] / http://github.com/hawkular/hawkular-charts/blob/master/dist/hawkular-charts.min.js[hawkular-charts.min.js]
+
+== Using the Charting Directives
+Bind to a javascript array of metrics:
+
+[source,javascript]
+----
+ <hawkular-chart
+     data="{{vm.getChartDataFor(selectedMetric)}}"
+     chart-type="{{vm.selectedChart.chartType}}"
+     chart-height="250">
+ </hawkular-chart>
+----
+
+The nice part of about using angular in the charting framework is that whenever the underlying data changes, watchers automatically load and re-render the chart (as well as any of the properties that may have changed like chart-type).
+This results in less code and more productivity.
+
+.Prerequisite setup:
+. Add the hawkular-chart.css to the main index.html page
+. Add the charting module to the application module: `app.module('myApp', ['hawkularCharts']);`
+
+All that's left to do now is select the chart type and bind the _data_ attribute on the __<hawkular-chart>__ directive.
+
+
+=== Stand Alone Live Updating Tag Example
+__Want to add some dynamically updating charts to your own pages?__
+
+
+The stand alone version of the tag allows for linking to hawkular-metrics servers (or any supplier of formatted metric data) without any dependencies except for a few js libs and 2 lines of script to setup an Angular app.
+
+[source,javascript]
+----
+<hawkular-chart
+        chart-type="bar"
+        metric-id="server2.cpu.user"
+        metric-url="http://127.0.0.1:8080/rhq-metrics/metrics"
+        time-range-in-seconds="86400002"
+        refresh-interval-in-seconds="30"
+        chart-height="250" >
+</hawkular-chart>
+----
+
+This allows plain html web pages to be sprinkled with tags and a couple js libs and you can have dynamic live updating metrics. Great for NOCs or dashboards. These pages can even be emailed around and then thrown behind an http server for viewing.
+
+*Sample Stand Alone Example Page:*  https://github.com/hawkular/hawkular-charts/blob/master/stand-alone-chart-sample.html[stand-alone-chart-sample.html]
+This allows dashboard templates to be emailed around (although they need to be rendered behind a http server of your choice).
+
+
+=== Stand Alone Charting Explained
+
+image::img/hawkular-chart-standalone2.png[Stand alone charting explained]
+
+
+== Chart Customization
+
+.This project is built around customization. There are several forms of customization:
+- Most cosmetic issues are controlled via standard css through the http://github.com/hawkular/hawkular-charts/blob/master/css/hawkular-chart.css[hawkular-chart.css].
+- Custom Chart types: Soon!
+- Custom Indicators: Soon!
+
+
+== Building the Project
+
+.You have to install required software before you're able to use grunt to build:
+* Install _Node.js_ - Find more information on http://nodejs.org/[Node.js]
+** Install _npm_ - If npm is not already installed with Node.js, you have to install it manually. Find more information on https://www.npmjs.org/[npm]
+* Install _Grunt_ and _Bower_ globally:   `npm install -g bower grunt-cli`
+* Install _npm_ dependencies with:  `npm install`
+* Install _bower_ dependencies with:  `bower install`
+
+The environment is now ready to be built.
+
+The *hawkular Charts*  directives can be built with: `grunt build`
+
+The resulting javascript files are placed in the _dist/_ directory
+
+To see all the grunt tasks that are available:  `grunt help`
+
+
+== Contributing
+
+We're always interested in contributions from the community.
+
+.Please ensure that your Pull Request provides the following:
+* Detailed description of the proposed changes
+* Follows the style rules for javascript(.jshintrc) and html(.htmlhintrc).
+* Rebased onto the latest master commit
+* This is a http://github.com/Microsoft/TypeScript/[Typescript] project, so please submit the typescript source (not the javascript source)

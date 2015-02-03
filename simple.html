@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>RHQ Metrics Basic Standalone Chart Example </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://rawgit.com/hawkular/hawkular-charts/master/css/hawkular-chart.css">
+    <style>
+        .metricIdLabel { color: #999; }
+        .metricIdHeader { margin: 20px 0 -45px 90px; }
+        .chartWrapper { height: 250px; }
+    </style>
+
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" data-require="angular.js@1.2.4" data-semver="1.2.4" src="http://code.angularjs.org/1.2.4/angular.min.js"></script>
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.6.3/d3-tip.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment.min.js" ></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/numeral.js/1.5.3/numeral.min.js"></script>
+    <script type="text/javascript" src="http://rawgit.com/rhq-project/rhqm-charts/master/dist/rhqm-charts.min.js"></script>
+
+    <script>
+        var app = angular.module('myApp', ['hawkularCharts']);
+
+        app.controller('StandAloneController', function ($scope) {
+            // this is just a dummy controller required to render the directive
+        });
+
+    </script>
+</head>
+<body ng-app="myApp">
+
+<h3>Stand Alone Live Hawkular Charts Example</h3>
+
+<div ng-controller="StandAloneController">
+
+    <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
+        <strong>pintsize.home.pilhuhn.de.cpu_user</strong></div>
+    <div class="chartWrapper">
+        <rhqm-chart chart-type="bar"
+                    metric-id="pintsize.home.pilhuhn.de.cpu_user"
+                    metric-url="http://10.3.10.81:8080/rhq-metrics/metrics/"
+                    time-range-in-seconds="86400"
+                    refresh-interval-in-seconds="30"
+                    chart-height="250"></rhqm-chart>
+    </div>
+
+</div>
+</body>
+</html>

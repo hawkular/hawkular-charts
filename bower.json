@@ -1,0 +1,52 @@
+{
+  "name": "hawkular-charts",
+  "version": "0.1.10",
+  "authors": [
+    "Red Hat"
+  ],
+  "description": "Hawkular Metrics Angular Charting Directives.",
+  "keywords": [
+    "angular",
+    "time-series",
+    "metrics",
+    "hawkular-charts"
+  ],
+  "license": "APL-2.0",
+  "ignore": [
+    "node_modules",
+    "lib",
+    "Gruntfile.js",
+    "package.json",
+    ".bowerrc",
+    ".editorconfig",
+    ".gitignore",
+    ".jshintrc",
+    "karma.conf.js",
+    "src",
+    "README.md",
+    "bower.json",
+    "**/.*",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "main": [
+    "dist/hawkular-charts.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hawkular/hawkular-charts.git"
+  },
+  "dependencies": {
+    "angular": ">1.2",
+    "jquery": ">2.0",
+    "d3": "3.4.8",
+    "moment": "2.9.0",
+    "d3-tip": "0.6.6",
+    "numeral": "1.5.3"
+  },
+  "homepage": "https://github.com/hawkular/hawkular-charts",
+  "moduleType": [
+    "globals"
+  ]
+}
