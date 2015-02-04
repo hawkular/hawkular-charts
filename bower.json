@@ -31,7 +31,7 @@
     "tests"
   ],
   "main": [
-    "dist/hawkular-charts.js"
+    "hawkular-charts.js", "css/hawkular-charts.css"
   ],
   "repository": {
     "type": "git",

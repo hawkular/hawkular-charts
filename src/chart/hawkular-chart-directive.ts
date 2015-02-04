@@ -287,7 +287,7 @@ module Directives {
                     $http.get(url+ metricId, searchParams).success(function (response) {
 
                         processedNewData = formatBucketedChartOutput(response);
-                        console.info("DataPoints from standalone URL:");
+                        console.info("DataPoints from standalone URL: ");
                         //console.table(processedNewData);
                         scope.render(processedNewData, processedPreviousRangeData);
 

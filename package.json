@@ -18,6 +18,7 @@
     "gulp-tslint": "1.4.2",
     "gulp-typescript": "2.4.2",
     "gulp-watch": "3.0.0",
+    "merge2": "^0.3.1",
     "through2": "0.6.3",
     "underscore.string": "2.4.0",
     "vinyl-map": "1.0.1",

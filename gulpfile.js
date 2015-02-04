@@ -24,6 +24,8 @@ var gulp = require('gulp'),
     path = require('path'),
     s = require('underscore.string'),
     stripDebug = require('gulp-strip-debug'),
+    ts = require('gulp-typescript'),
+    merge = require('merge2'),
     tslint = require('gulp-tslint');
 
 var plugins = gulpLoadPlugins({});
@@ -42,30 +44,30 @@ var config = {
     })
 };
 
-gulp.task('bower', function() {
+gulp.task('bower', function () {
     gulp.src('tester.html')
         .pipe(wiredep({}))
         .pipe(gulp.dest('.'));
 });
 
 /** Adjust the reference path of any typescript-built plugin this project depends on */
-//gulp.task('path-adjust', function() {
-//    gulp.src('libs/**/includes.d.ts')
-//        .pipe(map(function(buf, filename) {
-//            var textContent = buf.toString();
-//            var newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
-//            // console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
-//            return newTextContent;
-//        }))
-//        .pipe(gulp.dest('libs'));
-//});
+gulp.task('path-adjust', function() {
+    gulp.src('libs/**/includes.d.ts')
+        .pipe(map(function(buf, filename) {
+            var textContent = buf.toString();
+            var newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
+            // console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
+            return newTextContent;
+        }))
+        .pipe(gulp.dest('libs'));
+});
 
-gulp.task('clean-defs', function() {
-    return gulp.src('defs.d.ts', { read: false })
+gulp.task('clean-defs', function () {
+    return gulp.src('defs.d.ts', {read: false})
         .pipe(plugins.clean());
 });
 
-gulp.task('tsc', ['clean-defs'], function() {
+gulp.task('tsc', ['clean-defs'], function () {
     var cwd = process.cwd();
     var tsResult = gulp.src(config.ts)
         .pipe(plugins.typescript(config.tsProject))
@@ -76,12 +78,12 @@ gulp.task('tsc', ['clean-defs'], function() {
 
     return eventStream.merge(
         tsResult.js
-            .pipe(plugins.concat('compiled.js'))
+            .pipe(plugins.concat(config.js))
             .pipe(stripDebug())
             .pipe(gulp.dest('.')),
         tsResult.dts
             .pipe(gulp.dest('d.ts')))
-        .pipe(map(function(buf, filename) {
+        .pipe(map(function (buf, filename) {
             if (!s.endsWith(filename, 'd.ts')) {
                 return buf;
             }
@@ -91,67 +93,28 @@ gulp.task('tsc', ['clean-defs'], function() {
         }));
 });
 
-gulp.task('tslint', function(){
+
+gulp.task('tslint', function () {
     gulp.src(config.ts)
         .pipe(tslint())
         .pipe(tslint.report('verbose'));
 });
 
-gulp.task('tslint-watch', function(){
-    gulp.src(config.ts)
-        .pipe(tslint())
-        .pipe(tslint.report('prose', {
-            emitError: false
-        }));
-});
 
-//gulp.task('template', ['tsc'], function() {
-//    return gulp.src(config.templates)
-//        .pipe(plugins.angularTemplatecache({
-//            filename: 'templates.js',
-//            root: 'plugins/',
-//            standalone: true,
-//            module: config.templateModule,
-//            templateFooter: '}]); hawtioPluginLoader.addModule("' + config.templateModule + '");'
-//        }))
-//        .pipe(gulp.dest('.'));
-//});
 
-gulp.task('concat',  function() {
-    return gulp.src(['compiled.js' ])
+gulp.task('concat', function () {
+    return gulp.src([config.js])
         .pipe(plugins.concat(config.js))
-        .pipe(gulp.dest(config.dist))
 });
 
-gulp.task('clean', ['concat'], function() {
-    return gulp.src(['compiled.js'], { read: false })
+gulp.task('clean', ['concat'], function () {
+    return gulp.src([config.js], {read: false})
         .pipe(plugins.clean());
 });
 
-gulp.task('watch', ['build'], function() {
-    plugins.watch(['libs/**/*.js', 'libs/**/*.css', 'index.html', config.dist + '/' + config.js], function() {
-        gulp.start('reload');
-    });
-    plugins.watch(['libs/**/*.d.ts', config.ts], function() {
-        gulp.start(['tslint-watch', 'tsc', 'concat', 'clean']);
-    });
-});
 
-gulp.task('connect', ['watch'], function() {
-    plugins.connect.server({
-        root: '.',
-        livereload: true,
-        port: 2772,
-        fallback: 'index.html'
-    });
-});
 
-gulp.task('reload', function() {
-    gulp.src('.')
-        .pipe(plugins.connect.reload());
-});
-
-gulp.task('build', ['bower',  'tslint', 'tsc', 'concat', 'clean']);
+gulp.task('build', ['bower', 'path-adjust', 'tslint', 'tsc', 'concat', 'clean']);
 
 gulp.task('default', ['build']);
 

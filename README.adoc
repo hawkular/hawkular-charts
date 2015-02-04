@@ -84,17 +84,15 @@ image::img/hawkular-chart-standalone2.png[Stand alone charting explained]
 .You have to install required software before you're able to use grunt to build:
 * Install _Node.js_ - Find more information on http://nodejs.org/[Node.js]
 ** Install _npm_ - If npm is not already installed with Node.js, you have to install it manually. Find more information on https://www.npmjs.org/[npm]
-* Install _Grunt_ and _Bower_ globally:   `npm install -g bower grunt-cli`
+* Install _Gulp_ and _Bower_ globally:   `npm install -g bower gulp`
 * Install _npm_ dependencies with:  `npm install`
 * Install _bower_ dependencies with:  `bower install`
 
 The environment is now ready to be built.
 
-The *hawkular Charts*  directives can be built with: `grunt build`
+The *hawkular Charts*  directives can be built with: `gulp`. Only the one command is needed as building is so fast that a watcher task is not necessary.
 
-The resulting javascript files are placed in the _dist/_ directory
-
-To see all the grunt tasks that are available:  `grunt help`
+The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
 
 == Contributing
@@ -103,6 +101,5 @@ We're always interested in contributions from the community.
 
 .Please ensure that your Pull Request provides the following:
 * Detailed description of the proposed changes
-* Follows the style rules for javascript(.jshintrc) and html(.htmlhintrc).
 * Rebased onto the latest master commit
 * This is a http://github.com/Microsoft/TypeScript/[Typescript] project, so please submit the typescript source (not the javascript source)
