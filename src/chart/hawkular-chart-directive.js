@@ -10,7 +10,7 @@ var Directives;
      */
     angular.module('hawkularCharts', []).directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log', function ($rootScope, $http, $interval, $log) {
         /// only for the stand alone charts
-        var BASE_URL = '/rhq-metrics/metrics';
+        var BASE_URL = '/hawkular/metrics';
         function link(scope, element, attrs) {
             // data specific vars
             var dataPoints = [], dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'bar', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Bar Duration', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', highBarColor = attrs.highBarColor || '#1794bc', lowBarColor = attrs.lowBarColor || '#70c4e2', leaderBarColor = attrs.leaderBarColor || '#d3d3d6', rawValueBarColor = attrs.rawValueBarColor || '#50505a', avgLineColor = attrs.avgLineColor || '#2e376a', showAvgLine = true, hideHighLowValues = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
@@ -921,4 +921,4 @@ var Directives;
         };
     }]);
 })(Directives || (Directives = {}));
-//# sourceMappingURL=rhq-chart-directive.js.map
+//# sourceMappingURL=hawkular-chart-directive.js.map

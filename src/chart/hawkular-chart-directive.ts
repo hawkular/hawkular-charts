@@ -17,7 +17,7 @@ module Directives {
         .directive('hawkularChart', ['$rootScope', '$http', '$interval','$log', function ($rootScope:ng.IRootScopeService, $http:ng.IHttpService, $interval:ng.IIntervalService,  $log:ng.ILogService ):ng.IDirective {
 
             /// only for the stand alone charts
-            var BASE_URL = '/rhq-metrics/metrics';
+            var BASE_URL = '/hawkular/metrics';
 
             function link(scope, element, attrs) {
 

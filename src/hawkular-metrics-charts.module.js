@@ -6,4 +6,4 @@
  *
  */
 angular.module('hawkular-charts', ['d3', 'd3-tip', 'moment']);
-//# sourceMappingURL=rhq-metrics-charts.module.js.map
+//# sourceMappingURL=hawkular-metrics-charts.module.js.map

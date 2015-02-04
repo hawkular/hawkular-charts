@@ -41,7 +41,7 @@ var Directives;
                 return getChartWidth() <= smallChartThresholdInPixels;
             }
             function oneTimeChartSetup() {
-                console.log("OneTimeChartSetup");
+                void 0;
                 // destroy any previous charts
                 if (angular.isDefined(chart)) {
                     chartParent.selectAll('*').remove();
@@ -59,7 +59,7 @@ var Directives;
                 function determineMultiMetricMinMax() {
                     var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
                     angular.forEach(multiChartOverlayData, function (series) {
-                        console.debug("Series: " + series.length);
+                        void 0;
                         currentMax = d3.max(series.map(function (d) {
                             return !d.empty ? d.avg : 0;
                         }));
@@ -153,7 +153,7 @@ var Directives;
                 }
                 $http.get(url + metricId, searchParams).success(function (response) {
                     processedNewData = formatBucketedChartOutput(response);
-                    console.info("DataPoints from standalone URL:");
+                    void 0;
                     //console.table(processedNewData);
                     scope.render(processedNewData, processedPreviousRangeData);
                 }).error(function (reason, status) {
@@ -790,13 +790,13 @@ var Directives;
             }
             scope.$watch('dataUrl', function (newUrlData) {
                 if (angular.isDefined(newUrlData)) {
-                    console.log('dataUrl has changed: ' + newUrlData);
+                    void 0;
                     dataUrl = newUrlData;
                 }
             });
             scope.$watch('metricId', function (newMetricId) {
                 if (angular.isDefined(newMetricId)) {
-                    console.log('metricId has changed: ' + newMetricId);
+                    void 0;
                     metricId = newMetricId;
                     loadMetricsTimeRangeFromNow();
                 }
@@ -811,7 +811,7 @@ var Directives;
             });
             scope.$watch('timeRangeInSeconds', function (newTimeRange) {
                 if (angular.isDefined(newTimeRange)) {
-                    console.log("timeRangeInSeconds changed.");
+                    void 0;
                     timeRangeInSeconds = newTimeRange;
                 }
             });
@@ -839,8 +839,8 @@ var Directives;
             });
             scope.render = function (dataPoints, previousRangeDataPoints) {
                 if (isListDefinedAndHasValues(dataPoints)) {
-                    console.group('Render Chart');
-                    console.time('chartRender');
+                    void 0;
+                    void 0;
                     //NOTE: layering order is important!
                     oneTimeChartSetup();
                     determineScale(dataPoints);
@@ -879,8 +879,8 @@ var Directives;
                         createAvgLines();
                     }
                     annotateChart(annotationData);
-                    console.timeEnd('chartRender');
-                    console.groupEnd('Render Chart');
+                    void 0;
+                    void 0;
                 }
             };
         }

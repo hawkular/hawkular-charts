@@ -25,12 +25,12 @@
 
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
-    <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/angular/angular.js"></script>
-    <script src="bower_components/d3/d3.js"></script>
-    <script src="bower_components/moment/moment.js"></script>
-    <script src="bower_components/d3-tip/index.js"></script>
-    <script src="bower_components/numeral/numeral.js"></script>
+    <script src="libs/jquery/dist/jquery.js"></script>
+    <script src="libs/angular/angular.js"></script>
+    <script src="libs/d3/d3.js"></script>
+    <script src="libs/moment/moment.js"></script>
+    <script src="libs/d3-tip/index.js"></script>
+    <script src="libs/numeral/numeral.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -56,28 +56,6 @@
 
 <div ng-controller="ChartController">
 
-    <!--<div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>-->
-        <!--<strong>pintsize.home.pilhuhn.de.cpu_user</strong></div>-->
-    <!--<div class="chartWrapper">-->
-        <!--<hawkular-chart chart-type="bar"-->
-                    <!--metric-id="pintsize.home.pilhuhn.de.cpu_user"-->
-                    <!--metric-url="http://10.3.10.81:8080/rhq-metrics/metrics/"-->
-                    <!--time-range-in-seconds="7200"-->
-                    <!--refresh-interval-in-seconds="30"-->
-                    <!--chart-height="250"></hawkular-chart>-->
-    <!--</div>-->
-
-    <!--<div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>-->
-        <!--<strong>pintsize.home.pilhuhn.de.mem_free</strong>-->
-    <!--</div>-->
-    <!--<div class="chartWrapper">-->
-        <!--<hawkular-chart chart-type="bar"-->
-                    <!--metric-id="pintsize.home.pilhuhn.de.mem_free"-->
-                    <!--metric-url="http://10.3.10.81:8080/rhq-metrics/metrics/"-->
-                    <!--time-range-in-seconds="604800"-->
-                    <!--refresh-interval-in-seconds="60"-->
-                    <!--chart-height="250"></hawkular-chart>-->
-    <!--</div>-->
 
     <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
         <strong>hrupp-rhq-metrics-saas.wildfly.heap-memory-usage.used</strong>
