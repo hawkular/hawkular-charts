@@ -1,6 +1,6 @@
 {
   "name": "hawkular-charts",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "authors": [
     "Red Hat"
   ],
@@ -31,7 +31,8 @@
     "tests"
   ],
   "main": [
-    "hawkular-charts.js", "css/hawkular-charts.css"
+    "hawkular-charts.js",
+    "css/hawkular-charts.css"
   ],
   "repository": {
     "type": "git",
