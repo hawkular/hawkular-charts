@@ -4,7 +4,7 @@ This project provides AngularJS directives for displaying visual representations
 
 == About
 
-The parent project that spurred this project is http://github.com/hawkular/hawkular[Hawkular] - A Metrics engine based on http://cassandra.apache.org/[Cassandra] (there is also an in-memory version). The console in RHQ Metrics uses these charting components and will further push the development of these charting components into the future.
+The parent project that spurred this project is http://github.com/hawkular/hawkular[Hawkular] - A Metrics engine based on http://cassandra.apache.org/[Cassandra] (there is also an embedded version of hawkular metrics). The console in Hawkular uses these charting components and will further push the development of these charting components into the future.
 
 == Charts
 
@@ -18,7 +18,7 @@ Don't like the charts we have? Take one of the existing charts and modify (comin
 
 Or
 
-*Download:* http://github.com/hawkular/hawkular-charts/blob/master/dist/hawkular-charts.js[hawkular-charts.js] / http://github.com/hawkular/hawkular-charts/blob/master/dist/hawkular-charts.min.js[hawkular-charts.min.js]
+*Download:* http://github.com/hawkular/hawkular-charts/blob/master/hawkular-charts.js[hawkular-charts.js]
 
 == Using the Charting Directives
 Bind to a javascript array of metrics:
@@ -53,7 +53,7 @@ The stand alone version of the tag allows for linking to hawkular-metrics server
 <hawkular-chart
         chart-type="bar"
         metric-id="server2.cpu.user"
-        metric-url="http://127.0.0.1:8080/rhq-metrics/metrics"
+        metric-url="http://127.0.0.1:8080/hawkular/metrics"
         time-range-in-seconds="86400002"
         refresh-interval-in-seconds="30"
         chart-height="250" >

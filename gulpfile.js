@@ -23,6 +23,7 @@ var gulp = require('gulp'),
     fs = require('fs'),
     path = require('path'),
     s = require('underscore.string'),
+    size = require('gulp-size'),
     stripDebug = require('gulp-strip-debug'),
     ts = require('gulp-typescript'),
     merge = require('merge2'),
@@ -42,6 +43,13 @@ var config = {
         declarationFiles: true,
         noExternalResolve: false
     })
+};
+
+var normalSizeOptions = {
+    showFiles: true
+}, gZippedSizeOptions  = {
+    showFiles: true,
+    gzip: true
 };
 
 gulp.task('bower', function () {
@@ -103,8 +111,11 @@ gulp.task('tslint', function () {
 
 
 gulp.task('concat', function () {
+    var gZipSize = size(gZippedSizeOptions);
     return gulp.src([config.js])
         .pipe(plugins.concat(config.js))
+        .pipe(size(normalSizeOptions))
+        .pipe(gZipSize);
 });
 
 gulp.task('clean', ['concat'], function () {

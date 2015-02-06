@@ -18,7 +18,7 @@
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.6.3/d3-tip.min.js"></script>
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment.min.js" ></script>
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/numeral.js/1.5.3/numeral.min.js"></script>
-    <script type="text/javascript" src="http://rawgit.com/rhq-project/rhqm-charts/master/dist/rhqm-charts.min.js"></script>
+    <script type="text/javascript" src="http://rawgit.com/hawkular/hawkular-charts/master/dist/hawkular-charts.js"></script>
 
     <script>
         var app = angular.module('myApp', ['hawkularCharts']);
@@ -40,7 +40,7 @@
     <div class="chartWrapper">
         <rhqm-chart chart-type="bar"
                     metric-id="pintsize.home.pilhuhn.de.cpu_user"
-                    metric-url="http://10.3.10.81:8080/rhq-metrics/metrics/"
+                    metric-url="http://10.3.10.81:8080/hawkular/metrics/"
                     time-range-in-seconds="86400"
                     refresh-interval-in-seconds="30"
                     chart-height="250"></rhqm-chart>

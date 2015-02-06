@@ -36,7 +36,7 @@
         });
 
     </script>
-    <script type="text/javascript" src="http://rawgit.com/hawkular/hawkular-charts/master/dist/hawkular-charts.min.js"></script>
+    <script type="text/javascript" src="http://rawgit.com/hawkular/hawkular-charts/master/hawkular-charts.js"></script>
 
 
 </head>
@@ -72,7 +72,7 @@
     <div class="chartWrapper">
         <hawkular-chart chart-type="bar"
                     metric-id="pintsize.home.pilhuhn.de.cpu_user"
-                    metric-url="http://10.3.10.81:8080/rhq-metrics/metrics/"
+                    metric-url="http://10.3.10.81:8080/hawkular/metrics/"
                     time-range-in-seconds="7200"
                     refresh-interval-in-seconds="30"
                     chart-height="250"></hawkular-chart>
@@ -84,7 +84,7 @@
     <div class="chartWrapper">
         <hawkular-chart chart-type="bar"
                     metric-id="pintsize.home.pilhuhn.de.mem_free"
-                    metric-url="http://10.3.10.81:8080/rhq-metrics/metrics/"
+                    metric-url="http://10.3.10.81:8080/hawkular/metrics/"
                     time-range-in-seconds="604800"
                     refresh-interval-in-seconds="60"
                     chart-height="250"></hawkular-chart>
@@ -96,7 +96,7 @@
     <div class="chartWrapper">
         <hawkular-chart chart-type="area"
                     metric-id="hrupp-rhq-metrics-saas.wildfly.heap-memory-usage.used"
-                    metric-url="http://10.3.10.81:8080/rhq-metrics/metrics/"
+                    metric-url="http://10.3.10.81:8080/hawkular/metrics/"
                     time-range-in-seconds="86400"
                     refresh-interval-in-seconds="60"
                     chart-height="250"></hawkular-chart>

@@ -4,9 +4,9 @@
   "authors": [
     "Red Hat"
   ],
-  "description": "Hawkular Metrics Angular Charting Directives.",
+  "description": "WIP: Hawkular Metrics Angular Charting Directives.",
   "keywords": [
-    "angular",
+    "angular directives",
     "time-series",
     "metrics",
     "hawkular-charts"
