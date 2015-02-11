@@ -39,8 +39,8 @@
     "url": "git://github.com/hawkular/hawkular-charts.git"
   },
   "dependencies": {
-    "angular": ">1.2",
-    "jquery": ">2.0",
+    "angular": ">1.2.0",
+    "jquery": ">2.0.0",
     "d3": "3.4.8",
     "moment": "2.9.0",
     "d3-tip": "0.6.6",
