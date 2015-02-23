@@ -23,7 +23,7 @@
     ".jshintrc",
     "karma.conf.js",
     "src",
-    "README.md",
+    "README.adoc",
     "bower.json",
     "**/.*",
     "bower_components",
