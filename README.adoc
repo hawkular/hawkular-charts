@@ -36,7 +36,7 @@ The nice part of about using angular in the charting framework is that whenever 
 This results in less code and more productivity.
 
 .Prerequisite setup:
-. Add the hawkular-chart.css to the main index.html page
+. Add the hawkular-charts.css to the main index.html page
 . Add the charting module to the application module: `app.module('myApp', ['hawkularCharts']);`
 
 All that's left to do now is select the chart type and bind the _data_ attribute on the __<hawkular-chart>__ directive.
@@ -74,7 +74,7 @@ image::img/hawkular-chart-standalone2.png[Stand alone charting explained]
 == Chart Customization
 
 .This project is built around customization. There are several forms of customization:
-- Most cosmetic issues are controlled via standard css through the http://github.com/hawkular/hawkular-charts/blob/master/css/hawkular-chart.css[hawkular-chart.css].
+- Most cosmetic issues are controlled via standard css through the http://github.com/hawkular/hawkular-charts/blob/master/css/hawkular-charts.css[hawkular-charts.css].
 - Custom Chart types: Soon!
 - Custom Indicators: Soon!
 

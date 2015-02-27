@@ -32,7 +32,7 @@
   ],
   "main": [
     "hawkular-charts.js",
-    "css/hawkular-chart.css"
+    "css/hawkular-charts.css"
   ],
   "repository": {
     "type": "git",
