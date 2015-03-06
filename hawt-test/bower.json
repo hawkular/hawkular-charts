@@ -1,0 +1,32 @@
+{
+  "name": "charts",
+  "version": "0.1.0",
+  "keywords": [
+    "hawtio"
+  ],
+  "main": [
+    "dist/charts.js"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "libs",
+    "test",
+    "tests",
+    "plugins"
+  ],
+  "dependencies": {
+    "angular-bootstrap": "0.11.0",
+    "hawtio-core": "2.0.9",
+    "hawkular-charts": "~0.1.16",
+    "hawtio-core-navigation": "2.0.17",
+    "hawtio-utilities": "2.0.16"
+  },
+  "devDependencies": {
+    "bootstrap": "3.3.2",
+    "patternfly": "1.1.3",
+    "hawtio-core-dts": "~2.0.0",
+    "angular-mocks": "~1.3.7"
+  }
+}

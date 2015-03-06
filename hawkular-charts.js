@@ -513,6 +513,30 @@ var Directives;
                     svg.append("path").datum(chartData).attr("class", "lowLine").attr("d", lowLine);
                 }
             }
+            function createHawkularLineChart() {
+                var avgLine = d3.svg.line().interpolate("linear").defined(function (d) {
+                    return !d.empty;
+                }).x(function (d) {
+                    return xStartPosition(d);
+                }).y(function (d) {
+                    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                });
+                svg.selectAll(".dataPoint").data(chartData).enter().append("circle").attr("class", "dataDot").attr("r", 3).attr("cx", function (d) {
+                    return xStartPosition(d);
+                }).attr("cy", function (d) {
+                    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                }).style("fill", function () {
+                    return "#70c4e2";
+                }).style("opacity", function () {
+                    return "1";
+                }).on("mouseover", function (d, i) {
+                    tip.show(d, i);
+                }).on("mouseout", function () {
+                    tip.hide();
+                });
+                // Bar avg line
+                svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", avgLine);
+            }
             function createAreaChart() {
                 var highArea = d3.svg.area().interpolate("step-before").defined(function (d) {
                     return !d.empty;
@@ -855,6 +879,9 @@ var Directives;
                     }
                     else if (chartType === 'line') {
                         createLineChart();
+                    }
+                    else if (chartType === 'hawkularline') {
+                        createHawkularLineChart();
                     }
                     else if (chartType === 'area') {
                         createAreaChart();
