@@ -22,7 +22,7 @@ var Directives;
         var BASE_URL = '/hawkular/metrics';
         function link(scope, element, attrs) {
             // data specific vars
-            var dataPoints = [], dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'bar', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Bar Duration', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', highBarColor = attrs.highBarColor || '#1794bc', lowBarColor = attrs.lowBarColor || '#70c4e2', leaderBarColor = attrs.leaderBarColor || '#d3d3d6', rawValueBarColor = attrs.rawValueBarColor || '#50505a', avgLineColor = attrs.avgLineColor || '#2e376a', showAvgLine = true, hideHighLowValues = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
+            var dataPoints = [], dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'bar', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Bar Duration', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', highBarColor = attrs.highBarColor || '#1794bc', lowBarColor = attrs.lowBarColor || '#70c4e2', leaderBarColor = attrs.leaderBarColor || '#d3d3d6', rawValueBarColor = attrs.rawValueBarColor || '#50505a', showAvgLine = true, hideHighLowValues = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
             // chart specific vars
             var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
             dataPoints = attrs.data;
@@ -129,13 +129,7 @@ var Directives;
                 }
             }
             function getBaseUrl() {
-                var baseUrl;
-                if (angular.isUndefined(dataUrl) || dataUrl === '') {
-                    baseUrl = 'http://' + $rootScope.$storage.server.replace(/['"]+/g, '') + ':' + $rootScope.$storage.port + BASE_URL;
-                }
-                else {
-                    baseUrl = dataUrl;
-                }
+                var baseUrl = dataUrl || 'http://' + $rootScope.$storage.server.replace(/['"]+/g, '') + ':' + $rootScope.$storage.port + BASE_URL;
                 return baseUrl;
             }
             function loadMetricsForTimeRange(url, metricId, startTimestamp, endTimestamp, buckets) {
@@ -514,28 +508,48 @@ var Directives;
                 }
             }
             function createHawkularLineChart() {
-                var avgLine = d3.svg.line().interpolate("linear").defined(function (d) {
+                var chartLine = d3.svg.line().interpolate("linear").defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
-                svg.selectAll(".dataPoint").data(chartData).enter().append("circle").attr("class", "dataDot").attr("r", 3).attr("cx", function (d) {
-                    return xStartPosition(d);
-                }).attr("cy", function (d) {
-                    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                }).style("fill", function () {
-                    return "#70c4e2";
-                }).style("opacity", function () {
-                    return "1";
-                }).on("mouseover", function (d, i) {
-                    tip.show(d, i);
-                }).on("mouseout", function () {
-                    tip.hide();
-                });
+                //svg.selectAll(".dataPoint")
+                //  .data(chartData)
+                //  .enter().append("circle")
+                //  .attr("class", "dataDot")
+                //  .attr("r", 3)
+                //  .attr("cx", function (d) {
+                //    return xStartPosition(d);
+                //  })
+                //  .attr("cy", function (d) {
+                //    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                //  })
+                //  .style("fill", function () {
+                //    return "#70c4e2";
+                //  })
+                //  .style("opacity", function () {
+                //    return "1";
+                //  }).on("mouseover", function (d, i) {
+                //    tip.show(d, i);
+                //  }).on("mouseout", function () {
+                //    tip.hide();
+                //  });
                 // Bar avg line
-                svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", avgLine);
+                svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", chartLine);
+            }
+            function createHawkularAreaChart() {
+                var avgArea = d3.svg.area().interpolate("monotone").defined(function (d) {
+                    return !d.empty;
+                }).x(function (d) {
+                    return xStartPosition(d);
+                }).y1(function (d) {
+                    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                }).y0(function (d) {
+                    return yScale(0);
+                });
+                svg.append("path").datum(chartData).attr("class", "areaChart").transition().duration(550).attr("d", avgArea);
             }
             function createAreaChart() {
                 var highArea = d3.svg.area().interpolate("step-before").defined(function (d) {
@@ -845,12 +859,6 @@ var Directives;
                     scope.render(processedNewData, processedPreviousRangeData);
                 }
             });
-            scope.$watch('avgLineColor', function (newAvgLineColor) {
-                if (angular.isDefined(newAvgLineColor)) {
-                    avgLineColor = newAvgLineColor;
-                    scope.render(processedNewData, processedPreviousRangeData);
-                }
-            });
             scope.$watch('hideHighLowValues', function (newHideHighLowValues) {
                 if (angular.isDefined(newHideHighLowValues)) {
                     hideHighLowValues = newHideHighLowValues;
@@ -871,32 +879,33 @@ var Directives;
                     createHeader(attrs.chartTitle);
                     createYAxisGridLines();
                     createXAxisBrush();
-                    if (chartType === 'bar') {
-                        createStackedBars(lowBound, highBound);
-                    }
-                    else if (chartType === 'histogram') {
-                        createHistogramChart();
-                    }
-                    else if (chartType === 'line') {
-                        createLineChart();
-                    }
-                    else if (chartType === 'hawkularline') {
-                        createHawkularLineChart();
-                    }
-                    else if (chartType === 'area') {
-                        createAreaChart();
-                    }
-                    else if (chartType === 'scatter') {
-                        createScatterChart();
-                    }
-                    else if (chartType === 'scatterline') {
-                        createScatterLineChart();
-                    }
-                    else if (chartType === 'candlestick') {
-                        createCandleStickChart();
-                    }
-                    else {
-                        $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram]');
+                    switch (chartType) {
+                        case 'rhqbar':
+                            createStackedBars(lowBound, highBound);
+                            break;
+                        case 'histogram':
+                            createHistogramChart();
+                            break;
+                        case 'hawkularline':
+                            createHawkularLineChart();
+                            break;
+                        case 'hawkulararea':
+                            createHawkularAreaChart();
+                            break;
+                        case 'area':
+                            createAreaChart();
+                            break;
+                        case 'scatter':
+                            createScatterChart();
+                            break;
+                        case 'scatterline':
+                            createScatterLineChart();
+                            break;
+                        case 'candlestick':
+                            createCandleStickChart();
+                            break;
+                        default:
+                            $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram]');
                     }
                     createPreviousRangeOverlay(previousRangeDataPoints);
                     createMultiMetricOverlay();
@@ -949,7 +958,6 @@ var Directives;
                 lowBarColor: '@',
                 leaderBarColor: '@',
                 rawValueBarColor: '@',
-                avgLineColor: '@',
                 showAvgLine: '@',
                 hideHighLowValues: '@',
                 chartTitle: '@'

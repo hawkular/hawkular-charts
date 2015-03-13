@@ -51,7 +51,6 @@ module Directives {
           lowBarColor = attrs.lowBarColor || '#70c4e2',
           leaderBarColor = attrs.leaderBarColor || '#d3d3d6',
           rawValueBarColor = attrs.rawValueBarColor || '#50505a',
-          avgLineColor = attrs.avgLineColor || '#2e376a',
           showAvgLine = true,
           hideHighLowValues = false,
           chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y',
@@ -225,20 +224,20 @@ module Directives {
 
             timeScale = d3.time.scale()
               .range([0, width])
-              .domain(d3.extent(chartData, function (d:any) {
+              .domain(d3.extent(chartData, (d:any) => {
                 return d.timestamp;
               }));
 
             if (isListDefinedAndHasValues(contextData)) {
               timeScaleForContext = d3.time.scale()
                 .range([0, width])
-                .domain(d3.extent(contextData, function (d:any) {
+                .domain(d3.extent(contextData, (d:any) => {
                   return d.timestamp;
                 }));
             } else {
               timeScaleForBrush = d3.time.scale()
                 .range([0, width])
-                .domain(d3.extent(chartData, function (d:any) {
+                .domain(d3.extent(chartData, (d:any) =>  {
                   return d.timestamp;
                 }));
 
@@ -255,13 +254,8 @@ module Directives {
         }
 
 
-        function getBaseUrl():string {
-          var baseUrl;
-          if (angular.isUndefined(dataUrl) || dataUrl === '') {
-            baseUrl = 'http://' + $rootScope.$storage.server.replace(/['"]+/g, '') + ':' + $rootScope.$storage.port + BASE_URL;
-          } else {
-            baseUrl = dataUrl;
-          }
+        function getBaseUrl() : string {
+          var baseUrl = dataUrl ||  'http://' + $rootScope.$storage.server.replace(/['"]+/g, '') + ':' + $rootScope.$storage.port + BASE_URL;
           return baseUrl;
         }
 
@@ -878,46 +872,75 @@ module Directives {
         }
 
         function createHawkularLineChart() {
-          var avgLine = d3.svg.line()
+          var chartLine = d3.svg.line()
             .interpolate("linear")
-            .defined(function (d) {
+            .defined((d) => {
               return !d.empty;
             })
-            .x(function (d) {
+            .x((d) => {
               return xStartPosition(d);
             })
-            .y(function (d) {
+            .y((d) => {
               return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
             });
 
-          svg.selectAll(".dataPoint")
-            .data(chartData)
-            .enter().append("circle")
-            .attr("class", "dataDot")
-            .attr("r", 3)
-            .attr("cx", function (d) {
-              return xStartPosition(d);
-            })
-            .attr("cy", function (d) {
-              return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-            })
-            .style("fill", function () {
-              return "#70c4e2";
-            })
-            .style("opacity", function () {
-              return "1";
-            }).on("mouseover", function (d, i) {
-              tip.show(d, i);
-            }).on("mouseout", function () {
-              tip.hide();
-            });
+          //@todo: if number of points == 1 then show dataPoint else not
+          //svg.selectAll(".dataPoint")
+          //  .data(chartData)
+          //  .enter().append("circle")
+          //  .attr("class", "dataDot")
+          //  .attr("r", 3)
+          //  .attr("cx", function (d) {
+          //    return xStartPosition(d);
+          //  })
+          //  .attr("cy", function (d) {
+          //    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+          //  })
+          //  .style("fill", function () {
+          //    return "#70c4e2";
+          //  })
+          //  .style("opacity", function () {
+          //    return "1";
+          //  }).on("mouseover", function (d, i) {
+          //    tip.show(d, i);
+          //  }).on("mouseout", function () {
+          //    tip.hide();
+          //  });
 
 
           // Bar avg line
           svg.append("path")
             .datum(chartData)
             .attr("class", "avgLine")
-            .attr("d", avgLine);
+            .attr("d", chartLine);
+
+        }
+
+
+        function createHawkularAreaChart() {
+
+            var avgArea = d3.svg.area()
+              .interpolate("monotone")
+              .defined( (d) => {
+                return !d.empty;
+              })
+              .x((d)  =>{
+                return xStartPosition(d);
+              })
+              .y1((d) => {
+                return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+              }).
+              y0((d) =>{
+                return  yScale(0);
+              });
+
+
+          svg.append("path")
+            .datum(chartData)
+            .attr("class", "areaChart")
+            .transition()
+            .duration(550)
+            .attr("d", avgArea);
 
         }
 
@@ -1440,12 +1463,6 @@ module Directives {
           }
         });
 
-        scope.$watch('avgLineColor', (newAvgLineColor) => {
-          if (angular.isDefined(newAvgLineColor)) {
-            avgLineColor = newAvgLineColor;
-            scope.render(processedNewData, processedPreviousRangeData);
-          }
-        });
 
         scope.$watch('hideHighLowValues', (newHideHighLowValues) => {
           if (angular.isDefined(newHideHighLowValues)) {
@@ -1472,7 +1489,7 @@ module Directives {
             createXAxisBrush();
 
             switch (chartType) {
-              case 'bar' :
+              case 'rhqbar' :
                 createStackedBars(lowBound, highBound);
                 break;
               case 'histogram' :
@@ -1480,6 +1497,9 @@ module Directives {
                 break;
               case 'hawkularline' :
                 createHawkularLineChart();
+                break;
+              case 'hawkulararea' :
+                createHawkularAreaChart();
                 break;
               case 'area' :
                 createAreaChart();
@@ -1494,29 +1514,10 @@ module Directives {
                 createCandleStickChart();
                 break;
               default:
-                $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram]');
+                $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkulararea]');
 
             }
-            //
-            //if (chartType === 'bar') {
-            //    createStackedBars(lowBound, highBound);
-            //} else if (chartType === 'histogram') {
-            //    createHistogramChart();
-            //} else if (chartType === 'line') {
-            //    createLineChart();
-            //} else if (chartType === 'hawkularline') {
-            //    createHawkularLineChart();
-            //} else if (chartType === 'area') {
-            //    createAreaChart();
-            //} else if (chartType === 'scatter') {
-            //    createScatterChart();
-            //} else if (chartType === 'scatterline') {
-            //    createScatterLineChart();
-            //} else if (chartType === 'candlestick') {
-            //    createCandleStickChart();
-            //} else {
-            //    $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram]');
-            //}
+
             createPreviousRangeOverlay(previousRangeDataPoints);
             createMultiMetricOverlay();
             createXandYAxes();
@@ -1569,7 +1570,6 @@ module Directives {
           lowBarColor: '@',
           leaderBarColor: '@',
           rawValueBarColor: '@',
-          avgLineColor: '@',
           showAvgLine: '@',
           hideHighLowValues: '@',
           chartTitle: '@'
