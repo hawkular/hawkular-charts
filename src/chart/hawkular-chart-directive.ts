@@ -1,6 +1,6 @@
 /// <reference path="../../vendor/vendor.d.ts" />
 
-module Directives {
+module Charts {
   'use strict';
 
   declare var d3:any;
@@ -27,6 +27,7 @@ module Directives {
           metricId = attrs.metricId || '',
           timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200,
           refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600,
+          alertValue = +attrs.alertValue,
           endTimestamp = Date.now(),
           startTimestamp = endTimestamp - timeRangeInSeconds,
           previousRangeDataPoints = [],
@@ -47,10 +48,6 @@ module Directives {
           maxLabel = attrs.maxLabel || 'Max',
           avgLabel = attrs.avgLabel || 'Avg',
           timestampLabel = attrs.timestampLabel || 'Timestamp',
-          highBarColor = attrs.highBarColor || '#1794bc',
-          lowBarColor = attrs.lowBarColor || '#70c4e2',
-          leaderBarColor = attrs.leaderBarColor || '#d3d3d6',
-          rawValueBarColor = attrs.rawValueBarColor || '#50505a',
           showAvgLine = true,
           hideHighLowValues = false,
           chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y',
@@ -116,7 +113,7 @@ module Directives {
         function oneTimeChartSetup():void {
           console.log("OneTimeChartSetup");
           // destroy any previous charts
-          if (angular.isDefined(chart)) {
+          if (chart) {
             chartParent.selectAll('*').remove();
           }
           chartParent = d3.select(element[0]);
@@ -127,7 +124,7 @@ module Directives {
           tip = d3.tip()
             .attr('class', 'd3-tip')
             .offset([-10, 0])
-            .html(function (d, i) {
+            .html((d, i) => {
               return buildHover(d, i);
             });
 
@@ -145,13 +142,13 @@ module Directives {
         function setupFilteredData(dataPoints):void {
           function determineMultiMetricMinMax() {
             var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
-            angular.forEach(multiChartOverlayData, function (series) {
+            angular.forEach(multiChartOverlayData, (series) => {
               console.debug("Series: " + series.length);
-              currentMax = d3.max(series.map(function (d) {
+              currentMax = d3.max(series.map((d) => {
                 return !d.empty ? d.avg : 0;
               }));
               maxList.push(currentMax);
-              currentMin = d3.min(series.map(function (d) {
+              currentMin = d3.min(series.map((d) => {
                 return !d.empty ? d.avg : Number.MAX_VALUE;
               }));
               minList.push(currentMin);
@@ -162,21 +159,21 @@ module Directives {
             return [seriesMin, seriesMax];
           }
 
-          avg = d3.mean(dataPoints.map(function (d) {
+          avg = d3.mean(dataPoints.map((d) => {
             return !d.empty ? d.avg : 0;
           }));
 
-          if (angular.isDefined(multiChartOverlayData)) {
+          if (multiChartOverlayData) {
             var minMax = determineMultiMetricMinMax();
             peak = minMax[1];
             min = minMax[0];
           }
 
-          peak = d3.max(dataPoints.map(function (d) {
+          peak = d3.max(dataPoints.map((d) => {
             return !d.empty ? d.max : 0;
           }));
 
-          min = d3.min(dataPoints.map(function (d) {
+          min = d3.min(dataPoints.map((d)  => {
             return !d.empty ? d.min : undefined;
           }));
 
@@ -205,7 +202,7 @@ module Directives {
 
             setupFilteredData(dataPoints);
 
-            calcBarWidth = function () {
+            calcBarWidth = () => {
               return (width / chartData.length - barOffset  );
             };
 
@@ -228,7 +225,7 @@ module Directives {
                 return d.timestamp;
               }));
 
-            if (isListDefinedAndHasValues(contextData)) {
+            if (contextData) {
               timeScaleForContext = d3.time.scale()
                 .range([0, width])
                 .domain(d3.extent(contextData, (d:any) => {
@@ -278,14 +275,14 @@ module Directives {
             $log.warn('Start date was after end date');
           }
 
-          $http.get(url + metricId, searchParams).success(function (response) {
+          $http.get(url + metricId, searchParams).success((response) => {
 
             processedNewData = formatBucketedChartOutput(response);
             console.info("DataPoints from standalone URL: ");
             //console.table(processedNewData);
             scope.render(processedNewData, processedPreviousRangeData);
 
-          }).error(function (reason, status) {
+          }).error((reason, status) => {
             $log.error('Error Loading Chart Data:' + status + ", " + reason);
           });
 
@@ -293,7 +290,7 @@ module Directives {
 
         function formatBucketedChartOutput(response) {
           //  The schema is different for bucketed output
-          return response.map(function (point:any) {
+          return response.map((point:any) => {
             return {
               timestamp: point.timestamp,
               date: new Date(point.timestamp),
@@ -419,10 +416,10 @@ module Directives {
             .data(chartData)
             .enter().append("rect")
             .attr("class", "leaderBar")
-            .attr("x", function (d) {
+            .attr("x", (d) => {
               return timeScale(d.timestamp);
             })
-            .attr("y", function (d) {
+            .attr("y", (d) => {
               if (!isEmptyDataBar(d)) {
                 return yScale(d.min);
               }
@@ -430,7 +427,7 @@ module Directives {
                 return 0;
               }
             })
-            .attr("height", function (d) {
+            .attr("height", (d) => {
               if (isEmptyDataBar(d)) {
                 return height - yScale(highBound);
               }
@@ -438,21 +435,21 @@ module Directives {
                 return height - yScale(d.min);
               }
             })
-            .attr("width", function () {
+            .attr("width", () => {
               return calcBarWidth();
             })
 
             .attr("opacity", ".6")
-            .attr("fill", function (d) {
+            .attr("fill", (d) => {
               if (isEmptyDataBar(d)) {
                 return "url(#noDataStripes)";
               }
               else {
-                return leaderBarColor;
+                return "#d3d3d6";
               }
-            }).on("mouseover", function (d, i) {
+            }).on("mouseover", (d, i) => {
               tip.show(d, i);
-            }).on("mouseout", function () {
+            }).on("mouseout", () => {
               tip.hide();
             });
 
@@ -462,13 +459,13 @@ module Directives {
             .data(chartData)
             .enter().append("rect")
             .attr("class", "high")
-            .attr("x", function (d) {
+            .attr("x", (d) => {
               return timeScale(d.timestamp);
             })
-            .attr("y", function (d) {
+            .attr("y", (d) => {
               return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
             })
-            .attr("height", function (d) {
+            .attr("height", (d) => {
               if (isEmptyDataBar(d)) {
                 return 0;
               }
@@ -476,16 +473,16 @@ module Directives {
                 return yScale(d.avg) - yScale(d.max);
               }
             })
-            .attr("width", function () {
+            .attr("width", () => {
               return calcBarWidth();
             })
-            .attr("data-rhq-value", function (d) {
+            .attr("data-rhq-value", (d) => {
               return d.max;
             })
             .attr("opacity", 0.9)
-            .on("mouseover", function (d, i) {
+            .on("mouseover", (d, i) => {
               tip.show(d, i);
-            }).on("mouseout", function () {
+            }).on("mouseout", () => {
               tip.hide();
             });
 
@@ -495,13 +492,13 @@ module Directives {
             .data(chartData)
             .enter().append("rect")
             .attr("class", "low")
-            .attr("x", function (d) {
+            .attr("x", (d) => {
               return timeScale(d.timestamp);
             })
-            .attr("y", function (d) {
+            .attr("y", (d) => {
               return isNaN(d.avg) ? height : yScale(d.avg);
             })
-            .attr("height", function (d) {
+            .attr("height", (d) => {
               if (isEmptyDataBar(d)) {
                 return 0;
               }
@@ -509,16 +506,16 @@ module Directives {
                 return yScale(d.min) - yScale(d.avg);
               }
             })
-            .attr("width", function () {
+            .attr("width", () => {
               return calcBarWidth();
             })
             .attr("opacity", 0.9)
-            .attr("data-rhq-value", function (d) {
+            .attr("data-rhq-value", (d) => {
               return d.min;
             })
-            .on("mouseover", function (d, i) {
+            .on("mouseover", (d, i) => {
               tip.show(d, i);
-            }).on("mouseout", function () {
+            }).on("mouseout", () => {
               tip.hide();
             });
 
@@ -527,13 +524,13 @@ module Directives {
             .data(chartData)
             .enter().append("rect")
             .attr("class", "singleValue")
-            .attr("x", function (d) {
+            .attr("x", (d) => {
               return timeScale(d.timestamp);
             })
-            .attr("y", function (d) {
+            .attr("y", (d) => {
               return isNaN(d.value) ? height : yScale(d.value) - 2;
             })
-            .attr("height", function (d) {
+            .attr("height", (d) => {
               if (isEmptyDataBar(d)) {
                 return 0;
               }
@@ -546,23 +543,23 @@ module Directives {
                 }
               }
             })
-            .attr("width", function () {
+            .attr("width", () => {
               return calcBarWidth();
             })
             .attr("opacity", 0.9)
-            .attr("data-rhq-value", function (d) {
+            .attr("data-rhq-value", (d) => {
               return d.value;
             })
-            .attr("fill", function (d) {
+            .attr("fill", (d) => {
               if (d.min === d.max) {
-                return rawValueBarColor;
+                return "#50505a";
               }
               else {
                 return "#70c4e2";
               }
-            }).on("mouseover", function (d, i) {
+            }).on("mouseover", (d, i) => {
               tip.show(d, i);
-            }).on("mouseout", function () {
+            }).on("mouseout", () => {
               tip.hide();
             });
         }
@@ -659,13 +656,13 @@ module Directives {
             .data(chartData)
             .enter().append("rect")
             .attr("class", "histogram")
-            .attr("x", function (d) {
+            .attr("x", (d) => {
               return timeScale(d.timestamp);
             })
-            .attr("width", function () {
+            .attr("width", () => {
               return calcBarWidth();
             })
-            .attr("y", function (d) {
+            .attr("y", (d) => {
               if (!isEmptyDataBar(d)) {
                 return yScale(d.avg);
               }
@@ -673,7 +670,7 @@ module Directives {
                 return 0;
               }
             })
-            .attr("height", function (d) {
+            .attr("height", (d) => {
               if (isEmptyDataBar(d)) {
                 return height - yScale(highBound);
               }
@@ -681,7 +678,7 @@ module Directives {
                 return height - yScale(d.avg);
               }
             })
-            .attr("fill", function (d, i) {
+            .attr("fill", (d, i) => {
               if (isEmptyDataBar(d)) {
                 return 'url(#noDataStripes)';
               }
@@ -692,10 +689,10 @@ module Directives {
                 return '#C0C0C0';
               }
             })
-            .attr("stroke", function (d) {
+            .attr("stroke", (d) => {
               return '#777';
             })
-            .attr("stroke-width", function (d) {
+            .attr("stroke-width", (d) => {
               if (isEmptyDataBar(d)) {
                 return '0';
               }
@@ -703,11 +700,11 @@ module Directives {
                 return '0';
               }
             })
-            .attr("data-rhq-value", function (d) {
+            .attr("data-rhq-value", (d) => {
               return d.avg;
-            }).on("mouseover", function (d, i) {
+            }).on("mouseover", (d, i) => {
               tip.show(d, i);
-            }).on("mouseout", function () {
+            }).on("mouseout", () => {
               tip.hide();
             });
 
@@ -717,22 +714,22 @@ module Directives {
               .data(chartData)
               .enter().append("line")
               .attr("class", "histogramTopStem")
-              .attr("x1", function (d) {
+              .attr("x1", (d) => {
                 return xStartPosition(d);
               })
-              .attr("x2", function (d) {
+              .attr("x2", (d) => {
                 return xStartPosition(d);
               })
-              .attr("y1", function (d) {
+              .attr("y1", (d) => {
                 return yScale(d.max);
               })
-              .attr("y2", function (d) {
+              .attr("y2", (d) => {
                 return yScale(d.avg);
               })
-              .attr("stroke", function (d) {
+              .attr("stroke", (d) => {
                 return "red";
               })
-              .attr("stroke-opacity", function (d) {
+              .attr("stroke-opacity", (d) => {
                 return strokeOpacity;
               });
 
@@ -740,21 +737,21 @@ module Directives {
               .data(chartData)
               .enter().append("line")
               .attr("class", "histogramBottomStem")
-              .attr("x1", function (d) {
+              .attr("x1", (d) => {
                 return xStartPosition(d);
               })
-              .attr("x2", function (d) {
+              .attr("x2", (d)  => {
                 return xStartPosition(d);
               })
-              .attr("y1", function (d) {
+              .attr("y1", (d) => {
                 return yScale(d.avg);
               })
-              .attr("y2", function (d) {
+              .attr("y2", (d)  => {
                 return yScale(d.min);
               })
-              .attr("stroke", function (d) {
+              .attr("stroke", (d) => {
                 return "red";
-              }).attr("stroke-opacity", function (d) {
+              }).attr("stroke-opacity", (d) => {
                 return strokeOpacity;
               });
 
@@ -1247,13 +1244,13 @@ module Directives {
           var interpolate = newInterpolation || 'monotone',
             line = d3.svg.line()
               .interpolate(interpolate)
-              .defined(function (d) {
+              .defined((d) => {
                 return !d.empty;
               })
-              .x(function (d) {
+              .x((d) => {
                 return timeScale(d.timestamp) + (calcBarWidth() / 2)
               })
-              .y(function (d) {
+              .y((d)=> {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               });
 
@@ -1265,6 +1262,26 @@ module Directives {
             .datum(chartData)
             .attr("class", "barAvgLine")
             .attr("d", createCenteredLine("monotone"));
+        }
+
+        function createAlertLineDef(alertValue:number) {
+          var line = d3.svg.line()
+            .interpolate("monotone")
+            .x((d) => {
+              return timeScale(d.timestamp) + (calcBarWidth() / 2)
+            })
+            .y((d) => {
+              return yScale(alertValue);
+            });
+
+          return line;
+        }
+
+        function createAlertLine(alertValue:number) {
+          svg.append("path")
+            .datum(chartData)
+            .attr("class", "alertLine")
+            .attr("d", createAlertLineDef(alertValue));
         }
 
 
@@ -1311,7 +1328,7 @@ module Directives {
         }
 
         function createPreviousRangeOverlay(prevRangeData) {
-          if (isListDefinedAndHasValues(prevRangeData)) {
+          if (prevRangeData) {
             $log.debug("Running PreviousRangeOverlay");
             svg.append("path")
               .datum(prevRangeData)
@@ -1328,18 +1345,18 @@ module Directives {
             colorScale = d3.scale.category20();
 
 
-          if (isListDefinedAndHasValues(multiChartOverlayData)) {
+          if (multiChartOverlayData) {
             $log.warn("Running MultiChartOverlay for %i metrics", multiChartOverlayData.length);
 
-            angular.forEach(multiChartOverlayData, function (singleChartData) {
+            angular.forEach(multiChartOverlayData, (singleChartData) => {
 
               svg.append("path")
                 .datum(singleChartData)
                 .attr("class", "multiLine")
-                .attr("fill", function (d, i) {
+                .attr("fill", (d, i) => {
                   return colorScale(i);
                 })
-                .attr("stroke", function (d, i) {
+                .attr("stroke", (d, i) => {
                   return colorScale(i);
                 })
                 .attr("stroke-width", "1")
@@ -1352,19 +1369,19 @@ module Directives {
         }
 
         function annotateChart(annotationData) {
-          if (isListDefinedAndHasValues(annotationData)) {
+          if (annotationData) {
             svg.selectAll(".annotationDot")
               .data(annotationData)
               .enter().append("circle")
               .attr("class", "annotationDot")
               .attr("r", 5)
-              .attr("cx", function (d) {
+              .attr("cx", (d) => {
                 return timeScale(d.timestamp);
               })
-              .attr("cy", function () {
+              .attr("cy", () => {
                 return height - yScale(highBound);
               })
-              .style("fill", function (d) {
+              .style("fill", (d) => {
                 if (d.severity === '1') {
                   return "red";
                 } else if (d.severity === '2') {
@@ -1376,20 +1393,16 @@ module Directives {
           }
         }
 
-        function isListDefinedAndHasValues(list) {
-          return angular.isDefined(list) && list.length > 0;
-        }
-
         scope.$watch('data', (newData) => {
-          if (isListDefinedAndHasValues(newData)) {
-            $log.debug('Data Changed');
+          if (newData) {
+            $log.debug('Chart Data Changed');
             processedNewData = angular.fromJson(newData);
             scope.render(processedNewData, processedPreviousRangeData);
           }
         }, true);
 
         scope.$watch('previousRangeData', (newPreviousRangeValues) => {
-          if (isListDefinedAndHasValues(newPreviousRangeValues)) {
+          if (newPreviousRangeValues) {
             $log.debug("Previous Range data changed");
             processedPreviousRangeData = angular.fromJson(newPreviousRangeValues);
             scope.render(processedNewData, processedPreviousRangeData);
@@ -1397,7 +1410,7 @@ module Directives {
         }, true);
 
         scope.$watch('annotationData', (newAnnotationData) => {
-          if (isListDefinedAndHasValues(newAnnotationData)) {
+          if (newAnnotationData) {
             annotationData = angular.fromJson(newAnnotationData);
             scope.render(processedNewData, processedPreviousRangeData);
           }
@@ -1405,7 +1418,7 @@ module Directives {
 
 
         scope.$watch('contextData', (newContextData) => {
-          if (isListDefinedAndHasValues(newContextData)) {
+          if (newContextData) {
             contextData = angular.fromJson(newContextData);
             scope.render(processedNewData, processedPreviousRangeData);
           }
@@ -1422,9 +1435,15 @@ module Directives {
           scope.render(processedNewData, processedPreviousRangeData);
         });
 
+        scope.$watch('alertValue', (newAlert) => {
+          if (newAlert) {
+            alertValue = newAlert;
+            scope.render(processedNewData, processedPreviousRangeData);
+          }
+        });
 
         scope.$watch('chartType', (newChartType) => {
-          if (angular.isDefined(newChartType)) {
+          if (newChartType) {
             chartType = newChartType;
             scope.render(processedNewData, processedPreviousRangeData);
           }
@@ -1437,14 +1456,14 @@ module Directives {
         }
 
         scope.$watch('dataUrl', (newUrlData) => {
-          if (angular.isDefined(newUrlData)) {
+          if (newUrlData) {
             console.log('dataUrl has changed: ' + newUrlData);
             dataUrl = newUrlData;
           }
         });
 
         scope.$watch('metricId', (newMetricId) => {
-          if (angular.isDefined(newMetricId)) {
+          if (newMetricId) {
             console.log('metricId has changed: ' + newMetricId);
             metricId = newMetricId;
             loadMetricsTimeRangeFromNow();
@@ -1452,7 +1471,7 @@ module Directives {
         });
 
         scope.$watch('refreshIntervalInSeconds', (newRefreshInterval) => {
-          if (angular.isDefined(newRefreshInterval)) {
+          if (newRefreshInterval) {
             refreshIntervalInSeconds = +newRefreshInterval;
             var startIntervalPromise = $interval(() => {
               loadMetricsTimeRangeFromNow();
@@ -1461,14 +1480,14 @@ module Directives {
         });
 
         scope.$watch('timeRangeInSeconds', (newTimeRange) => {
-          if (angular.isDefined(newTimeRange)) {
+          if (newTimeRange) {
             console.log("timeRangeInSeconds changed.")
             timeRangeInSeconds = newTimeRange;
           }
         });
 
         scope.$watch('showAvgLine', (newShowAvgLine) => {
-          if (angular.isDefined(newShowAvgLine)) {
+          if (newShowAvgLine) {
             showAvgLine = newShowAvgLine;
             scope.render(processedNewData, processedPreviousRangeData);
           }
@@ -1476,7 +1495,7 @@ module Directives {
 
 
         scope.$watch('hideHighLowValues', (newHideHighLowValues) => {
-          if (angular.isDefined(newHideHighLowValues)) {
+          if (newHideHighLowValues) {
             hideHighLowValues = newHideHighLowValues;
             scope.render(processedNewData, processedPreviousRangeData);
           }
@@ -1489,7 +1508,7 @@ module Directives {
 
 
         scope.render = (dataPoints, previousRangeDataPoints) => {
-          if (isListDefinedAndHasValues(dataPoints)) {
+          if (dataPoints) {
             console.group('Render Chart');
             console.time('chartRender');
             //NOTE: layering order is important!
@@ -1533,10 +1552,15 @@ module Directives {
             createMultiMetricOverlay();
             createXandYAxes();
             showAvgLine = (chartType === 'bar' || chartType === 'scatterline') ? true : false;
-            if (showAvgLine === true) {
+            if (showAvgLine) {
               createAvgLines();
             }
-            annotateChart(annotationData);
+            if(alertValue){
+              createAlertLine(alertValue);
+            }
+            if(annotationData){
+              annotateChart(annotationData);
+            }
             console.timeEnd('chartRender');
             console.groupEnd('Render Chart');
           }
@@ -1558,6 +1582,7 @@ module Directives {
           previousRangeData: '@',
           annotationData: '@',
           contextData: '@',
+          alertValue: '@',
           multiChartOverlayData: '@',
           chartHeight: '@',
           chartType: '@',
@@ -1577,10 +1602,6 @@ module Directives {
           maxLabel: '@',
           avgLabel: '@',
           timestampLabel: '@',
-          highBarColor: '@',
-          lowBarColor: '@',
-          leaderBarColor: '@',
-          rawValueBarColor: '@',
           showAvgLine: '@',
           hideHighLowValues: '@',
           chartTitle: '@'

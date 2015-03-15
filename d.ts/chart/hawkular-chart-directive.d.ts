@@ -1,3 +1,3 @@
 /// <reference path="../../vendor/vendor.d.ts" />
-declare module Directives {
+declare module Charts {
 }
