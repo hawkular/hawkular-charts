@@ -34,7 +34,7 @@ module Directives {
           contextData = [],
           multiChartOverlayData = [],
           chartHeight = +attrs.chartHeight || 250,
-          chartType = attrs.chartType || 'bar',
+          chartType = attrs.chartType || 'hawkularline',
           timeLabel = attrs.timeLabel || 'Time',
           dateLabel = attrs.dateLabel || 'Date',
           singleValueLabel = attrs.singleValueLabel || 'Raw Value',
@@ -180,8 +180,8 @@ module Directives {
             return !d.empty ? d.min : undefined;
           }));
 
-          lowBound = min - (min * 0.1);
-          highBound = peak + ((peak - min) * 0.1);
+          lowBound = min - (min * 0.05);
+          highBound = peak + ((peak - min) * 0.2);
         }
 
         function determineScale(dataPoints) {
@@ -237,7 +237,7 @@ module Directives {
             } else {
               timeScaleForBrush = d3.time.scale()
                 .range([0, width])
-                .domain(d3.extent(chartData, (d:any) =>  {
+                .domain(d3.extent(chartData, (d:any) => {
                   return d.timestamp;
                 }));
 
@@ -254,8 +254,8 @@ module Directives {
         }
 
 
-        function getBaseUrl() : string {
-          var baseUrl = dataUrl ||  'http://' + $rootScope.$storage.server.replace(/['"]+/g, '') + ':' + $rootScope.$storage.port + BASE_URL;
+        function getBaseUrl():string {
+          var baseUrl = dataUrl || 'http://' + $rootScope.$storage.server.replace(/['"]+/g, '') + ':' + $rootScope.$storage.port + BASE_URL;
           return baseUrl;
         }
 
@@ -817,35 +817,35 @@ module Directives {
         function createLineChart() {
           var avgLine = d3.svg.line()
               .interpolate("linear")
-              .defined(function (d) {
+              .defined((d)  => {
                 return !d.empty;
               })
-              .x(function (d) {
+              .x((d) => {
                 return xStartPosition(d);
               })
-              .y(function (d) {
+              .y((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               }),
             highLine = d3.svg.line()
               .interpolate("linear")
-              .defined(function (d) {
+              .defined((d) => {
                 return !d.empty;
               })
-              .x(function (d) {
+              .x((d) => {
                 return xStartPosition(d);
               })
-              .y(function (d) {
+              .y((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
               }),
             lowLine = d3.svg.line()
               .interpolate("linear")
-              .defined(function (d) {
+              .defined((d) => {
                 return !d.empty;
               })
-              .x(function (d) {
+              .x((d) => {
                 return xStartPosition(d);
               })
-              .y(function (d) {
+              .y((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
               });
 
@@ -917,22 +917,33 @@ module Directives {
         }
 
 
-        function createHawkularAreaChart() {
+        function createHawkularAreaChart(lowbound, highbound) {
 
-            var avgArea = d3.svg.area()
-              .interpolate("monotone")
-              .defined( (d) => {
-                return !d.empty;
-              })
-              .x((d)  =>{
-                return xStartPosition(d);
-              })
-              .y1((d) => {
+          var avgArea = d3.svg.area()
+            .interpolate("monotone")
+            .defined((d) => {
+              return !d.empty;
+            })
+            .x((d)  => {
+              return xStartPosition(d);
+            })
+            .y1((d) => {
+              if (isEmptyDataBar(d)) {
+                return yScale(highbound);
+              } else {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-              }).
-              y0((d) =>{
-                return  yScale(0);
-              });
+              }
+            }).
+            y0(() => {
+              return yScale(0);
+            });
+          //.attr("fill", function (d) {
+          //  if (isEmptyDataBar(d)) {
+          //    return "url(#noDataStripes)";
+          //  } else {
+          //    return leaderBarColor;
+          //  }
+          //});
 
 
           svg.append("path")
@@ -947,46 +958,46 @@ module Directives {
         function createAreaChart() {
           var highArea = d3.svg.area()
               .interpolate("step-before")
-              .defined(function (d) {
+              .defined((d) => {
                 return !d.empty;
               })
-              .x(function (d) {
+              .x((d) => {
                 return xStartPosition(d);
               })
-              .y(function (d) {
+              .y((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
               })
-              .y0(function (d) {
+              .y0((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               }),
 
             avgArea = d3.svg.area()
               .interpolate("step-before")
-              .defined(function (d) {
+              .defined((d) => {
                 return !d.empty;
               })
-              .x(function (d) {
+              .x((d) => {
                 return xStartPosition(d);
               })
-              .y(function (d) {
+              .y((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               }).
-              y0(function (d) {
+              y0((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
               }),
 
             lowArea = d3.svg.area()
               .interpolate("step-before")
-              .defined(function (d) {
+              .defined((d) => {
                 return !d.empty;
               })
-              .x(function (d) {
+              .x((d) => {
                 return xStartPosition(d);
               })
-              .y(function (d) {
+              .y((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
               })
-              .y0(function () {
+              .y0(() => {
                 return height;
               });
 
@@ -1499,7 +1510,7 @@ module Directives {
                 createHawkularLineChart();
                 break;
               case 'hawkulararea' :
-                createHawkularAreaChart();
+                createHawkularAreaChart(lowBound, highBound);
                 break;
               case 'area' :
                 createAreaChart();

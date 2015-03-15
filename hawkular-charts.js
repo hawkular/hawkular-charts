@@ -87,8 +87,8 @@ var Directives;
                 min = d3.min(dataPoints.map(function (d) {
                     return !d.empty ? d.min : undefined;
                 }));
-                lowBound = min - (min * 0.1);
-                highBound = peak + ((peak - min) * 0.1);
+                lowBound = min - (min * 0.05);
+                highBound = peak + ((peak - min) * 0.2);
             }
             function determineScale(dataPoints) {
                 var xTicks, xTickSubDivide, numberOfBarsForSmallGraph = 20;
@@ -515,6 +515,7 @@ var Directives;
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
+                //@todo: if number of points == 1 then show dataPoint else not
                 //svg.selectAll(".dataPoint")
                 //  .data(chartData)
                 //  .enter().append("circle")
@@ -539,16 +540,28 @@ var Directives;
                 // Bar avg line
                 svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", chartLine);
             }
-            function createHawkularAreaChart() {
+            function createHawkularAreaChart(lowbound, highbound) {
                 var avgArea = d3.svg.area().interpolate("monotone").defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
                 }).y1(function (d) {
-                    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                }).y0(function (d) {
+                    if (isEmptyDataBar(d)) {
+                        return yScale(highbound);
+                    }
+                    else {
+                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                    }
+                }).y0(function () {
                     return yScale(0);
                 });
+                //.attr("fill", function (d) {
+                //  if (isEmptyDataBar(d)) {
+                //    return "url(#noDataStripes)";
+                //  } else {
+                //    return leaderBarColor;
+                //  }
+                //});
                 svg.append("path").datum(chartData).attr("class", "areaChart").transition().duration(550).attr("d", avgArea);
             }
             function createAreaChart() {
@@ -890,7 +903,7 @@ var Directives;
                             createHawkularLineChart();
                             break;
                         case 'hawkulararea':
-                            createHawkularAreaChart();
+                            createHawkularAreaChart(lowBound, highBound);
                             break;
                         case 'area':
                             createAreaChart();
@@ -905,7 +918,7 @@ var Directives;
                             createCandleStickChart();
                             break;
                         default:
-                            $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram]');
+                            $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkulararea]');
                     }
                     createPreviousRangeOverlay(previousRangeDataPoints);
                     createMultiMetricOverlay();
