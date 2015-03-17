@@ -881,29 +881,6 @@ module Charts {
               return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
             });
 
-          //@todo: if number of points == 1 then show dataPoint else not
-          //svg.selectAll(".dataPoint")
-          //  .data(chartData)
-          //  .enter().append("circle")
-          //  .attr("class", "dataDot")
-          //  .attr("r", 3)
-          //  .attr("cx", function (d) {
-          //    return xStartPosition(d);
-          //  })
-          //  .attr("cy", function (d) {
-          //    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-          //  })
-          //  .style("fill", function () {
-          //    return "#70c4e2";
-          //  })
-          //  .style("opacity", function () {
-          //    return "1";
-          //  }).on("mouseover", function (d, i) {
-          //    tip.show(d, i);
-          //  }).on("mouseout", function () {
-          //    tip.hide();
-          //  });
-
 
           // Bar avg line
           svg.append("path")
@@ -931,16 +908,19 @@ module Charts {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               }
             }).
-            y0(() => {
-              return yScale(0);
+            y0((d) => {
+              if (alertValue) {
+                if (d.avg > alertValue) {
+                  return yScale(alertValue);
+                } else {
+                  return yScale(d.avg);
+                }
+
+              } else {
+
+                return yScale(0);
+              }
             });
-          //.attr("fill", function (d) {
-          //  if (isEmptyDataBar(d)) {
-          //    return "url(#noDataStripes)";
-          //  } else {
-          //    return leaderBarColor;
-          //  }
-          //});
 
 
           svg.append("path")
@@ -948,7 +928,18 @@ module Charts {
             .attr("class", "areaChart")
             .transition()
             .duration(550)
-            .attr("d", avgArea);
+            .attr("d", avgArea)
+            .attr("stroke", function (d) {
+              if(alertValue){
+                if(d.avg > alertValue){
+                 return "red";
+                }else {
+                  return "#0040FF"
+                }
+              }else {
+                return "#0040FF"
+              }
+            });
 
         }
 
@@ -1555,10 +1546,10 @@ module Charts {
             if (showAvgLine) {
               createAvgLines();
             }
-            if(alertValue){
+            if (alertValue) {
               createAlertLine(alertValue);
             }
-            if(annotationData){
+            if (annotationData) {
               annotateChart(annotationData);
             }
             console.timeEnd('chartRender');

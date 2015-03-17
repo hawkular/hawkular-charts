@@ -552,8 +552,18 @@ var Charts;
                     else {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     }
-                }).y0(function () {
-                    return yScale(0);
+                }).y0(function (d) {
+                    if (alertValue) {
+                        if (d.avg > alertValue) {
+                            return yScale(alertValue);
+                        }
+                        else {
+                            return yScale(d.avg);
+                        }
+                    }
+                    else {
+                        return yScale(0);
+                    }
                 });
                 //.attr("fill", function (d) {
                 //  if (isEmptyDataBar(d)) {
@@ -562,7 +572,19 @@ var Charts;
                 //    return leaderBarColor;
                 //  }
                 //});
-                svg.append("path").datum(chartData).attr("class", "areaChart").transition().duration(550).attr("d", avgArea);
+                svg.append("path").datum(chartData).attr("class", "areaChart").transition().duration(550).attr("d", avgArea).attr("stroke", function (d) {
+                    if (alertValue) {
+                        if (d.avg > alertValue) {
+                            return "red";
+                        }
+                        else {
+                            return "#0040FF";
+                        }
+                    }
+                    else {
+                        return "#0040FF";
+                    }
+                });
             }
             function createAreaChart() {
                 var highArea = d3.svg.area().interpolate("step-before").defined(function (d) {
