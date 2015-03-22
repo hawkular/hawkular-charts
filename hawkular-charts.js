@@ -909,7 +909,7 @@ var Charts;
                         case 'hawkularline':
                             createHawkularLineChart();
                             break;
-                        case 'hawkulararea':
+                        case 'hawkularmetric':
                             createHawkularAreaChart(lowBound, highBound);
                             break;
                         case 'area':
@@ -925,7 +925,7 @@ var Charts;
                             createCandleStickChart();
                             break;
                         default:
-                            $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkulararea]');
+                            $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric]');
                     }
                     createPreviousRangeOverlay(previousRangeDataPoints);
                     createMultiMetricOverlay();
