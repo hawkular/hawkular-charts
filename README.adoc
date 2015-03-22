@@ -66,11 +66,6 @@ This allows plain html web pages to be sprinkled with tags and a couple js libs 
 This allows dashboard templates to be emailed around (although they need to be rendered behind a http server of your choice).
 
 
-=== Stand Alone Charting Explained
-
-image::img/hawkular-chart-standalone2.png[Stand alone charting explained]
-
-
 == Chart Customization
 
 .This project is built around customization. There are several forms of customization:
