@@ -515,28 +515,6 @@ var Charts;
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
-                //@todo: if number of points == 1 then show dataPoint else not
-                //svg.selectAll(".dataPoint")
-                //  .data(chartData)
-                //  .enter().append("circle")
-                //  .attr("class", "dataDot")
-                //  .attr("r", 3)
-                //  .attr("cx", function (d) {
-                //    return xStartPosition(d);
-                //  })
-                //  .attr("cy", function (d) {
-                //    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                //  })
-                //  .style("fill", function () {
-                //    return "#70c4e2";
-                //  })
-                //  .style("opacity", function () {
-                //    return "1";
-                //  }).on("mouseover", function (d, i) {
-                //    tip.show(d, i);
-                //  }).on("mouseout", function () {
-                //    tip.hide();
-                //  });
                 // Bar avg line
                 svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", chartLine);
             }
@@ -565,24 +543,17 @@ var Charts;
                         return yScale(0);
                     }
                 });
-                //.attr("fill", function (d) {
-                //  if (isEmptyDataBar(d)) {
-                //    return "url(#noDataStripes)";
-                //  } else {
-                //    return leaderBarColor;
-                //  }
-                //});
                 svg.append("path").datum(chartData).attr("class", "areaChart").transition().duration(550).attr("d", avgArea).attr("stroke", function (d) {
                     if (alertValue) {
                         if (d.avg > alertValue) {
-                            return "red";
+                            return "#CC0000";
                         }
                         else {
-                            return "#0040FF";
+                            return "#00A8E1";
                         }
                     }
                     else {
-                        return "#0040FF";
+                        return "#00A8E1";
                     }
                 });
             }
@@ -963,7 +934,7 @@ var Charts;
                     if (showAvgLine) {
                         createAvgLines();
                     }
-                    if (alertValue) {
+                    if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                         createAlertLine(alertValue);
                     }
                     if (annotationData) {

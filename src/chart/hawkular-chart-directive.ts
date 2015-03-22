@@ -932,12 +932,12 @@ module Charts {
             .attr("stroke", function (d) {
               if(alertValue){
                 if(d.avg > alertValue){
-                 return "red";
+                 return "#CC0000";
                 }else {
-                  return "#0040FF"
+                  return "#00A8E1"
                 }
               }else {
-                return "#0040FF"
+                return "#00A8E1"
               }
             });
 
@@ -1546,7 +1546,7 @@ module Charts {
             if (showAvgLine) {
               createAvgLines();
             }
-            if (alertValue) {
+            if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
               createAlertLine(alertValue);
             }
             if (annotationData) {
