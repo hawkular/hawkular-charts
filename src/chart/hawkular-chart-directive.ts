@@ -7,6 +7,23 @@ module Charts {
   declare var numeral:any;
   declare var console:any;
 
+  export interface IContextChartDataPoint {
+    timestamp: number;
+    start?: number;
+    end?: number;
+    value: number;
+    avg: number;
+    empty: boolean;
+  }
+
+  export interface IChartDataPoint extends IContextChartDataPoint {
+    date: Date;
+    min: number;
+    max: number;
+    percentile95th: number;
+    median: number;
+  }
+
   /**
    * @ngdoc directive
    * @name hawkularChart
@@ -28,6 +45,7 @@ module Charts {
           timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200,
           refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600,
           alertValue = +attrs.alertValue,
+          interpolation = attrs.interpolation || 'monotone',
           endTimestamp = Date.now(),
           startTimestamp = endTimestamp - timeRangeInSeconds,
           previousRangeDataPoints = [],
@@ -894,7 +912,7 @@ module Charts {
         function createHawkularAreaChart(lowbound, highbound) {
 
           var avgArea = d3.svg.area()
-            .interpolate("monotone")
+            .interpolate(interpolation)
             .defined((d) => {
               return !d.empty;
             })
@@ -929,14 +947,14 @@ module Charts {
             .transition()
             .duration(550)
             .attr("d", avgArea)
-            .attr("stroke", function (d) {
-              if(alertValue){
-                if(d.avg > alertValue){
-                 return "#CC0000";
-                }else {
+            .attr("stroke", (d:IChartDataPoint) => {
+              if (alertValue) {
+                if (d.avg > alertValue) {
+                  return "#CC0000";
+                } else {
                   return "#00A8E1"
                 }
-              }else {
+              } else {
                 return "#00A8E1"
               }
             });
@@ -945,7 +963,7 @@ module Charts {
 
         function createAreaChart() {
           var highArea = d3.svg.area()
-              .interpolate("step-before")
+              .interpolate(interpolation)
               .defined((d) => {
                 return !d.empty;
               })
@@ -960,7 +978,7 @@ module Charts {
               }),
 
             avgArea = d3.svg.area()
-              .interpolate("step-before")
+              .interpolate(interpolation)
               .defined((d) => {
                 return !d.empty;
               })
@@ -975,7 +993,7 @@ module Charts {
               }),
 
             lowArea = d3.svg.area()
-              .interpolate("step-before")
+              .interpolate(interpolation)
               .defined((d) => {
                 return !d.empty;
               })
@@ -1574,6 +1592,7 @@ module Charts {
           annotationData: '@',
           contextData: '@',
           alertValue: '@',
+          interpolation: '@',
           multiChartOverlayData: '@',
           chartHeight: '@',
           chartType: '@',
