@@ -39,7 +39,7 @@ module Charts {
       function link(scope, element, attrs) {
 
         // data specific vars
-        var dataPoints:any[] = [],
+        var dataPoints:IChartDataPoint[] = [],
           dataUrl = attrs.metricUrl,
           metricId = attrs.metricId || '',
           timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200,
@@ -239,20 +239,20 @@ module Charts {
 
             timeScale = d3.time.scale()
               .range([0, width])
-              .domain(d3.extent(chartData, (d:any) => {
+              .domain(d3.extent(chartData, (d:IChartDataPoint) => {
                 return d.timestamp;
               }));
 
             if (contextData) {
               timeScaleForContext = d3.time.scale()
                 .range([0, width])
-                .domain(d3.extent(contextData, (d:any) => {
+                .domain(d3.extent(contextData, (d:IChartDataPoint) => {
                   return d.timestamp;
                 }));
             } else {
               timeScaleForBrush = d3.time.scale()
                 .range([0, width])
-                .domain(d3.extent(chartData, (d:any) => {
+                .domain(d3.extent(chartData, (d:IChartDataPoint) => {
                   return d.timestamp;
                 }));
 
@@ -308,7 +308,7 @@ module Charts {
 
         function formatBucketedChartOutput(response) {
           //  The schema is different for bucketed output
-          return response.map((point:any) => {
+          return response.map((point:IChartDataPoint) => {
             return {
               timestamp: point.timestamp,
               date: new Date(point.timestamp),
