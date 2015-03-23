@@ -22,7 +22,7 @@ var Charts;
         var BASE_URL = '/hawkular/metrics';
         function link(scope, element, attrs) {
             // data specific vars
-            var dataPoints = [], dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Bar Duration', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, hideHighLowValues = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
+            var dataPoints = [], dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Bar Duration', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, hideHighLowValues = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
             // chart specific vars
             var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
             dataPoints = attrs.data;
@@ -519,7 +519,7 @@ var Charts;
                 svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", chartLine);
             }
             function createHawkularAreaChart(lowbound, highbound) {
-                var avgArea = d3.svg.area().interpolate("monotone").defined(function (d) {
+                var avgArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
@@ -558,7 +558,7 @@ var Charts;
                 });
             }
             function createAreaChart() {
-                var highArea = d3.svg.area().interpolate("step-before").defined(function (d) {
+                var highArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
@@ -566,7 +566,7 @@ var Charts;
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                 }).y0(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                }), avgArea = d3.svg.area().interpolate("step-before").defined(function (d) {
+                }), avgArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
@@ -574,7 +574,7 @@ var Charts;
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 }).y0(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
-                }), lowArea = d3.svg.area().interpolate("step-before").defined(function (d) {
+                }), lowArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
@@ -961,6 +961,7 @@ var Charts;
                 annotationData: '@',
                 contextData: '@',
                 alertValue: '@',
+                interpolation: '@',
                 multiChartOverlayData: '@',
                 chartHeight: '@',
                 chartType: '@',
