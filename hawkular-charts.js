@@ -481,19 +481,19 @@ var Charts;
                 }
             }
             function createLineChart() {
-                var avgLine = d3.svg.line().interpolate("linear").defined(function (d) {
+                var avgLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                }), highLine = d3.svg.line().interpolate("linear").defined(function (d) {
+                }), highLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
-                }), lowLine = d3.svg.line().interpolate("linear").defined(function (d) {
+                }), lowLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
@@ -508,7 +508,7 @@ var Charts;
                 }
             }
             function createHawkularLineChart() {
-                var chartLine = d3.svg.line().interpolate("linear").defined(function (d) {
+                var chartLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
@@ -518,7 +518,7 @@ var Charts;
                 // Bar avg line
                 svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", chartLine);
             }
-            function createHawkularAreaChart(lowbound, highbound) {
+            function createHawkularMetricChart(lowbound, highbound) {
                 var avgArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
@@ -528,15 +528,16 @@ var Charts;
                         return yScale(highbound);
                     }
                     else {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        //return yScale(d.max);
+                        return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                     }
                 }).y0(function (d) {
                     if (alertValue) {
-                        if (d.avg > alertValue) {
+                        if (d.max > alertValue) {
                             return yScale(alertValue);
                         }
                         else {
-                            return yScale(d.avg);
+                            return yScale(d.max);
                         }
                     }
                     else {
@@ -910,7 +911,7 @@ var Charts;
                             createHawkularLineChart();
                             break;
                         case 'hawkularmetric':
-                            createHawkularAreaChart(lowBound, highBound);
+                            createHawkularMetricChart(lowBound, highBound);
                             break;
                         case 'area':
                             createAreaChart();

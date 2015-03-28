@@ -831,7 +831,7 @@ module Charts {
 
         function createLineChart() {
           var avgLine = d3.svg.line()
-              .interpolate("linear")
+              .interpolate(interpolation)
               .defined((d)  => {
                 return !d.empty;
               })
@@ -842,7 +842,7 @@ module Charts {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               }),
             highLine = d3.svg.line()
-              .interpolate("linear")
+              .interpolate(interpolation)
               .defined((d) => {
                 return !d.empty;
               })
@@ -853,7 +853,7 @@ module Charts {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
               }),
             lowLine = d3.svg.line()
-              .interpolate("linear")
+              .interpolate(interpolation)
               .defined((d) => {
                 return !d.empty;
               })
@@ -888,7 +888,7 @@ module Charts {
 
         function createHawkularLineChart() {
           var chartLine = d3.svg.line()
-            .interpolate("linear")
+            .interpolate(interpolation)
             .defined((d) => {
               return !d.empty;
             })
@@ -909,7 +909,7 @@ module Charts {
         }
 
 
-        function createHawkularAreaChart(lowbound, highbound) {
+        function createHawkularMetricChart(lowbound, highbound) {
 
           var avgArea = d3.svg.area()
             .interpolate(interpolation)
@@ -919,19 +919,19 @@ module Charts {
             .x((d)  => {
               return xStartPosition(d);
             })
-            .y1((d) => {
+            .y1((d:IChartDataPoint) => {
               if (isEmptyDataBar(d)) {
                 return yScale(highbound);
               } else {
-                return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
               }
             }).
-            y0((d) => {
+            y0((d:IChartDataPoint) => {
               if (alertValue) {
-                if (d.avg > alertValue) {
+                if (d.max > alertValue) {
                   return yScale(alertValue);
                 } else {
-                  return yScale(d.avg);
+                  return yScale(d.max);
                 }
 
               } else {
@@ -1490,7 +1490,7 @@ module Charts {
 
         scope.$watch('timeRangeInSeconds', (newTimeRange) => {
           if (newTimeRange) {
-            console.log("timeRangeInSeconds changed.")
+            console.log("timeRangeInSeconds changed.");
             timeRangeInSeconds = newTimeRange;
           }
         });
@@ -1538,7 +1538,7 @@ module Charts {
                 createHawkularLineChart();
                 break;
               case 'hawkularmetric' :
-                createHawkularAreaChart(lowBound, highBound);
+                createHawkularMetricChart(lowBound, highBound);
                 break;
               case 'area' :
                 createAreaChart();
