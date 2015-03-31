@@ -17,7 +17,7 @@ svg {
 }
 
 .axis path, .axis line {
-    fill: none;
+    fill: none; 
     stroke: #000;
     shape-rendering: crispEdges;
 }
@@ -25,7 +25,7 @@ svg {
 /* Horizontal gridlines */
 
 .grid .tick {
-    stroke: #f7f7f7;
+  stroke: #e6e6e6;
 }
 
 .y.axis .tick.minor {
@@ -36,22 +36,20 @@ svg {
     stroke: #a7a7ac;
 }
 
-.y.axis text, .x.axis text {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 10px;
-    font-weight: normal;
-    font-style: normal;
-    fill: #50505a;
-    text-rendering: optimize-legibility;
-
+.y.axis text, 
+.x.axis text {
+  color: #333;
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: normal;
+  font-style: normal;
+  fill: #50505a;
+  text-rendering: optimize-legibility;
 }
 
-.x.axis path {
-    stroke: #50505a;
-}
-
+.x.axis path,
 .y.axis path {
-    stroke: #50505a;
+  stroke: #d1d1d1;
 }
 
 /* Brush related css rules */
