@@ -73,14 +73,13 @@ var Charts;
                     //svg.call(tip);
                 }
                 function determineAvailScale(dataPoints) {
-                    var xTicks = 8, xTickSubDivide = 5;
                     if (dataPoints) {
                         yScale = d3.scale.linear().clamp(true).rangeRound([innerChartHeight, 0]).domain([0, 175]);
                         yAxis = d3.svg.axis().scale(yScale).ticks(0).tickSize(0, 0).orient("left");
                         timeScale = d3.time.scale().range([0, width]).domain(d3.extent(dataPoints, function (d) {
                             return d.start;
                         }));
-                        xAxis = d3.svg.axis().scale(timeScale).ticks(xTicks).tickSubdivide(xTickSubDivide).tickSize(4, 0).orient("top");
+                        xAxis = d3.svg.axis().scale(timeScale).tickSize(-70, 0).orient("top");
                     }
                 }
                 function isUp(d) {
@@ -102,15 +101,15 @@ var Charts;
                                 outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
                             }
                             else {
-                                outputData.push(new TransformedAvailDataPoint(availItem.timestamp, availItem.timestamp, availItem.value));
+                                outputData.push(new TransformedAvailDataPoint(availItem.timestamp, +moment(), availItem.value));
                             }
                         });
                     }
                     return outputData;
                 }
                 function createSideYAxisLabels() {
-                    svg.append("text").attr("class", "availUpLabel").attr("x", -10).attr("y", 20).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "14px").attr("fill", "#999").style("text-anchor", "end").text("Up");
-                    svg.append("text").attr("class", "availDownLabel").attr("x", -10).attr("y", 55).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "14px").attr("fill", "#999").style("text-anchor", "end").text("Down");
+                    svg.append("text").attr("class", "availUpLabel").attr("x", -10).attr("y", 25).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "12px").attr("fill", "#999").style("text-anchor", "end").text("Up");
+                    svg.append("text").attr("class", "availDownLabel").attr("x", -10).attr("y", 55).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "12px").attr("fill", "#999").style("text-anchor", "end").text("Down");
                 }
                 function createAvailabilityChart(dataPoints) {
                     var xAxisMin = d3.min(dataPoints, function (d) {
@@ -124,14 +123,14 @@ var Charts;
                             offset = 0;
                         }
                         else {
-                            offset = 30;
+                            offset = 35;
                         }
                         return height - yScale(0) + offset;
                     }
                     function calcBarHeight(d) {
                         var offset;
-                        if (isUp(d) || isUnknown(d)) {
-                            offset = 20;
+                        if (isUnknown(d)) {
+                            offset = 15;
                         }
                         else {
                             offset = 50;
@@ -240,8 +239,6 @@ var Charts;
 var Charts;
 (function (Charts) {
     'use strict';
-    var numeral;
-    var console;
     //export interface IAvailDataPoint {
     //  start:number;
     //  end:number;

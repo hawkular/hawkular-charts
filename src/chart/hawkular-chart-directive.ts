@@ -3,10 +3,9 @@
 module Charts {
   'use strict';
 
-  declare
-  var d3:any;
-  var numeral:any;
-  var console:any;
+  declare var d3:any;
+  declare var numeral:any;
+  declare var console:any;
 
   export interface IContextChartDataPoint {
     timestamp: number;

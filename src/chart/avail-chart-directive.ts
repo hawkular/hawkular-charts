@@ -136,7 +136,6 @@ module Charts {
 
 
       function determineAvailScale(dataPoints:ITransformedAvailDataPoint[]) {
-        var xTicks = 8, xTickSubDivide = 5;
 
         if (dataPoints) {
 
@@ -159,9 +158,9 @@ module Charts {
 
           xAxis = d3.svg.axis()
             .scale(timeScale)
-            .ticks(xTicks)
-            .tickSubdivide(xTickSubDivide)
-            .tickSize(4, 0)
+            //.ticks(8)
+            //.tickSubdivide(5)
+            .tickSize(-70, 0)
             .orient("top");
 
         }
@@ -190,7 +189,13 @@ module Charts {
               previousItem = inAvailData[i - 1];
               outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
             } else {
-              outputData.push(new TransformedAvailDataPoint(availItem.timestamp, availItem.timestamp, availItem.value));
+              outputData.push(new TransformedAvailDataPoint(availItem.timestamp, +moment(), availItem.value));
+              //if (inAvailData.length > 1) {
+              //  previousItem = inAvailData[i - 1];
+              //  outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
+              //} else {
+              //  outputData.push(new TransformedAvailDataPoint(availItem.timestamp, +moment(), availItem.value));
+              //}
             }
 
           });
@@ -203,9 +208,9 @@ module Charts {
         svg.append("text")
           .attr("class", "availUpLabel")
           .attr("x", -10)
-          .attr("y", 20)
+          .attr("y", 25)
           .style("font-family", "Arial, Verdana, sans-serif;")
-          .style("font-size", "14px")
+          .style("font-size", "12px")
           .attr("fill", "#999")
           .style("text-anchor", "end")
           .text("Up");
@@ -215,7 +220,7 @@ module Charts {
           .attr("x", -10)
           .attr("y", 55)
           .style("font-family", "Arial, Verdana, sans-serif;")
-          .style("font-size", "14px")
+          .style("font-size", "12px")
           .attr("fill", "#999")
           .style("text-anchor", "end")
           .text("Down");
@@ -253,7 +258,7 @@ module Charts {
           if (isUp(d) || isUnknown(d)) {
             offset = 0;
           } else {
-            offset = 30;
+            offset = 35;
           }
           return height - yScale(0) + offset;
 
@@ -262,8 +267,8 @@ module Charts {
         function calcBarHeight(d:ITransformedAvailDataPoint) {
           var offset;
 
-          if (isUp(d) || isUnknown(d)) {
-            offset = 20;
+          if (isUnknown(d)) {
+            offset = 15;
           } else {
             offset = 50;
           }

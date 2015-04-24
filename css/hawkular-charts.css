@@ -4,22 +4,22 @@
  */
 
 svg {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    /* Trying to get SVG to act like a greedy block in all browsers */
-    display: block;
-    width: 100%;
-    height: 100%;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Trying to get SVG to act like a greedy block in all browsers */
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .axis path, .axis line {
-    fill: none; 
-    stroke: #000;
-    shape-rendering: crispEdges;
+  fill: #a7a7ac;
+  stroke: #a7a7ac;
+  shape-rendering: crispEdges;
 }
 
 /* Horizontal gridlines */
@@ -29,14 +29,14 @@ svg {
 }
 
 .y.axis .tick.minor {
-    stroke: #a7a7ac;
+  stroke: #a7a7ac;
 }
 
 .x.axis .tick.minor {
-    stroke: #a7a7ac;
+  stroke: #a7a7ac;
 }
 
-.y.axis text, 
+.y.axis text,
 .x.axis text {
   color: #333;
   font-family: 'Open Sans', Helvetica, Arial, sans-serif;
@@ -54,103 +54,116 @@ svg {
 
 /* Brush related css rules */
 .brush rect.extent {
-    fill: #0757ff;
-    fill-opacity: .15;
-    shape-rendering: crispEdges;
+  fill: #0757ff;
+  fill-opacity: .15;
+  shape-rendering: crispEdges;
 }
 
 .brush .resize path {
-    fill: #666;
-    fill-opacity: .8;
-    stroke: #000;
-    stroke-width: 1.5px;
+  fill: #666;
+  fill-opacity: .8;
+  stroke: #000;
+  stroke-width: 1.5px;
 }
 
 .minLabel, .avgLabel, .highLabel {
-    font-family: Arial, Verdana, sans-serif;
-    font-size: 12px;
-    font-weight: bold;
-    text-anchor: start;
-    fill: #003168;
-    text-rendering: optimize-legibility;
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  text-anchor: start;
+  fill: #003168;
+  text-rendering: optimize-legibility;
 }
 
 .minText, .avgText, .highText {
-    font-family: Arial, Verdana, sans-serif;
-    font-size: 12px;
-    text-anchor: start;
-    fill: #003168;
-    text-rendering: optimize-legibility;
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 12px;
+  text-anchor: start;
+  fill: #003168;
+  text-rendering: optimize-legibility;
 }
 
 .chartTitleName {
-    font-family: Arial, Verdana, sans-serif;
-    font-size: 12px;
-    font-weight: bold;
-    fill: #003168;
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  fill: #003168;
 }
 
 .chartTitleBox {
-    fill: none;
+  fill: none;
 
 }
+
+/* Availability
+.availUpLabel {
+
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 14px;
+  fill: "#999";
+  text-anchor: "end";
+}
+
+.availDownLabel {
+
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 14px;
+  fill: "#999";
+  text-anchor: "end";
+}
+*/
 
 /* Bar Chart */
 rect.high {
-    fill: #1794bc;
+  fill: #1794bc;
 }
 
 rect.low {
-    fill: #70c4e2;
+  fill: #70c4e2;
 }
 
 .barAvgLine {
-    fill: none;
-    stroke: #2e376a;
-    stroke-width: 1.5;
-    stroke-opacity: 0.7;
+  fill: none;
+  stroke: #2e376a;
+  stroke-width: 1.5;
+  stroke-opacity: 0.7;
 }
-
 
 .alertLine {
   fill: none;
   stroke: #ff5d07;
   stroke-width: 2;
   stroke-opacity: 0.6;
-  stroke-dasharray: 10,5;
+  stroke-dasharray: 10, 5;
 }
 
 .prevRangeAvgLine {
-    fill: none;
-    stroke: #ff1a13;
-    stroke-width: 3;
-    stroke-opacity: 0.4;
+  fill: none;
+  stroke: #ff1a13;
+  stroke-width: 3;
+  stroke-opacity: 0.4;
 }
 
 .avgLine {
-    fill: none;
-    stroke: #2e376a;
-    stroke-width: 1.5;
-    stroke-opacity: 0.9;
+  fill: none;
+  stroke: #2e376a;
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
 }
 
-
-
 .highLine {
-    fill: none;
-    stroke: #ff1a13;
-    stroke-width: 1.5;
-    stroke-opacity: 0.9;
+  fill: none;
+  stroke: #ff1a13;
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
 }
 
 .lowLine {
-    fill: none;
-    stroke: #70c4e2;
-    stroke-width: 1.5;
-    stroke-opacity: 0.9;
+  fill: none;
+  stroke: #70c4e2;
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
 }
-
-
 
 .chartLine {
   fill: none;
@@ -158,7 +171,6 @@ rect.low {
   stroke-width: 2;
   stroke-opacity: 0.9;
 }
-
 
 .areaLine {
   fill: none;
@@ -168,77 +180,76 @@ rect.low {
 }
 
 .titleName {
-    font-size: 12;
-    font-weight: bold;
-    text-anchor: left;
-    fill: #003168;
+  font-size: 12;
+  font-weight: bold;
+  text-anchor: left;
+  fill: #003168;
 }
 
 /* Tooltip */
 .d3-tip {
-    line-height: 1;
-    font-weight: bold;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    border-radius: 2px;
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border-radius: 2px;
 }
 
 /* Creates a small triangle extender for the tooltip */
 .d3-tip:after {
-    box-sizing: border-box;
-    display: inline;
-    font-size: 10px;
-    width: 100%;
-    line-height: 1;
-    color: rgba(0, 0, 0, 0.7);
-    content: "\25BC";
-    position: absolute;
-    text-align: center;
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.7);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
 }
 
 /* Style northward tooltips differently */
 .d3-tip.n:after {
-    margin: -1px 0 0 0;
-    top: 100%;
-    left: 0;
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
 }
 
 .chartHover {
 }
 
 .chartHoverValue {
-    margin-left: 20px;
-    color: #f7f7f7;
+  margin-left: 20px;
+  color: #f7f7f7;
 }
 
 .chartHoverLabel {
-    margin-right: 10px;
-    color: #d3d3d3;
+  margin-right: 10px;
+  color: #d3d3d3;
 }
 
 /* Area Chart */
 .highArea {
-    fill: red;
-    opacity: 0.6;
-    stroke-width: 1;
-    stroke: #1008a9;
+  fill: red;
+  opacity: 0.6;
+  stroke-width: 1;
+  stroke: #1008a9;
 }
 
 .avgArea {
-    fill: orange;
-    opacity: 0.6;
-    stroke-width: 2;
-    stroke: #000;
+  fill: orange;
+  opacity: 0.6;
+  stroke-width: 2;
+  stroke: #000;
 }
 
 .lowArea {
-    fill: #fdff80;
-    opacity: 0.6;
-    stroke-width: 1;
-    stroke: #9b9c0e;
+  fill: #fdff80;
+  opacity: 0.6;
+  stroke-width: 1;
+  stroke: #9b9c0e;
 }
-
 
 .areaChart {
   fill: #df0000;
@@ -248,51 +259,51 @@ rect.low {
   stroke-opacity: .8;
 }
 
-
 /* Scatter chart */
 .highDot {
-    fill: #ff1a13;
-    stroke-width: 1;
-    stroke: black;
+  fill: #ff1a13;
+  stroke-width: 1;
+  stroke: black;
 }
 
 .avgDot {
-    fill: gray;
-    stroke-width: 1;
-    stroke: black;
+  fill: gray;
+  stroke-width: 1;
+  stroke: black;
 }
 
 .lowDot {
-    fill: #70c4e2;
-    stroke-width: 1;
-    stroke: black;
+  fill: #70c4e2;
+  stroke-width: 1;
+  stroke: black;
 }
 
 /* Modified Candlestick Chart */
 .candleStickUp {
-    stroke-width: 1.5;
-    stroke-opacity: 0.9;
-    stroke: black;
-    opacity: 0.6;
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
+  stroke: black;
+  opacity: 0.6;
 }
 
 .candleStickDown {
-    stroke-width: 1.5;
-    stroke-opacity: 0.9;
-    stroke: black;
-    opacity: 0.6;
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
+  stroke: black;
+  opacity: 0.6;
 }
+
 /*.histogram {*/
-    /*stroke-width: 1.5;*/
-    /*stroke-opacity: 0.9;*/
-    /*stroke: black;*/
-    /*opacity: 0.3;*/
+/*stroke-width: 1.5;*/
+/*stroke-opacity: 0.9;*/
+/*stroke: black;*/
+/*opacity: 0.3;*/
 /*}*/
 
 .annotationDot {
-    fill: yellow;
-    opacity: 0.6;
-    stroke-width: 1;
-    stroke: black;
+  fill: yellow;
+  opacity: 0.6;
+  stroke-width: 1;
+  stroke: black;
 
 }
