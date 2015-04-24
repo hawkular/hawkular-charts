@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Avail Chart Tester</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/hawkular-charts.css">
+
+  <script type="text/javascript" src="libs/jquery/dist/jquery.js" charset="utf-8"></script>
+  <script type="text/javascript" src="libs/angular/angular.js" charset="utf-8"></script>
+  <script type="text/javascript" src="libs/lodash/lodash.js" charset="utf-8"></script>
+  <script type="text/javascript" src="libs/d3/d3.js" charset="utf-8"></script>
+  <script type="text/javascript" src="libs/d3-tip/index.js" charset="utf-8"></script>
+  <script type="text/javascript" src="libs/moment/moment.js"></script>
+  <script type="text/javascript" src="hawkular-charts.js"></script>
+
+  <script>
+    var app = angular.module('myApp', ['hawkular.charts']);
+
+    app.controller('AvailTestController', function ($scope) {
+
+      console.log("Starting Avail Tester");
+      // our fake dynamic data relative to now
+      $scope.availChartData = [
+        {'timestamp': +moment().subtract('minutes', 40), 'value': 'up'},
+        {'timestamp': +moment().subtract('minutes', 35), 'value': 'down'},
+        {'timestamp': +moment().subtract('minutes', 20), 'value': 'up'},
+        {'timestamp': +moment().subtract('minutes', 10), 'value': 'unknown'},
+        {'timestamp': +moment().subtract('minutes', 5), 'value': 'down'},
+        {'timestamp': +moment(), 'value': 'up'}]
+    });
+
+  </script>
+
+</head>
+<body ng-app="myApp">
+
+<h3>Availability Tester</h3>
+
+<div ng-controller="AvailTestController">
+  <availability-chart data="{{availChartData}}"/>
+</div>
+
+
+</body>
+</html>

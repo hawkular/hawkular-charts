@@ -24,7 +24,7 @@ var gulp = require('gulp'),
     path = require('path'),
     s = require('underscore.string'),
     size = require('gulp-size'),
-    stripDebug = require('gulp-strip-debug'),
+    //stripDebug = require('gulp-strip-debug'),
     ts = require('gulp-typescript'),
     merge = require('merge2'),
     tslint = require('gulp-tslint');
@@ -64,7 +64,7 @@ gulp.task('path-adjust', function() {
         .pipe(map(function(buf, filename) {
             var textContent = buf.toString();
             var newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
-            // console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
+             console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
             return newTextContent;
         }))
         .pipe(gulp.dest('libs'));
@@ -87,7 +87,7 @@ gulp.task('tsc', ['clean-defs'], function () {
     return eventStream.merge(
         tsResult.js
             .pipe(plugins.concat(config.js))
-            .pipe(stripDebug())
+            //.pipe(stripDebug())
             .pipe(gulp.dest('.')),
         tsResult.dts
             .pipe(gulp.dest('d.ts')))

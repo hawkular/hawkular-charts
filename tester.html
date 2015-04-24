@@ -1,52 +1,53 @@
 <!doctype html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>RHQ Metrics Chart Tester</title>
-    <meta name="description"
-          content="Hawkular Charts Standalone Chart Example. An example how to use the hawkular-charts in a sample page.">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/hawkular-charts.css">
-    <style>
-        .metricIdLabel {
-            color: #999;
-        }
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>RHQ Metrics Chart Tester</title>
+  <meta name="description"
+        content="Hawkular Charts Standalone Chart Example. An example how to use the hawkular-charts in a sample page.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/hawkular-charts.css">
+  <style>
+    .metricIdLabel {
+      color: #999;
+    }
 
-        .metricIdHeader {
-            margin: 20px 0 -45px 90px;
-        }
+    .metricIdHeader {
+      margin: 20px 0 -45px 90px;
+    }
 
-        .chartWrapper {
-            height: 250px;
-        }
-    </style>
-
-
-    <!-- build:js scripts/vendor.js -->
-    <!-- bower:js -->
-    <script src="libs/jquery/dist/jquery.js"></script>
-    <script src="libs/angular/angular.js"></script>
-    <script src="libs/d3/d3.js"></script>
-    <script src="libs/moment/moment.js"></script>
-    <script src="libs/d3-tip/index.js"></script>
-    <script src="libs/numeral/numeral.js"></script>
-    <!-- endbower -->
-    <!-- endbuild -->
-
-    <!-- build:js({.tmp,app}) scripts/scripts.js -->
-    <!-- endbuild -->
+    .chartWrapper {
+      height: 250px;
+    }
+  </style>
 
 
-    <script>
-        var app = angular.module('myApp', ['hawkularCharts']);
+  <!-- build:js scripts/vendor.js -->
+  <!-- bower:js -->
+  <script src="libs/jquery/dist/jquery.js"></script>
+  <script src="libs/angular/angular.js"></script>
+  <script src="libs/lodash/lodash.js"></script>
+  <script src="libs/d3/d3.js"></script>
+  <script src="libs/moment/moment.js"></script>
+  <script src="libs/d3-tip/index.js"></script>
+  <script src="libs/numeral/numeral.js"></script>
+  <!-- endbower -->
+  <!-- endbuild -->
 
-        app.controller('ChartController', function ($scope) {
-            // this is just a dummy controller required to render the directive
-        });
+  <!-- build:js({.tmp,app}) scripts/scripts.js -->
+  <!-- endbuild -->
 
-    </script>
-    <script src="src/chart/hawkular-chart-directive.js"></script>
+
+  <script>
+    var app = angular.module('myApp', ['hawkularCharts']);
+
+    app.controller('ChartController', function ($scope) {
+      // this is just a dummy controller required to render the directive
+    });
+
+  </script>
+  <script src="src/chart/hawkular-chart-directive.js"></script>
 
 
 </head>
@@ -57,49 +58,49 @@
 <div ng-controller="ChartController">
 
 
-    <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
-        <strong>hrupp-rhq-metrics-saas.wildfly.heap-memory-usage.used</strong>
-    </div>
-    <div class="chartWrapper">
-        <hawkular-chart chart-type="bar"
+  <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
+    <strong>hrupp-rhq-metrics-saas.wildfly.heap-memory-usage.used</strong>
+  </div>
+  <div class="chartWrapper">
+    <hawkular-chart chart-type="bar"
                     metric-id="hrupp-rhq-metrics-saas.wildfly.heap-memory-usage.used"
                     metric-url="http://10.3.10.81:8080/hawkular/metrics/"
                     time-range-in-seconds="86400"
                     refresh-interval-in-seconds="60"
                     chart-height="250"></hawkular-chart>
-    </div>
-    <div class="chartWrapper">
-        <hawkular-chart chart-type="area"
+  </div>
+  <div class="chartWrapper">
+    <hawkular-chart chart-type="area"
                     metric-id="hrupp-rhq-metrics-saas.wildfly.heap-memory-usage.used"
                     metric-url="http://10.3.10.81:8080/hawkular/metrics/"
                     time-range-in-seconds="86400"
                     refresh-interval-in-seconds="60"
                     chart-height="250"></hawkular-chart>
-    </div>
-    <div class="chartWrapper">
-        <hawkular-chart chart-type="line"
+  </div>
+  <div class="chartWrapper">
+    <hawkular-chart chart-type="line"
                     metric-id="hrupp-rhq-metrics-saas.wildfly.heap-memory-usage.used"
                     metric-url="http://10.3.10.81:8080/hawkular/metrics/"
                     time-range-in-seconds="86400"
                     refresh-interval-in-seconds="60"
                     chart-height="250"></hawkular-chart>
-    </div>
-    <div class="chartWrapper">
-        <hawkular-chart chart-type="scatter"
+  </div>
+  <div class="chartWrapper">
+    <hawkular-chart chart-type="scatter"
                     metric-id="hrupp-rhq-metrics-saas.wildfly.heap-memory-usage.used"
                     metric-url="http://10.3.10.81:8080/hawkular/metrics/"
                     time-range-in-seconds="86400"
                     refresh-interval-in-seconds="60"
                     chart-height="250"></hawkular-chart>
-    </div>
-    <div class="chartWrapper">
-        <hawkular-chart chart-type="scatterline"
+  </div>
+  <div class="chartWrapper">
+    <hawkular-chart chart-type="scatterline"
                     metric-id="hrupp-rhq-metrics-saas.wildfly.heap-memory-usage.used"
                     metric-url="http://10.3.10.81:8080/hawkular/metrics/"
                     time-range-in-seconds="86400"
                     refresh-interval-in-seconds="60"
                     chart-height="250"></hawkular-chart>
-    </div>
+  </div>
 
 </div>
 

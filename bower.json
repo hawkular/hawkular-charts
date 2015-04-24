@@ -41,6 +41,7 @@
   "dependencies": {
     "angular": ">1.2.0",
     "jquery": ">2.0.0",
+    "lodash": ">3.1.0",
     "d3": "3.4.8",
     "moment": "2.9.0",
     "d3-tip": "0.6.6",

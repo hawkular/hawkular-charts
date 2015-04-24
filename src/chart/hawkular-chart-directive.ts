@@ -3,15 +3,16 @@
 module Charts {
   'use strict';
 
-  declare var d3:any;
-  declare var numeral:any;
-  declare var console:any;
+  declare
+  var d3:any;
+  var numeral:any;
+  var console:any;
 
   export interface IContextChartDataPoint {
     timestamp: number;
     start?: number;
     end?: number;
-    value: number;
+    value: any;
     avg: number;
     empty: boolean;
   }
@@ -23,6 +24,15 @@ module Charts {
     percentile95th: number;
     median: number;
   }
+  //export interface IAvailDataPoint {
+  //  start:number;
+  //  end:number;
+  //  uptimeRatio:number;
+  //  dowtimeCount:number;
+  //  downtimeDuration:number;
+  //  lastDowntime:number;
+  //  empty:boolean;
+  //}
 
   /**
    * @ngdoc directive
@@ -30,7 +40,7 @@ module Charts {
    * @description A d3 based charting direction to provide charting using various styles of charts like: bar, area, line, scatter.
    *
    */
-  angular.module('hawkularCharts', [])
+  angular.module('hawkular.charts')
     .directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log', function ($rootScope:ng.IRootScopeService, $http:ng.IHttpService, $interval:ng.IIntervalService, $log:ng.ILogService):ng.IDirective {
 
       /// only for the stand alone charts
@@ -267,7 +277,6 @@ module Charts {
 
           }
         }
-
 
         function getBaseUrl():string {
           var baseUrl = dataUrl || 'http://' + $rootScope.$storage.server.replace(/['"]+/g, '') + ':' + $rootScope.$storage.port + BASE_URL;
@@ -589,13 +598,13 @@ module Charts {
             .data(chartData)
             .enter().append("rect")
             .attr("class", "candleStickUp")
-            .attr("x", function (d) {
+            .attr("x", (d) => {
               return timeScale(d.timestamp);
             })
-            .attr("y", function (d) {
+            .attr("y", (d) => {
               return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
             })
-            .attr("height", function (d) {
+            .attr("height", (d) => {
               if (isEmptyDataBar(d)) {
                 return 0;
               }
@@ -603,19 +612,16 @@ module Charts {
                 return yScale(d.avg) - yScale(d.max);
               }
             })
-            .attr("width", function () {
+            .attr("width", () => {
               return calcBarWidth();
             })
-            .attr("data-rhq-value", function (d) {
-              return d.max;
-            })
-            .style("fill", function (d, i) {
+            .style("fill", (d, i) => {
               return fillCandleChart(d, i);
             })
 
-            .on("mouseover", function (d, i) {
+            .on("mouseover", (d, i) => {
               tip.show(d, i);
-            }).on("mouseout", function () {
+            }).on("mouseout", () => {
               tip.hide();
             });
 
@@ -625,13 +631,13 @@ module Charts {
             .data(chartData)
             .enter().append("rect")
             .attr("class", "candleStickDown")
-            .attr("x", function (d) {
+            .attr("x", (d) => {
               return timeScale(d.timestamp);
             })
-            .attr("y", function (d) {
+            .attr("y", (d) => {
               return isNaN(d.avg) ? height : yScale(d.avg);
             })
-            .attr("height", function (d) {
+            .attr("height", (d) => {
               if (isEmptyDataBar(d)) {
                 return 0;
               }
@@ -639,18 +645,18 @@ module Charts {
                 return yScale(d.min) - yScale(d.avg);
               }
             })
-            .attr("width", function () {
+            .attr("width", () => {
               return calcBarWidth();
             })
-            .attr("data-rhq-value", function (d) {
+            .attr("data-rhq-value", (d) => {
               return d.min;
             })
-            .style("fill", function (d, i) {
+            .style("fill", (d, i) => {
               return fillCandleChart(d, i);
             })
-            .on("mouseover", function (d, i) {
+            .on("mouseover", (d, i) => {
               tip.show(d, i);
-            }).on("mouseout", function () {
+            }).on("mouseout", () => {
               tip.hide();
             });
 
@@ -665,6 +671,7 @@ module Charts {
           }
 
         }
+
 
         function createHistogramChart() {
           var strokeOpacity = "0.6";
@@ -939,7 +946,6 @@ module Charts {
                 return yScale(0);
               }
             });
-
 
           svg.append("path")
             .datum(chartData)
@@ -1410,6 +1416,14 @@ module Charts {
           }
         }, true);
 
+        scope.$watch('availData', (newAvailData) => {
+          if (newAvailData) {
+            $log.debug('Avail Data Changed');
+            processedNewData = angular.fromJson(newAvailData);
+            scope.render(processedNewData, processedPreviousRangeData);
+          }
+        }, true);
+
         scope.$watch('previousRangeData', (newPreviousRangeValues) => {
           if (newPreviousRangeValues) {
             $log.debug("Previous Range data changed");
@@ -1435,11 +1449,11 @@ module Charts {
 
         scope.$on('MultiChartOverlayDataChanged', (event, newMultiChartData) => {
           $log.log('Handling MultiChartOverlayDataChanged in Chart Directive');
-          if (angular.isUndefined(newMultiChartData)) {
+          if (newMultiChartData) {
+            multiChartOverlayData = angular.fromJson(newMultiChartData);
+          } else {
             // same event is sent with no data to clear it
             multiChartOverlayData = [];
-          } else {
-            multiChartOverlayData = angular.fromJson(newMultiChartData);
           }
           scope.render(processedNewData, processedPreviousRangeData);
         });
@@ -1517,12 +1531,14 @@ module Charts {
 
 
         scope.render = (dataPoints, previousRangeDataPoints) => {
-          if (dataPoints) {
             console.group('Render Chart');
             console.time('chartRender');
             //NOTE: layering order is important!
             oneTimeChartSetup();
-            determineScale(dataPoints);
+            if (dataPoints) {
+              determineScale(dataPoints);
+            }
+
             createHeader(attrs.chartTitle);
             createYAxisGridLines();
             createXAxisBrush();
@@ -1553,7 +1569,7 @@ module Charts {
                 createCandleStickChart();
                 break;
               default:
-                $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric]');
+                $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability]');
 
             }
 
@@ -1572,7 +1588,6 @@ module Charts {
             }
             console.timeEnd('chartRender');
             console.groupEnd('Render Chart');
-          }
         };
       }
 
@@ -1582,6 +1597,7 @@ module Charts {
         replace: true,
         scope: {
           data: '@',
+          availData: '@',
           metricUrl: '@',
           metricId: '@',
           startTimestamp: '@',

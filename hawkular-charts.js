@@ -5,19 +5,259 @@
  *   Base module for rhq-metrics-charts.
  *
  */
-angular.module('hawkular-charts', ['d3', 'd3-tip', 'moment']);
+angular.module('hawkular.charts', []);
 
 /// <reference path="../../vendor/vendor.d.ts" />
 var Charts;
 (function (Charts) {
     'use strict';
+    var TransformedAvailDataPoint = (function () {
+        function TransformedAvailDataPoint(start, end, value, duration, message) {
+            this.start = start;
+            this.end = end;
+            this.value = value;
+            this.duration = duration;
+            this.message = message;
+        }
+        return TransformedAvailDataPoint;
+    })();
+    Charts.TransformedAvailDataPoint = TransformedAvailDataPoint;
+    /**
+     * @ngdoc directive
+     * @name availability-chart
+     * @description A d3 based charting directive for charting availability.
+     *
+     */
+    angular.module('hawkular.charts').directive('availabilityChart', function () {
+        return new Charts.AvailabilityChartDirective();
+    });
+    var AvailabilityChartDirective = (function () {
+        function AvailabilityChartDirective() {
+            this.restrict = 'EA';
+            this.replace = true;
+            this.scope = {
+                data: '@',
+                chartHeight: '@',
+                timeLabel: '@',
+                dateLabel: '@',
+                noDataLabel: '@',
+                chartTitle: '@'
+            };
+            this.controller = ['$scope', '$element', '$attrs', function ($scope, $element, $attrs) {
+            }];
+            this.link = function (scope, element, attrs) {
+                // data specific vars
+                var dataPoints = [], transformedDataPoints, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
+                // chart specific vars
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, tip, brush, timeScaleForBrush, chart, chartParent, svg;
+                dataPoints = []; // dont care when the first come in
+                function getChartWidth() {
+                    //return angular.element("#" + chartContext.chartHandle).width();
+                    return 760;
+                }
+                function oneTimeChartSetup() {
+                    console.log("OneTimeChartSetup");
+                    // destroy any previous charts
+                    if (chart) {
+                        chartParent.selectAll('*').remove();
+                    }
+                    chartParent = d3.select(element[0]);
+                    chart = chartParent.append("svg");
+                    //tip = d3.tip()
+                    //  .attr('class', 'd3-tip')
+                    //  .offset([-10, 0])
+                    //  .html((d, i) => {
+                    //    return buildHover(d, i);
+                    //  });
+                    svg = chart.append("g").attr("width", width + margin.left + margin.right).attr("height", innerChartHeight).attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
+                    //svg.call(tip);
+                }
+                function determineAvailScale(dataPoints) {
+                    var xTicks = 8, xTickSubDivide = 5;
+                    if (dataPoints) {
+                        yScale = d3.scale.linear().clamp(true).rangeRound([innerChartHeight, 0]).domain([0, 175]);
+                        yAxis = d3.svg.axis().scale(yScale).ticks(0).tickSize(0, 0).orient("left");
+                        timeScale = d3.time.scale().range([0, width]).domain(d3.extent(dataPoints, function (d) {
+                            return d.start;
+                        }));
+                        xAxis = d3.svg.axis().scale(timeScale).ticks(xTicks).tickSubdivide(xTickSubDivide).tickSize(4, 0).orient("top");
+                    }
+                }
+                function isUp(d) {
+                    return d.value === 'up';
+                }
+                function isDown(d) {
+                    return d.value === 'down';
+                }
+                function isUnknown(d) {
+                    return d.value === 'unknown';
+                }
+                function formatTransformedDataPoints(inAvailData) {
+                    var outputData = [];
+                    if (inAvailData && inAvailData[0].timestamp) {
+                        var previousItem;
+                        _.each(inAvailData, function (availItem, i) {
+                            if (i > 0) {
+                                previousItem = inAvailData[i - 1];
+                                outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
+                            }
+                            else {
+                                outputData.push(new TransformedAvailDataPoint(availItem.timestamp, availItem.timestamp, availItem.value));
+                            }
+                        });
+                    }
+                    return outputData;
+                }
+                function createSideYAxisLabels() {
+                    svg.append("text").attr("class", "availUpLabel").attr("x", -10).attr("y", 20).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "14px").attr("fill", "#999").style("text-anchor", "end").text("Up");
+                    svg.append("text").attr("class", "availDownLabel").attr("x", -10).attr("y", 55).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "14px").attr("fill", "#999").style("text-anchor", "end").text("Down");
+                }
+                function createAvailabilityChart(dataPoints) {
+                    var xAxisMin = d3.min(dataPoints, function (d) {
+                        return +d.start;
+                    }), xAxisMax = d3.max(dataPoints, function (d) {
+                        return +d.end;
+                    }), availTimeScale = d3.time.scale().range([0, width]).domain([xAxisMin, xAxisMax]), yScale = d3.scale.linear().clamp(true).range([height, 0]).domain([0, 4]), availXAxis = d3.svg.axis().scale(availTimeScale).ticks(8).tickSize(13, 0).orient("top");
+                    function calcBarY(d) {
+                        var offset;
+                        if (isUp(d) || isUnknown(d)) {
+                            offset = 0;
+                        }
+                        else {
+                            offset = 30;
+                        }
+                        return height - yScale(0) + offset;
+                    }
+                    function calcBarHeight(d) {
+                        var offset;
+                        if (isUp(d) || isUnknown(d)) {
+                            offset = 20;
+                        }
+                        else {
+                            offset = 50;
+                        }
+                        return yScale(0) - offset;
+                    }
+                    function calcBarFill(d) {
+                        if (isUp(d)) {
+                            return "#4AA544"; // green
+                        }
+                        else if (isUnknown(d)) {
+                            return "#B5B5B5"; // gray
+                        }
+                        else {
+                            return "#E52527"; // red
+                        }
+                    }
+                    svg.selectAll("rect.availBars").data(dataPoints).enter().append("rect").attr("class", "availBars").attr("x", function (d) {
+                        return availTimeScale(+d.start);
+                    }).attr("y", function (d) {
+                        return calcBarY(d);
+                    }).attr("height", function (d) {
+                        return calcBarHeight(d);
+                    }).attr("width", function (d) {
+                        return availTimeScale(+d.end) - availTimeScale(+d.start);
+                    }).attr("fill", function (d) {
+                        return calcBarFill(d);
+                    });
+                    // create x-axis
+                    svg.append("g").attr("class", "x axis").attr("fill", "#000").attr("stroke-width", "2px").call(availXAxis);
+                    createSideYAxisLabels();
+                }
+                function createXandYAxes() {
+                    var xAxisGroup;
+                    svg.selectAll('g.axis').remove();
+                    // create x-axis
+                    xAxisGroup = svg.append("g").attr("class", "x axis").call(xAxis);
+                    //xAxisGroup.append("g")
+                    //  .attr("class", "x brush")
+                    //  .call(brush)
+                    //  .selectAll("rect")
+                    //  .attr("y", -6)
+                    //  .attr("height", 30);
+                    // create y-axis
+                    svg.append("g").attr("class", "y axis").call(yAxis);
+                }
+                function createXAxisBrush() {
+                    brush = d3.svg.brush().x(timeScaleForBrush).on("brushstart", brushStart).on("brush", brushMove).on("brushend", brushEnd);
+                    //brushGroup = svg.append("g")
+                    //    .attr("class", "brush")
+                    //    .call(brush);
+                    //
+                    //brushGroup.selectAll(".resize").append("path");
+                    //
+                    //brushGroup.selectAll("rect")
+                    //    .attr("height", height);
+                    function brushStart() {
+                        svg.classed("selecting", true);
+                    }
+                    function brushMove() {
+                        //useful for showing the daterange change dynamically while selecting
+                        var extent = brush.extent();
+                        //scope.$emit('DateRangeMove', extent);
+                    }
+                    function brushEnd() {
+                        var extent = brush.extent(), startTime = Math.round(extent[0].getTime()), endTime = Math.round(extent[1].getTime()), dragSelectionDelta = endTime - startTime >= 60000;
+                        svg.classed("selecting", !d3.event.target.empty());
+                        // ignore range selections less than 1 minute
+                        if (dragSelectionDelta) {
+                            scope.$emit('DateRangeChanged', extent);
+                        }
+                    }
+                }
+                scope.$watch('data', function (newData) {
+                    console.debug('Avail Chart Data Changed');
+                    if (newData) {
+                        transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
+                        console.dir(transformedDataPoints);
+                        scope.render(transformedDataPoints);
+                    }
+                }, true);
+                scope.render = function (dataPoints) {
+                    console.debug("Starting Avail Chart Directive Render");
+                    console.group('Render Avail Chart');
+                    if (dataPoints) {
+                        console.time('availChartRender');
+                        //NOTE: layering order is important!
+                        console.dir(dataPoints);
+                        oneTimeChartSetup();
+                        determineAvailScale(dataPoints);
+                        createXAxisBrush();
+                        createAvailabilityChart(dataPoints);
+                        createXandYAxes();
+                        console.timeEnd('availChartRender');
+                    }
+                    console.groupEnd();
+                };
+            };
+        }
+        return AvailabilityChartDirective;
+    })();
+    Charts.AvailabilityChartDirective = AvailabilityChartDirective;
+})(Charts || (Charts = {}));
+
+/// <reference path="../../vendor/vendor.d.ts" />
+var Charts;
+(function (Charts) {
+    'use strict';
+    var numeral;
+    var console;
+    //export interface IAvailDataPoint {
+    //  start:number;
+    //  end:number;
+    //  uptimeRatio:number;
+    //  dowtimeCount:number;
+    //  downtimeDuration:number;
+    //  lastDowntime:number;
+    //  empty:boolean;
+    //}
     /**
      * @ngdoc directive
      * @name hawkularChart
      * @description A d3 based charting direction to provide charting using various styles of charts like: bar, area, line, scatter.
      *
      */
-    angular.module('hawkularCharts', []).directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log', function ($rootScope, $http, $interval, $log) {
+    angular.module('hawkular.charts').directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log', function ($rootScope, $http, $interval, $log) {
         /// only for the stand alone charts
         var BASE_URL = '/hawkular/metrics';
         function link(scope, element, attrs) {
@@ -41,7 +281,7 @@ var Charts;
                 return getChartWidth() <= smallChartThresholdInPixels;
             }
             function oneTimeChartSetup() {
-                void 0;
+                console.log("OneTimeChartSetup");
                 // destroy any previous charts
                 if (chart) {
                     chartParent.selectAll('*').remove();
@@ -59,7 +299,7 @@ var Charts;
                 function determineMultiMetricMinMax() {
                     var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
                     angular.forEach(multiChartOverlayData, function (series) {
-                        void 0;
+                        console.debug("Series: " + series.length);
                         currentMax = d3.max(series.map(function (d) {
                             return !d.empty ? d.avg : 0;
                         }));
@@ -147,7 +387,7 @@ var Charts;
                 }
                 $http.get(url + metricId, searchParams).success(function (response) {
                     processedNewData = formatBucketedChartOutput(response);
-                    void 0;
+                    console.info("DataPoints from standalone URL: ");
                     //console.table(processedNewData);
                     scope.render(processedNewData, processedPreviousRangeData);
                 }).error(function (reason, status) {
@@ -330,8 +570,6 @@ var Charts;
                     }
                 }).attr("width", function () {
                     return calcBarWidth();
-                }).attr("data-rhq-value", function (d) {
-                    return d.max;
                 }).style("fill", function (d, i) {
                     return fillCandleChart(d, i);
                 }).on("mouseover", function (d, i) {
@@ -528,7 +766,6 @@ var Charts;
                         return yScale(highbound);
                     }
                     else {
-                        //return yScale(d.max);
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                     }
                 }).y0(function (d) {
@@ -800,6 +1037,13 @@ var Charts;
                     scope.render(processedNewData, processedPreviousRangeData);
                 }
             }, true);
+            scope.$watch('availData', function (newAvailData) {
+                if (newAvailData) {
+                    $log.debug('Avail Data Changed');
+                    processedNewData = angular.fromJson(newAvailData);
+                    scope.render(processedNewData, processedPreviousRangeData);
+                }
+            }, true);
             scope.$watch('previousRangeData', function (newPreviousRangeValues) {
                 if (newPreviousRangeValues) {
                     $log.debug("Previous Range data changed");
@@ -821,12 +1065,12 @@ var Charts;
             }, true);
             scope.$on('MultiChartOverlayDataChanged', function (event, newMultiChartData) {
                 $log.log('Handling MultiChartOverlayDataChanged in Chart Directive');
-                if (angular.isUndefined(newMultiChartData)) {
-                    // same event is sent with no data to clear it
-                    multiChartOverlayData = [];
+                if (newMultiChartData) {
+                    multiChartOverlayData = angular.fromJson(newMultiChartData);
                 }
                 else {
-                    multiChartOverlayData = angular.fromJson(newMultiChartData);
+                    // same event is sent with no data to clear it
+                    multiChartOverlayData = [];
                 }
                 scope.render(processedNewData, processedPreviousRangeData);
             });
@@ -849,13 +1093,13 @@ var Charts;
             }
             scope.$watch('dataUrl', function (newUrlData) {
                 if (newUrlData) {
-                    void 0;
+                    console.log('dataUrl has changed: ' + newUrlData);
                     dataUrl = newUrlData;
                 }
             });
             scope.$watch('metricId', function (newMetricId) {
                 if (newMetricId) {
-                    void 0;
+                    console.log('metricId has changed: ' + newMetricId);
                     metricId = newMetricId;
                     loadMetricsTimeRangeFromNow();
                 }
@@ -870,7 +1114,7 @@ var Charts;
             });
             scope.$watch('timeRangeInSeconds', function (newTimeRange) {
                 if (newTimeRange) {
-                    void 0;
+                    console.log("timeRangeInSeconds changed.");
                     timeRangeInSeconds = newTimeRange;
                 }
             });
@@ -891,59 +1135,59 @@ var Charts;
                 scope.$emit('GraphTimeRangeChangedEvent', extent);
             });
             scope.render = function (dataPoints, previousRangeDataPoints) {
+                console.group('Render Chart');
+                console.time('chartRender');
+                //NOTE: layering order is important!
+                oneTimeChartSetup();
                 if (dataPoints) {
-                    void 0;
-                    void 0;
-                    //NOTE: layering order is important!
-                    oneTimeChartSetup();
                     determineScale(dataPoints);
-                    createHeader(attrs.chartTitle);
-                    createYAxisGridLines();
-                    createXAxisBrush();
-                    switch (chartType) {
-                        case 'rhqbar':
-                            createStackedBars(lowBound, highBound);
-                            break;
-                        case 'histogram':
-                            createHistogramChart();
-                            break;
-                        case 'hawkularline':
-                            createHawkularLineChart();
-                            break;
-                        case 'hawkularmetric':
-                            createHawkularMetricChart(lowBound, highBound);
-                            break;
-                        case 'area':
-                            createAreaChart();
-                            break;
-                        case 'scatter':
-                            createScatterChart();
-                            break;
-                        case 'scatterline':
-                            createScatterLineChart();
-                            break;
-                        case 'candlestick':
-                            createCandleStickChart();
-                            break;
-                        default:
-                            $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric]');
-                    }
-                    createPreviousRangeOverlay(previousRangeDataPoints);
-                    createMultiMetricOverlay();
-                    createXandYAxes();
-                    showAvgLine = (chartType === 'bar' || chartType === 'scatterline') ? true : false;
-                    if (showAvgLine) {
-                        createAvgLines();
-                    }
-                    if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
-                        createAlertLine(alertValue);
-                    }
-                    if (annotationData) {
-                        annotateChart(annotationData);
-                    }
-                    void 0;
-                    void 0;
                 }
+                createHeader(attrs.chartTitle);
+                createYAxisGridLines();
+                createXAxisBrush();
+                switch (chartType) {
+                    case 'rhqbar':
+                        createStackedBars(lowBound, highBound);
+                        break;
+                    case 'histogram':
+                        createHistogramChart();
+                        break;
+                    case 'hawkularline':
+                        createHawkularLineChart();
+                        break;
+                    case 'hawkularmetric':
+                        createHawkularMetricChart(lowBound, highBound);
+                        break;
+                    case 'area':
+                        createAreaChart();
+                        break;
+                    case 'scatter':
+                        createScatterChart();
+                        break;
+                    case 'scatterline':
+                        createScatterLineChart();
+                        break;
+                    case 'candlestick':
+                        createCandleStickChart();
+                        break;
+                    default:
+                        $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability]');
+                }
+                createPreviousRangeOverlay(previousRangeDataPoints);
+                createMultiMetricOverlay();
+                createXandYAxes();
+                showAvgLine = (chartType === 'bar' || chartType === 'scatterline') ? true : false;
+                if (showAvgLine) {
+                    createAvgLines();
+                }
+                if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
+                    createAlertLine(alertValue);
+                }
+                if (annotationData) {
+                    annotateChart(annotationData);
+                }
+                console.timeEnd('chartRender');
+                console.groupEnd('Render Chart');
             };
         }
         return {
@@ -952,6 +1196,7 @@ var Charts;
             replace: true,
             scope: {
                 data: '@',
+                availData: '@',
                 metricUrl: '@',
                 metricId: '@',
                 startTimestamp: '@',

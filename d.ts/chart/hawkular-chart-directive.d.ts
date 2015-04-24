@@ -4,7 +4,7 @@ declare module Charts {
         timestamp: number;
         start?: number;
         end?: number;
-        value: number;
+        value: any;
         avg: number;
         empty: boolean;
     }

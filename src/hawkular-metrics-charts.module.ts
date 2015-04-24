@@ -5,5 +5,5 @@
  *   Base module for rhq-metrics-charts.
  *
  */
-angular.module('hawkular-charts', ['d3','d3-tip','moment' ]);
+angular.module('hawkular.charts', []);
 
