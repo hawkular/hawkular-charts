@@ -160,7 +160,13 @@ var Charts;
                         return calcBarFill(d);
                     });
                     // create x-axis
-                    svg.append("g").attr("class", "x axis").attr("fill", "#000").attr("stroke-width", "2px").call(availXAxis);
+                    svg.append("g").attr("class", "x axis").call(availXAxis);
+                    var bottomYAxisLine = d3.svg.line().x(function (d) {
+                        return timeScale(d.start);
+                    }).y(function (d) {
+                        return height - yScale(0) + 70;
+                    });
+                    svg.append("path").datum(dataPoints).attr("class", "availYAxisLine").attr("d", bottomYAxisLine);
                     createSideYAxisLabels();
                 }
                 function createXandYAxes() {

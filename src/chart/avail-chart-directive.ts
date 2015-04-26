@@ -203,6 +203,7 @@ module Charts {
         return outputData;
       }
 
+
       function createSideYAxisLabels() {
 
         svg.append("text")
@@ -310,10 +311,21 @@ module Charts {
         // create x-axis
         svg.append("g")
           .attr("class", "x axis")
-          .attr("fill", "#000")
-          .attr("stroke-width", "2px")
-
           .call(availXAxis);
+
+
+        var bottomYAxisLine = d3.svg.line()
+          .x((d:ITransformedAvailDataPoint) => {
+            return timeScale(d.start);
+          })
+          .y((d:ITransformedAvailDataPoint) => {
+            return height - yScale(0) + 70;
+          });
+
+        svg.append("path")
+          .datum(dataPoints)
+          .attr("class", "availYAxisLine")
+          .attr("d", bottomYAxisLine);
 
         createSideYAxisLabels();
       }

@@ -95,7 +95,15 @@ svg {
 
 }
 
-/* Availability
+/* Availability */
+
+.availYAxisLine {
+  stroke: #000;
+  fill: #000;
+  stroke-width: 0.5px;
+}
+
+/*
 .availUpLabel {
 
   font-family: Arial, Verdana, sans-serif;
