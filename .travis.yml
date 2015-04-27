@@ -1,0 +1,9 @@
+anguage: node_js
+node_js:
+  - '0.10'
+
+before_install:
+  - 'npm install -g bower gulp typescript'
+
+script:
+  - 'npm install && bower install && gulp build'
