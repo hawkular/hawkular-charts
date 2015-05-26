@@ -12,12 +12,17 @@ var Charts;
 (function (Charts) {
     'use strict';
     var TransformedAvailDataPoint = (function () {
-        function TransformedAvailDataPoint(start, end, value, duration, message) {
+        function TransformedAvailDataPoint(start, end, value, startDate, endDate, duration, message) {
             this.start = start;
             this.end = end;
             this.value = value;
+            this.startDate = startDate;
+            this.endDate = endDate;
             this.duration = duration;
             this.message = message;
+            this.duration = moment(end).from(moment(start), true);
+            this.startDate = new Date(start);
+            this.endDate = new Date(end);
         }
         return TransformedAvailDataPoint;
     })();
@@ -41,7 +46,9 @@ var Charts;
                 timeLabel: '@',
                 dateLabel: '@',
                 noDataLabel: '@',
-                chartTitle: '@'
+                chartTitle: '@',
+                startTimestamp: '@',
+                endTimestamp: '@'
             };
             this.controller = ['$scope', '$element', '$attrs', function ($scope, $element, $attrs) {
             }];
@@ -49,8 +56,8 @@ var Charts;
                 // data specific vars
                 var dataPoints = [], transformedDataPoints, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, tip, brush, timeScaleForBrush, chart, chartParent, svg;
-                dataPoints = []; // dont care when the first come in
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, tip, brush, timeScaleForBrush, chart, chartParent, startTimestamp, endTimestamp, svg;
+                dataPoints = []; // dont care when the first comes in
                 function getChartWidth() {
                     //return angular.element("#" + chartContext.chartHandle).width();
                     return 760;
@@ -101,7 +108,8 @@ var Charts;
                                 outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
                             }
                             else {
-                                outputData.push(new TransformedAvailDataPoint(availItem.timestamp, +moment(), availItem.value));
+                                previousItem = inAvailData[i];
+                                outputData.push(new TransformedAvailDataPoint(availItem.timestamp - 5 * 60 * 1000, availItem.timestamp, availItem.value));
                             }
                         });
                     }
@@ -128,14 +136,14 @@ var Charts;
                         return height - yScale(0) + offset;
                     }
                     function calcBarHeight(d) {
-                        var offset;
+                        var height;
                         if (isUnknown(d)) {
-                            offset = 15;
+                            height = 15;
                         }
                         else {
-                            offset = 50;
+                            height = 50;
                         }
-                        return yScale(0) - offset;
+                        return yScale(0) - height;
                     }
                     function calcBarFill(d) {
                         if (isUp(d)) {
@@ -158,6 +166,8 @@ var Charts;
                         return availTimeScale(+d.end) - availTimeScale(+d.start);
                     }).attr("fill", function (d) {
                         return calcBarFill(d);
+                    }).append("title").text(function (d) {
+                        return "Duration: " + d.duration;
                     });
                     // create x-axis
                     svg.append("g").attr("class", "x axis").call(availXAxis);
@@ -215,6 +225,20 @@ var Charts;
                     if (newData) {
                         transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
                         console.dir(transformedDataPoints);
+                        scope.render(transformedDataPoints);
+                    }
+                }, true);
+                scope.$watch('startTimestamp', function (newStartTimestap) {
+                    console.debug('Avail Chart Start Timestamp Changed');
+                    if (newStartTimestap) {
+                        startTimestamp = newStartTimestap;
+                        scope.render(transformedDataPoints);
+                    }
+                }, true);
+                scope.$watch('endTimestamp', function (newEndTimestap) {
+                    console.debug('Avail Chart End Timestamp Changed');
+                    if (newEndTimestap) {
+                        endTimestamp = newEndTimestap;
                         scope.render(transformedDataPoints);
                     }
                 }, true);

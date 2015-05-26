@@ -14,6 +14,8 @@ declare module Charts {
         start: number;
         end: number;
         value: string;
+        startDate?: Date;
+        endDate?: Date;
         duration?: string;
         message?: string;
     }
@@ -21,9 +23,11 @@ declare module Charts {
         start: number;
         end: number;
         value: string;
+        startDate: Date;
+        endDate: Date;
         duration: string;
         message: string;
-        constructor(start: number, end: number, value: string, duration?: string, message?: string);
+        constructor(start: number, end: number, value: string, startDate?: Date, endDate?: Date, duration?: string, message?: string);
     }
     class AvailabilityChartDirective {
         restrict: string;
@@ -35,6 +39,8 @@ declare module Charts {
             dateLabel: string;
             noDataLabel: string;
             chartTitle: string;
+            startTimestamp: string;
+            endTimestamp: string;
         };
         controller: (string | (($scope: any, $element: any, $attrs: any) => void))[];
         link: (scope: any, element: any, attrs: any) => void;
