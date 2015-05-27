@@ -18,17 +18,18 @@
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
 
-    app.controller('AvailTestController', function ($scope) {
+    app.controller('AvailTestController', function () {
 
       console.log("Starting Avail Tester");
-      // our fake dynamic data relative to now
-      $scope.availChartData = [
-        {'timestamp': +moment().subtract('minutes', 40), 'value': 'up'},
-        {'timestamp': +moment().subtract('minutes', 35), 'value': 'down'},
-        {'timestamp': +moment().subtract('minutes', 20), 'value': 'up'},
-        {'timestamp': +moment().subtract('minutes', 10), 'value': 'unknown'},
-        {'timestamp': +moment().subtract('minutes', 5), 'value': 'down'},
-        {'timestamp': +moment(), 'value': 'up'}]
+      //var baseTime = moment();
+      var baseTime = moment().hour(15).minutes(0); // start a 15:00 today
+
+      this.availChartData = [
+        {'timestamp': +baseTime.add('minutes', 5), 'value': 'up'},
+        {'timestamp': +baseTime.add('minutes', 10), 'value': 'down'},
+        {'timestamp': +baseTime.add('minutes', 10), 'value': 'up'},
+        {'timestamp': +baseTime.add('minutes', 20), 'value': 'unknown'},
+        {'timestamp': +baseTime.add('minutes', 15), 'value': 'down'}]
     });
 
   </script>
@@ -38,8 +39,8 @@
 
 <h3>Availability Tester</h3>
 
-<div ng-controller="AvailTestController">
-  <availability-chart data="{{availChartData}}"/>
+<div ng-controller="AvailTestController as avail">
+  <availability-chart data="{{avail.availChartData}}"/>
 </div>
 
 

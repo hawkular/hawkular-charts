@@ -26,6 +26,8 @@ module Charts {
     start:number;
     end:number;
     value:string;
+    startDate?:Date;
+    endDate?:Date;
     duration?:string;
     message?:string;
   }
@@ -35,9 +37,14 @@ module Charts {
     constructor(public start:number,
                 public end:number,
                 public value:string,
+                public startDate?:Date,
+                public endDate?:Date,
                 public duration?:string,
                 public message?:string) {
 
+      this.duration = moment(end).from(moment(start), true);
+      this.startDate = new Date(start);
+      this.endDate = new Date(end);
     }
 
   }
@@ -65,7 +72,9 @@ module Charts {
       timeLabel: '@',
       dateLabel: '@',
       noDataLabel: '@',
-      chartTitle: '@'
+      chartTitle: '@',
+      startTimestamp: '@',
+      endTimestamp: '@'
     };
 
     public controller = ['$scope', '$element', '$attrs', ($scope, $element, $attrs) => {
@@ -99,9 +108,11 @@ module Charts {
         timeScaleForBrush,
         chart,
         chartParent,
+        startTimestamp,
+        endTimestamp,
         svg;
 
-      dataPoints = []; // dont care when the first come in
+      dataPoints = []; // dont care when the first comes in
 
 
       function getChartWidth():number {
@@ -189,13 +200,8 @@ module Charts {
               previousItem = inAvailData[i - 1];
               outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
             } else {
-              outputData.push(new TransformedAvailDataPoint(availItem.timestamp, +moment(), availItem.value));
-              //if (inAvailData.length > 1) {
-              //  previousItem = inAvailData[i - 1];
-              //  outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
-              //} else {
-              //  outputData.push(new TransformedAvailDataPoint(availItem.timestamp, +moment(), availItem.value));
-              //}
+              previousItem = inAvailData[i];
+              outputData.push(new TransformedAvailDataPoint(availItem.timestamp - 5 * 60 *1000, availItem.timestamp, availItem.value));
             }
 
           });
@@ -266,14 +272,14 @@ module Charts {
         }
 
         function calcBarHeight(d:ITransformedAvailDataPoint) {
-          var offset;
+          var height;
 
           if (isUnknown(d)) {
-            offset = 15;
+            height = 15;
           } else {
-            offset = 50;
+            height = 50;
           }
-          return yScale(0) - offset;
+          return yScale(0) - height;
 
         }
 
@@ -303,9 +309,12 @@ module Charts {
           .attr("width", (d:ITransformedAvailDataPoint) => {
             return availTimeScale(+d.end) - availTimeScale(+d.start);
           })
-          //.attr("opacity", ".90")
           .attr("fill", (d:ITransformedAvailDataPoint) => {
             return calcBarFill(d);
+          })
+          .append("title")
+          .text((d) => {
+            return "Duration: " + d.duration;
           });
 
         // create x-axis
@@ -402,6 +411,22 @@ module Charts {
         if (newData) {
           transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
           console.dir(transformedDataPoints);
+          scope.render(transformedDataPoints);
+        }
+      }, true);
+
+      scope.$watch('startTimestamp', (newStartTimestap) => {
+        console.debug('Avail Chart Start Timestamp Changed');
+        if (newStartTimestap) {
+          startTimestamp = newStartTimestap;
+          scope.render(transformedDataPoints);
+        }
+      }, true);
+
+      scope.$watch('endTimestamp', (newEndTimestap) => {
+        console.debug('Avail Chart End Timestamp Changed');
+        if (newEndTimestap) {
+          endTimestamp = newEndTimestap;
           scope.render(transformedDataPoints);
         }
       }, true);
