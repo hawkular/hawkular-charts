@@ -80,12 +80,19 @@ var Charts;
                     //svg.call(tip);
                 }
                 function determineAvailScale(dataPoints) {
+                    var myTimeRange;
                     if (dataPoints) {
+                        if (dataPoints.length > 1) {
+                            myTimeRange = d3.extent(dataPoints, function (d) {
+                                return d.start;
+                            });
+                        }
+                        else {
+                            myTimeRange = [+moment(), +moment().subtract('hours', 1)]; // default to 1 hour same as graph
+                        }
                         yScale = d3.scale.linear().clamp(true).rangeRound([innerChartHeight, 0]).domain([0, 175]);
                         yAxis = d3.svg.axis().scale(yScale).ticks(0).tickSize(0, 0).orient("left");
-                        timeScale = d3.time.scale().range([0, width]).domain(d3.extent(dataPoints, function (d) {
-                            return d.start;
-                        }));
+                        timeScale = d3.time.scale().range([0, width]).domain(myTimeRange);
                         xAxis = d3.svg.axis().scale(timeScale).tickSize(-70, 0).orient("top");
                     }
                 }
