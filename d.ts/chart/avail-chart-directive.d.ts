@@ -39,10 +39,7 @@ declare module Charts {
             dateLabel: string;
             noDataLabel: string;
             chartTitle: string;
-            startTimestamp: string;
-            endTimestamp: string;
         };
-        controller: (string | (($scope: any, $element: any, $attrs: any) => void))[];
         link: (scope: any, element: any, attrs: any) => void;
     }
 }

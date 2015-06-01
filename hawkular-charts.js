@@ -46,18 +46,13 @@ var Charts;
                 timeLabel: '@',
                 dateLabel: '@',
                 noDataLabel: '@',
-                chartTitle: '@',
-                startTimestamp: '@',
-                endTimestamp: '@'
+                chartTitle: '@'
             };
-            this.controller = ['$scope', '$element', '$attrs', function ($scope, $element, $attrs) {
-            }];
             this.link = function (scope, element, attrs) {
                 // data specific vars
                 var dataPoints = [], transformedDataPoints, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, tip, brush, timeScaleForBrush, chart, chartParent, startTimestamp, endTimestamp, svg;
-                dataPoints = []; // dont care when the first comes in
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, tip, brush, timeScaleForBrush, chart, chartParent, svg;
                 function getChartWidth() {
                     //return angular.element("#" + chartContext.chartHandle).width();
                     return 760;
@@ -80,19 +75,19 @@ var Charts;
                     //svg.call(tip);
                 }
                 function determineAvailScale(dataPoints) {
-                    var myTimeRange;
+                    var adjustedTimeRange;
                     if (dataPoints) {
                         if (dataPoints.length > 1) {
-                            myTimeRange = d3.extent(dataPoints, function (d) {
+                            adjustedTimeRange = d3.extent(dataPoints, function (d) {
                                 return d.start;
                             });
                         }
                         else {
-                            myTimeRange = [+moment(), +moment().subtract('hours', 1)]; // default to 1 hour same as graph
+                            adjustedTimeRange = [+moment(), +moment().subtract('hours', 1)]; // default to 1 hour same as graph
                         }
                         yScale = d3.scale.linear().clamp(true).rangeRound([innerChartHeight, 0]).domain([0, 175]);
                         yAxis = d3.svg.axis().scale(yScale).ticks(0).tickSize(0, 0).orient("left");
-                        timeScale = d3.time.scale().range([0, width]).domain(myTimeRange);
+                        timeScale = d3.time.scale().range([0, width]).domain(adjustedTimeRange);
                         xAxis = d3.svg.axis().scale(timeScale).tickSize(-70, 0).orient("top");
                     }
                 }
@@ -110,13 +105,20 @@ var Charts;
                     if (inAvailData && inAvailData[0].timestamp) {
                         var previousItem;
                         _.each(inAvailData, function (availItem, i) {
-                            if (i > 0) {
-                                previousItem = inAvailData[i - 1];
-                                outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
+                            if (i === 0) {
+                                ///@todo: this logic could use some more work
+                                if (inAvailData.length > 1) {
+                                    /// on this first point we only know when it ended, we have no idea when it started
+                                    outputData.push(new TransformedAvailDataPoint(availItem.timestamp - 60 * 1000, availItem.timestamp, availItem.value));
+                                }
+                                else {
+                                    /// we only have one point for a range so default to the 1 hour range default
+                                    outputData.push(new TransformedAvailDataPoint(availItem.timestamp - 60 * 60 * 1000, availItem.timestamp, availItem.value));
+                                }
                             }
                             else {
-                                previousItem = inAvailData[i];
-                                outputData.push(new TransformedAvailDataPoint(availItem.timestamp - 5 * 60 * 1000, availItem.timestamp, availItem.value));
+                                previousItem = inAvailData[i - 1];
+                                outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
                             }
                         });
                     }
@@ -232,20 +234,6 @@ var Charts;
                     if (newData) {
                         transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
                         console.dir(transformedDataPoints);
-                        scope.render(transformedDataPoints);
-                    }
-                }, true);
-                scope.$watch('startTimestamp', function (newStartTimestap) {
-                    console.debug('Avail Chart Start Timestamp Changed');
-                    if (newStartTimestap) {
-                        startTimestamp = newStartTimestap;
-                        scope.render(transformedDataPoints);
-                    }
-                }, true);
-                scope.$watch('endTimestamp', function (newEndTimestap) {
-                    console.debug('Avail Chart End Timestamp Changed');
-                    if (newEndTimestap) {
-                        endTimestamp = newEndTimestap;
                         scope.render(transformedDataPoints);
                     }
                 }, true);

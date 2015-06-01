@@ -72,14 +72,8 @@ module Charts {
       timeLabel: '@',
       dateLabel: '@',
       noDataLabel: '@',
-      chartTitle: '@',
-      startTimestamp: '@',
-      endTimestamp: '@'
+      chartTitle: '@'
     };
-
-    public controller = ['$scope', '$element', '$attrs', ($scope, $element, $attrs) => {
-
-    }];
 
 
     public link = (scope, element, attrs) => {
@@ -103,20 +97,14 @@ module Charts {
         timeScale,
         yAxis,
         xAxis,
-        tip,
         brush,
         timeScaleForBrush,
         chart,
         chartParent,
-        startTimestamp,
-        endTimestamp,
         svg;
 
-      dataPoints = []; // dont care when the first comes in
-
-
       function getChartWidth():number {
-        //return angular.element("#" + chartContext.chartHandle).width();
+        ///return angular.element("#" + chartContext.chartHandle).width();
         return 760;
       }
 
@@ -129,35 +117,26 @@ module Charts {
         chartParent = d3.select(element[0]);
         chart = chartParent.append("svg");
 
-        //tip = d3.tip()
-        //  .attr('class', 'd3-tip')
-        //  .offset([-10, 0])
-        //  .html((d, i) => {
-        //    return buildHover(d, i);
-        //  });
-
         svg = chart.append("g")
           .attr("width", width + margin.left + margin.right)
           .attr("height", innerChartHeight)
           .attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
 
-        //svg.call(tip);
-
       }
 
 
       function determineAvailScale(dataPoints:ITransformedAvailDataPoint[]) {
-        var myTimeRange;
+        var adjustedTimeRange;
 
         if (dataPoints) {
 
           if (dataPoints.length > 1) {
-            myTimeRange = d3.extent(dataPoints, (d:ITransformedAvailDataPoint) => {
+            adjustedTimeRange = d3.extent(dataPoints, (d:ITransformedAvailDataPoint) => {
               return d.start;
             });
 
           } else {
-            myTimeRange = [+moment(), +moment().subtract('hours', 1)]; // default to 1 hour same as graph
+            adjustedTimeRange = [+moment(), +moment().subtract('hours', 1)]; // default to 1 hour same as graph
           }
 
           yScale = d3.scale.linear()
@@ -173,12 +152,10 @@ module Charts {
 
           timeScale = d3.time.scale()
             .range([0, width])
-            .domain(myTimeRange);
+            .domain(adjustedTimeRange);
 
           xAxis = d3.svg.axis()
             .scale(timeScale)
-            //.ticks(8)
-            //.tickSubdivide(5)
             .tickSize(-70, 0)
             .orient("top");
 
@@ -204,12 +181,18 @@ module Charts {
           var previousItem:IAvailDataPoint;
 
           _.each(inAvailData, (availItem:IAvailDataPoint, i:number) => {
-            if (i > 0) {
+            if (i === 0) {
+              ///@todo: this logic could use some more work
+              if (inAvailData.length > 1) {
+                /// on this first point we only know when it ended, we have no idea when it started
+                outputData.push(new TransformedAvailDataPoint(availItem.timestamp -  60 * 1000, availItem.timestamp, availItem.value));
+              } else {
+                /// we only have one point for a range so default to the 1 hour range default
+                outputData.push(new TransformedAvailDataPoint(availItem.timestamp -  60 * 60 * 1000, availItem.timestamp, availItem.value));
+              }
+            } else {
               previousItem = inAvailData[i - 1];
               outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
-            } else {
-              previousItem = inAvailData[i];
-              outputData.push(new TransformedAvailDataPoint(availItem.timestamp - 5 * 60 * 1000, availItem.timestamp, availItem.value));
             }
 
           });
@@ -422,23 +405,6 @@ module Charts {
           scope.render(transformedDataPoints);
         }
       }, true);
-
-      scope.$watch('startTimestamp', (newStartTimestap) => {
-        console.debug('Avail Chart Start Timestamp Changed');
-        if (newStartTimestap) {
-          startTimestamp = newStartTimestap;
-          scope.render(transformedDataPoints);
-        }
-      }, true);
-
-      scope.$watch('endTimestamp', (newEndTimestap) => {
-        console.debug('Avail Chart End Timestamp Changed');
-        if (newEndTimestap) {
-          endTimestamp = newEndTimestap;
-          scope.render(transformedDataPoints);
-        }
-      }, true);
-
 
       scope.render = (dataPoints:ITransformedAvailDataPoint[]) => {
         console.debug("Starting Avail Chart Directive Render");
