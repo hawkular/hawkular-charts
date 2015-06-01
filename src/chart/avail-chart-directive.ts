@@ -147,8 +147,18 @@ module Charts {
 
 
       function determineAvailScale(dataPoints:ITransformedAvailDataPoint[]) {
+        var myTimeRange;
 
         if (dataPoints) {
+
+          if (dataPoints.length > 1) {
+            myTimeRange = d3.extent(dataPoints, (d:ITransformedAvailDataPoint) => {
+              return d.start;
+            });
+
+          } else {
+            myTimeRange = [+moment(), +moment().subtract('hours', 1)]; // default to 1 hour same as graph
+          }
 
           yScale = d3.scale.linear()
             .clamp(true)
@@ -163,9 +173,7 @@ module Charts {
 
           timeScale = d3.time.scale()
             .range([0, width])
-            .domain(d3.extent(dataPoints, (d:ITransformedAvailDataPoint) => {
-              return d.start;
-            }));
+            .domain(myTimeRange);
 
           xAxis = d3.svg.axis()
             .scale(timeScale)
@@ -201,7 +209,7 @@ module Charts {
               outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
             } else {
               previousItem = inAvailData[i];
-              outputData.push(new TransformedAvailDataPoint(availItem.timestamp - 5 * 60 *1000, availItem.timestamp, availItem.value));
+              outputData.push(new TransformedAvailDataPoint(availItem.timestamp - 5 * 60 * 1000, availItem.timestamp, availItem.value));
             }
 
           });
