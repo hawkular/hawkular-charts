@@ -189,6 +189,7 @@ module Charts {
               } else {
                 /// we only have one point for a range so default to the 1 hour range default
                 outputData.push(new TransformedAvailDataPoint(availItem.timestamp -  60 * 60 * 1000, availItem.timestamp, availItem.value));
+                outputData.push(new TransformedAvailDataPoint(availItem.timestamp, new Date().getTime(),  'unknown'));
               }
             } else {
               previousItem = inAvailData[i - 1];

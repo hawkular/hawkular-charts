@@ -52,9 +52,9 @@ var Charts;
                 // data specific vars
                 var dataPoints = [], transformedDataPoints, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, tip, brush, timeScaleForBrush, chart, chartParent, svg;
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, brush, timeScaleForBrush, chart, chartParent, svg;
                 function getChartWidth() {
-                    //return angular.element("#" + chartContext.chartHandle).width();
+                    ///return angular.element("#" + chartContext.chartHandle).width();
                     return 760;
                 }
                 function oneTimeChartSetup() {
@@ -65,14 +65,7 @@ var Charts;
                     }
                     chartParent = d3.select(element[0]);
                     chart = chartParent.append("svg");
-                    //tip = d3.tip()
-                    //  .attr('class', 'd3-tip')
-                    //  .offset([-10, 0])
-                    //  .html((d, i) => {
-                    //    return buildHover(d, i);
-                    //  });
                     svg = chart.append("g").attr("width", width + margin.left + margin.right).attr("height", innerChartHeight).attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
-                    //svg.call(tip);
                 }
                 function determineAvailScale(dataPoints) {
                     var adjustedTimeRange;
@@ -114,6 +107,7 @@ var Charts;
                                 else {
                                     /// we only have one point for a range so default to the 1 hour range default
                                     outputData.push(new TransformedAvailDataPoint(availItem.timestamp - 60 * 60 * 1000, availItem.timestamp, availItem.value));
+                                    outputData.push(new TransformedAvailDataPoint(availItem.timestamp, new Date().getTime(), 'unknown'));
                                 }
                             }
                             else {
