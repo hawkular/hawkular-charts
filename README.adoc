@@ -4,10 +4,52 @@ This project provides AngularJS directives for displaying visual representations
 
 == About
 
-The parent project that spurred this project is http://github.com/hawkular/hawkular[Hawkular] - A Metrics engine based on http://cassandra.apache.org/[Cassandra] (there is also an embedded version of hawkular metrics). The console in Hawkular uses these charting components and will further push the development of these charting components into the future.
+The parent project that spurred this project is http://github.com/hawkular/hawkular[Hawkular] - A Metrics engine based
+on http://cassandra.apache.org/[Cassandra]. The console in Hawkular uses these charting components and will further push the development
+of these charting components into the future with additional features and specialized chart types.
+This will also make adhoc development quicker/easier with components that can render Hawkular Metrics graphs with very little effort.
 
 == Charts
 
+==== Metrics Chart Type
+image::img/hawkular-metrics-chart.png[Hawkular Metrics Chart Type]
+
+_Sample code for this chart:_
+
+[source,javascript]
+----
+<hawkular-chart
+    data="{{dataPoints}}"
+    chart-type="hawkularmetric"
+    alert-value="{{threshold}}"
+    y-axis-units="Response Time (ms)"
+    chart-height="250">
+</hawkular-chart>
+----
+Want to update the chart, no problem, just alter the dataPoints array with new data and the chart will re-render itself.
+Need to change the threshold or chart-type just use Angular's two way binding to bind to a field on the screen and watch the dynamics unfold.
+
+Explore the actual implementation in Hawkular Console: https://github.com/hawkular/hawkular/blob/master/ui/console/src/main/scripts/plugins/metrics/plugins/metrics/html/response-time.html[here]
+
+==== Availability Chart Type
+image::img/avail-chart.png[Hawkular Availability Chart Type]
+
+_Sample code for this chart:_
+
+[source,javascript]
+----
+<availability-chart
+    data="{{vm.availabilityDataPoints}}"
+    chart-type="availability">
+</availability-chart>
+
+----
+Use the Availability charts for your own projects, the format is universal.
+Availability charts are quite simple just pass an array of [time:number, value:string] (where the value is ('up', 'down' or 'unknown') points to render.
+
+Explore the actual implementation in Hawkular Console: https://github.com/hawkular/hawkular/blob/master/ui/console/src/main/scripts/plugins/metrics/plugins/metrics/html/availability.html[here]
+
+==== Other Chart Types
 image::img/chart-sample.jpg[Charts]
 
 Don't like the charts we have? Take one of the existing charts and modify (coming soon!)
@@ -27,7 +69,7 @@ Bind to a javascript array of metrics:
 ----
  <hawkular-chart
      data="{{vm.getChartDataFor(selectedMetric)}}"
-     chart-type="{{vm.selectedChart.chartType}}"
+     chart-type="{{selectedChart.chartType}}"
      chart-height="250">
  </hawkular-chart>
 ----
@@ -37,7 +79,7 @@ This results in less code and more productivity.
 
 .Prerequisite setup:
 . Add the hawkular-charts.css to the main index.html page
-. Add the charting module to the application module: `app.module('myApp', ['hawkularCharts']);`
+. Add the charting module to the application module: `app.module('myApp', ['hawkular.charts']);`
 
 All that's left to do now is select the chart type and bind the _data_ attribute on the __<hawkular-chart>__ directive.
 
@@ -70,8 +112,9 @@ This allows dashboard templates to be emailed around (although they need to be r
 
 .This project is built around customization. There are several forms of customization:
 - Most cosmetic issues are controlled via standard css through the http://github.com/hawkular/hawkular-charts/blob/master/css/hawkular-charts.css[hawkular-charts.css].
-- Custom Chart types: Soon!
-- Custom Indicators: Soon!
+- Overlay previous time period
+- Tag a point or range on the Chart and annotate with description and/or symbol for later retrieval/comparison. This includes the ability to persist to either client brwowser store or Hawkular Metrics Cassandra: _Soon!_
+- Custom Indicators: _Soon!_
 
 
 == Building the Project
@@ -85,10 +128,14 @@ This allows dashboard templates to be emailed around (although they need to be r
 
 The environment is now ready to be built.
 
-The *hawkular Charts*  directives can be built with: `gulp`. Only the one command is needed as building is so fast that a watcher task is not necessary.
+The *Hawkular Charts*  directives can be built with: `gulp`. Only the one command is needed as building is so fast that a watcher task is not necessary.
 
 The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
+== Consuming Hawkular Charts from Hawkular Project
+Easily setup bower linking so that changes to the charts are instantly reflected in Hawkular console...
+
+https://github.com/hawkular/hawkular/tree/master/ui#other-packages-development[Integrating with Hawkular]
 
 == Contributing
 
@@ -97,4 +144,4 @@ We're always interested in contributions from the community.
 .Please ensure that your Pull Request provides the following:
 * Detailed description of the proposed changes
 * Rebased onto the latest master commit
-* This is a http://github.com/Microsoft/TypeScript/[Typescript] project, so please submit the typescript source (not the javascript source)
+* This is a http://github.com/Microsoft/TypeScript/[Typescript] project, so please submit the typescript source (not the javascript source; javascript submissions will be rejected)
