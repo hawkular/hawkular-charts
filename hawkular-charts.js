@@ -177,7 +177,7 @@ var Charts;
                     }).attr("fill", function (d) {
                         return calcBarFill(d);
                     }).append("title").text(function (d) {
-                        return "Duration: " + d.duration;
+                        return d.value.toUpperCase() + " for " + d.duration;
                     });
                     // create x-axis
                     svg.append("g").attr("class", "x axis").call(availXAxis);

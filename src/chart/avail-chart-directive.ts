@@ -318,7 +318,7 @@ module Charts {
           })
           .append("title")
           .text((d) => {
-            return "Duration: " + d.duration;
+            return d.value.toUpperCase() + " for " + d.duration;
           });
 
         // create x-axis
@@ -342,6 +342,7 @@ module Charts {
 
         createSideYAxisLabels();
       }
+
 
 
       function createXandYAxes() {
