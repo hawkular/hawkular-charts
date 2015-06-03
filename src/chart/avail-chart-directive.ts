@@ -126,17 +126,27 @@ module Charts {
 
 
       function determineAvailScale(dataPoints:ITransformedAvailDataPoint[]) {
-        var adjustedTimeRange;
+        var adjustedTimeRange:number[] = [] ;
+
+        var oneHourAgo = +moment().subtract('hours', 1);
 
         if (dataPoints) {
 
+          // Data points only have the start
           if (dataPoints.length > 1) {
-            adjustedTimeRange = d3.extent(dataPoints, (d:ITransformedAvailDataPoint) => {
+            adjustedTimeRange[0] = d3.min(dataPoints, (d:ITransformedAvailDataPoint) => {
               return d.start;
             });
 
+            // TODO adjust the start time to date range picker
+            if (adjustedTimeRange[0]< oneHourAgo) {
+              adjustedTimeRange[0] = oneHourAgo;
+            }
+
+            // Provide "now" as end // TODO adjust to date range picker
+            adjustedTimeRange[1] = +moment();
           } else {
-            adjustedTimeRange = [+moment(), +moment().subtract('hours', 1)]; // default to 1 hour same as graph
+            adjustedTimeRange = [+moment(), oneHourAgo]; // default to 1 hour same as graph
           }
 
           yScale = d3.scale.linear()
@@ -177,26 +187,28 @@ module Charts {
 
       function formatTransformedDataPoints(inAvailData:IAvailDataPoint[]):ITransformedAvailDataPoint[] {
         var outputData:ITransformedAvailDataPoint[] = [];
-        if (inAvailData && inAvailData[0].timestamp) {
-          var previousItem:IAvailDataPoint;
+        if (inAvailData && inAvailData.length>0 && inAvailData[0].timestamp) {
+          var items = inAvailData.length;
+          var now = new Date().getTime();
 
-          _.each(inAvailData, (availItem:IAvailDataPoint, i:number) => {
-            if (i === 0) {
-              ///@todo: this logic could use some more work
-              if (inAvailData.length > 1) {
-                /// on this first point we only know when it ended, we have no idea when it started
-                outputData.push(new TransformedAvailDataPoint(availItem.timestamp -  60 * 1000, availItem.timestamp, availItem.value));
-              } else {
-                /// we only have one point for a range so default to the 1 hour range default
-                outputData.push(new TransformedAvailDataPoint(availItem.timestamp -  60 * 60 * 1000, availItem.timestamp, availItem.value));
-                outputData.push(new TransformedAvailDataPoint(availItem.timestamp, new Date().getTime(),  'unknown'));
-              }
-            } else {
-              previousItem = inAvailData[i - 1];
-              outputData.push(new TransformedAvailDataPoint(previousItem.timestamp, availItem.timestamp, availItem.value));
+          if (items===1) {
+            var availItem=inAvailData[0];
+
+            // we only have one item with start time. Assume unknown for the time before (last 1h) TODO adjust to time picker
+            outputData.push(new TransformedAvailDataPoint(now -  60 * 60 * 1000, availItem.timestamp, 'unknown'));
+            // and the determined value up until the end.
+            outputData.push(new TransformedAvailDataPoint(availItem.timestamp, now, availItem.value));
+          }
+          else {
+
+            var endTime:number;
+            var i:number;
+            endTime = now;
+            for (i = items; i > 0; i--) {
+              outputData.push(new TransformedAvailDataPoint(inAvailData[i-1].timestamp,endTime,inAvailData[i-1].value));
+              endTime = inAvailData[i-1].timestamp;
             }
-
-          });
+          }
         }
         return outputData;
       }

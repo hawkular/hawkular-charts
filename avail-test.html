@@ -24,23 +24,43 @@
       //var baseTime = moment();
       var baseTime = moment().hour(15).minutes(0); // start a 15:00 today
 
-      this.availChartData = [
+      this.availAllChartData = [
         {'timestamp': +baseTime.add('minutes', 5), 'value': 'up'},
         {'timestamp': +baseTime.add('minutes', 10), 'value': 'down'},
         {'timestamp': +baseTime.add('minutes', 10), 'value': 'up'},
         {'timestamp': +baseTime.add('minutes', 20), 'value': 'unknown'},
-        {'timestamp': +baseTime.add('minutes', 15), 'value': 'down'}]
+        {'timestamp': +baseTime.add('minutes', 15), 'value': 'down'}];
+
+      this.singleAvailData = [{'timestamp': +baseTime.add('minutes', 15), 'value': 'up'}]
+
     });
+
 
   </script>
 
 </head>
 <body ng-app="myApp">
 
-<h3>Availability Tester</h3>
+<h3>Availability Test Screen</h3>
 
-<div ng-controller="AvailTestController as avail">
-  <availability-chart data="{{avail.availChartData}}"/>
+<div>
+  <h5>Test Case 1: Multiple Points</h5>
+  <p>Standard, multiple avail points.</p>
+
+  <div ng-controller="AvailTestController as avail">
+    <availability-chart data="{{avail.availAllChartData}}"/>
+  </div>
+</div>
+
+<div>
+  <h5>Test Case 2: Single Avail Point</h5>
+
+  <p>This doesnt sound like a valid use case but this is what the servers sends. A single avil point that
+    needs to be augmented by adding another point in order to plot.</p>
+
+  <div ng-controller="AvailTestController as avail">
+    <availability-chart data="{{avail.singleAvailData}}"/>
+  </div>
 </div>
 
 
