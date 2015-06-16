@@ -77,6 +77,7 @@ module Charts {
           timestampLabel = attrs.timestampLabel || 'Timestamp',
           showAvgLine = true,
           hideHighLowValues = false,
+          useZeroMinValue = false,
           chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y',
           chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p',
           buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
@@ -138,7 +139,7 @@ module Charts {
 
 
         function oneTimeChartSetup():void {
-          console.log("OneTimeChartSetup");
+          console.log("***** Charts: OneTimeChartSetup");
           // destroy any previous charts
           if (chart) {
             chartParent.selectAll('*').remove();
@@ -204,7 +205,7 @@ module Charts {
             return !d.empty ? d.min : undefined;
           }));
 
-          lowBound = min - (min * 0.05);
+          lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
           highBound = peak + ((peak - min) * 0.2);
         }
 
@@ -304,7 +305,7 @@ module Charts {
           $http.get(url + metricId, searchParams).success((response) => {
 
             processedNewData = formatBucketedChartOutput(response);
-            console.info("DataPoints from standalone URL: ");
+            //console.info("DataPoints from standalone URL: ");
             //console.table(processedNewData);
             scope.render(processedNewData, processedPreviousRangeData);
 
@@ -1523,6 +1524,13 @@ module Charts {
           }
         });
 
+        scope.$watch('useZeroMinValue', (newUseZeroMinValue) => {
+          if (newUseZeroMinValue) {
+            useZeroMinValue = newUseZeroMinValue;
+            scope.render(processedNewData, processedPreviousRangeData);
+          }
+        });
+
         scope.$on('DateRangeDragChanged', (event, extent) => {
           $log.debug('Handling DateRangeDragChanged Fired Chart Directive: ' + extent[0] + ' --> ' + extent[1]);
           scope.$emit('GraphTimeRangeChangedEvent', extent);
@@ -1612,6 +1620,7 @@ module Charts {
           chartHeight: '@',
           chartType: '@',
           yAxisUnits: '@',
+          useZeroMinValue: '@',
           buttonbarDatetimeFormat: '@',
           timeLabel: '@',
           dateLabel: '@',
