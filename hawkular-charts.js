@@ -285,7 +285,7 @@ var Charts;
         var BASE_URL = '/hawkular/metrics';
         function link(scope, element, attrs) {
             // data specific vars
-            var dataPoints = [], dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Bar Duration', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, hideHighLowValues = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
+            var dataPoints = [], dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Bar Duration', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, hideHighLowValues = false, useZeroMinValue = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
             // chart specific vars
             var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
             dataPoints = attrs.data;
@@ -304,7 +304,7 @@ var Charts;
                 return getChartWidth() <= smallChartThresholdInPixels;
             }
             function oneTimeChartSetup() {
-                console.log("OneTimeChartSetup");
+                console.log("***** Charts: OneTimeChartSetup");
                 // destroy any previous charts
                 if (chart) {
                     chartParent.selectAll('*').remove();
@@ -350,7 +350,7 @@ var Charts;
                 min = d3.min(dataPoints.map(function (d) {
                     return !d.empty ? d.min : undefined;
                 }));
-                lowBound = min - (min * 0.05);
+                lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
                 highBound = peak + ((peak - min) * 0.2);
             }
             function determineScale(dataPoints) {
@@ -410,7 +410,7 @@ var Charts;
                 }
                 $http.get(url + metricId, searchParams).success(function (response) {
                     processedNewData = formatBucketedChartOutput(response);
-                    console.info("DataPoints from standalone URL: ");
+                    //console.info("DataPoints from standalone URL: ");
                     //console.table(processedNewData);
                     scope.render(processedNewData, processedPreviousRangeData);
                 }).error(function (reason, status) {
@@ -1153,6 +1153,12 @@ var Charts;
                     scope.render(processedNewData, processedPreviousRangeData);
                 }
             });
+            scope.$watch('useZeroMinValue', function (newUseZeroMinValue) {
+                if (newUseZeroMinValue) {
+                    useZeroMinValue = newUseZeroMinValue;
+                    scope.render(processedNewData, processedPreviousRangeData);
+                }
+            });
             scope.$on('DateRangeDragChanged', function (event, extent) {
                 $log.debug('Handling DateRangeDragChanged Fired Chart Directive: ' + extent[0] + ' --> ' + extent[1]);
                 scope.$emit('GraphTimeRangeChangedEvent', extent);
@@ -1235,6 +1241,7 @@ var Charts;
                 chartHeight: '@',
                 chartType: '@',
                 yAxisUnits: '@',
+                useZeroMinValue: '@',
                 buttonbarDatetimeFormat: '@',
                 timeLabel: '@',
                 dateLabel: '@',

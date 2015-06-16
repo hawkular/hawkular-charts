@@ -15,7 +15,7 @@
   "ignore": [
     "node_modules",
     "lib",
-    "Gruntfile.js",
+    "gulpfile.js",
     "package.json",
     ".bowerrc",
     ".editorconfig",
@@ -25,10 +25,7 @@
     "src",
     "README.adoc",
     "bower.json",
-    "**/.*",
-    "bower_components",
-    "test",
-    "tests"
+    "**/.*"
   ],
   "main": [
     "hawkular-charts.js",
