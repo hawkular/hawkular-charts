@@ -43,10 +43,10 @@
     var app = angular.module('myApp', ['hawkular.charts']);
 
     app.controller('ChartController', function () {
-      // this is just a dummy controller required to render the directive
       console.log('In ChartController');
       this.alertThreshold = 2000;
 
+      // A captured Hawkular Feed for sample data
       this.myData = [{
         "timestamp": 1434476761167,
         "date": "2015-06-16T17:46:01.167Z",
@@ -1264,7 +1264,7 @@
 
 
   <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
-    <strong>hawkular-metrics-saas.wildfly.http-response-time</strong>
+    <strong>hawkular-metrics-saas.wildfly.http-response-time</strong> - Alert 2000 ms
   </div>
   <div class="chartWrapper">
 
@@ -1272,6 +1272,36 @@
       data="{{vm.myData}}"
       chart-type="hawkularmetric"
       alert-value="{{vm.alertThreshold}}"
+      use-zero-min-value="true"
+      y-axis-units="Response Time (ms)"
+      chart-height="250">
+    </hawkular-chart>
+  </div>
+
+  <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
+    <strong>hawkular-metrics-saas.wildfly.http-response-time</strong> - Alert 6000 ms
+  </div>
+  <div class="chartWrapper">
+
+    <hawkular-chart
+      data="{{vm.myData}}"
+      chart-type="hawkularmetric"
+      alert-value="6000"
+      use-zero-min-value="true"
+      y-axis-units="Response Time (ms)"
+      chart-height="250">
+    </hawkular-chart>
+  </div>
+
+  <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
+    <strong>hawkular-metrics-saas.wildfly.http-response-time</strong> Alert 1000 ms
+  </div>
+  <div class="chartWrapper">
+
+    <hawkular-chart
+      data="{{vm.myData}}"
+      chart-type="hawkularmetric"
+      alert-value="1000"
       use-zero-min-value="true"
       y-axis-units="Response Time (ms)"
       chart-height="250">
