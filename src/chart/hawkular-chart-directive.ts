@@ -36,11 +36,12 @@ module Charts {
   /**
    * @ngdoc directive
    * @name hawkularChart
-   * @description A d3 based charting direction to provide charting using various styles of charts like: bar, area, line, scatter.
+   * @description A d3 based charting direction to provide charting using various styles of charts.
    *
    */
   angular.module('hawkular.charts')
-    .directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log', function ($rootScope:ng.IRootScopeService, $http:ng.IHttpService, $interval:ng.IIntervalService, $log:ng.ILogService):ng.IDirective {
+    .directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log',
+      function ($rootScope:ng.IRootScopeService, $http:ng.IHttpService, $interval:ng.IIntervalService, $log:ng.ILogService):ng.IDirective {
 
       /// only for the stand alone charts
       var BASE_URL = '/hawkular/metrics';
@@ -949,36 +950,13 @@ module Charts {
               }
             }).
             y0((d:IChartDataPoint) => {
-              if (alertValue) {
-                if (d.max > alertValue) {
-                  return yScale(alertValue);
-                } else {
-                  return yScale(d.max);
-                }
-
-              } else {
-
                 return yScale(0);
-              }
             });
 
           svg.append("path")
             .datum(chartData)
             .attr("class", "areaChart")
-            .transition()
-            .duration(550)
-            .attr("d", avgArea)
-            .attr("stroke", (d:IChartDataPoint) => {
-              if (alertValue) {
-                if (d.avg > alertValue) {
-                  return "#CC0000";
-                } else {
-                  return "#00A8E1"
-                }
-              } else {
-                return "#00A8E1"
-              }
-            });
+            .attr("d", avgArea);
 
         }
 

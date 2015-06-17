@@ -800,31 +800,9 @@ var Charts;
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                     }
                 }).y0(function (d) {
-                    if (alertValue) {
-                        if (d.max > alertValue) {
-                            return yScale(alertValue);
-                        }
-                        else {
-                            return yScale(d.max);
-                        }
-                    }
-                    else {
-                        return yScale(0);
-                    }
+                    return yScale(0);
                 });
-                svg.append("path").datum(chartData).attr("class", "areaChart").transition().duration(550).attr("d", avgArea).attr("stroke", function (d) {
-                    if (alertValue) {
-                        if (d.avg > alertValue) {
-                            return "#CC0000";
-                        }
-                        else {
-                            return "#00A8E1";
-                        }
-                    }
-                    else {
-                        return "#00A8E1";
-                    }
-                });
+                svg.append("path").datum(chartData).attr("class", "areaChart").attr("d", avgArea);
             }
             function createAreaChart() {
                 var highArea = d3.svg.area().interpolate(interpolation).defined(function (d) {

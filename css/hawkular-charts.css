@@ -260,10 +260,10 @@ rect.low {
 }
 
 .areaChart {
-  fill: #df0000;
-  fill-opacity: 0.4;
+  fill: #E3F1FA;
+  fill-opacity: 0.9;
   stroke-width: 2;
-  /*stroke: #0040FF;*/
+  stroke: #3E81C7;
   stroke-opacity: .8;
 }
 
