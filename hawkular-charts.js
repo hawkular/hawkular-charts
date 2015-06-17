@@ -319,6 +319,7 @@ var Charts;
                 svg.call(tip);
             }
             function setupFilteredData(dataPoints) {
+                var alertPeak, highPeak;
                 function determineMultiMetricMinMax() {
                     var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
                     angular.forEach(multiChartOverlayData, function (series) {
@@ -351,7 +352,14 @@ var Charts;
                     return !d.empty ? d.min : undefined;
                 }));
                 lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
-                highBound = peak + ((peak - min) * 0.2);
+                if (alertValue) {
+                    alertPeak = (alertValue * 1.2);
+                    highPeak = peak + ((peak - min) * 0.2);
+                    highBound = alertPeak > highPeak ? alertPeak : highPeak;
+                }
+                else {
+                    highBound = peak + ((peak - min) * 0.2);
+                }
             }
             function determineScale(dataPoints) {
                 var xTicks, xTickSubDivide, numberOfBarsForSmallGraph = 20;

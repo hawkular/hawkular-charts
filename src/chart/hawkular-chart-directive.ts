@@ -168,8 +168,17 @@ module Charts {
 
 
         function setupFilteredData(dataPoints):void {
+          var alertPeak:number,
+              highPeak:number;
+
           function determineMultiMetricMinMax() {
-            var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
+            var currentMax:number,
+              currentMin:number,
+              seriesMax:number,
+              seriesMin:number,
+              maxList = [],
+              minList = [];
+
             angular.forEach(multiChartOverlayData, (series) => {
               console.debug("Series: " + series.length);
               currentMax = d3.max(series.map((d) => {
@@ -206,7 +215,13 @@ module Charts {
           }));
 
           lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
-          highBound = peak + ((peak - min) * 0.2);
+          if (alertValue) {
+            alertPeak =  (alertValue  * 1.2);
+            highPeak = peak + ((peak - min) * 0.2);
+            highBound =  alertPeak > highPeak ? alertPeak : highPeak;
+          } else {
+            highBound = peak + ((peak - min) * 0.2);
+          }
         }
 
         function determineScale(dataPoints) {
@@ -355,24 +370,24 @@ module Charts {
           if (isEmptyDataBar(d)) {
             // nodata
             hover = "<div class='chartHover'><small class='chartHoverLabel'>" + noDataLabel + "</small>" +
-            "<div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>" +
-            "<hr/>" +
-            "<div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div></div>";
+              "<div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>" +
+              "<hr/>" +
+              "<div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div></div>";
           } else {
             if (isRawMetric(d)) {
               // raw single value from raw table
               hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>" +
-              "<div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>" +
-              "<hr/>" +
-              "<div><small><span class='chartHoverLabel'>" + singleValueLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.value).format('0,0.0') + "</span></small> </div></div> ";
+                "<div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>" +
+                "<hr/>" +
+                "<div><small><span class='chartHoverLabel'>" + singleValueLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.value).format('0,0.0') + "</span></small> </div></div> ";
             } else {
               // aggregate with min/avg/max
               hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>" +
-              "<div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>" +
-              "<hr/>" +
-              "<div><small><span class='chartHoverLabel'>" + maxLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.max).format('0,0.0') + "</span></small> </div> " +
-              "<div><small><span class='chartHoverLabel'>" + avgLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.avg).format('0,0.0') + "</span></small> </div> " +
-              "<div><small><span class='chartHoverLabel'>" + minLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.min).format('0,0.0') + "</span></small> </div></div> ";
+                "<div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>" +
+                "<hr/>" +
+                "<div><small><span class='chartHoverLabel'>" + maxLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.max).format('0,0.0') + "</span></small> </div> " +
+                "<div><small><span class='chartHoverLabel'>" + avgLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.avg).format('0,0.0') + "</span></small> </div> " +
+                "<div><small><span class='chartHoverLabel'>" + minLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.min).format('0,0.0') + "</span></small> </div></div> ";
             }
           }
           return hover;
@@ -1538,63 +1553,63 @@ module Charts {
 
 
         scope.render = (dataPoints, previousRangeDataPoints) => {
-            console.group('Render Chart');
-            console.time('chartRender');
-            //NOTE: layering order is important!
-            oneTimeChartSetup();
-            if (dataPoints) {
-              determineScale(dataPoints);
-            }
+          console.group('Render Chart');
+          console.time('chartRender');
+          //NOTE: layering order is important!
+          oneTimeChartSetup();
+          if (dataPoints) {
+            determineScale(dataPoints);
+          }
 
-            createHeader(attrs.chartTitle);
-            createYAxisGridLines();
-            createXAxisBrush();
+          createHeader(attrs.chartTitle);
+          createYAxisGridLines();
+          createXAxisBrush();
 
-            switch (chartType) {
-              case 'rhqbar' :
-                createStackedBars(lowBound, highBound);
-                break;
-              case 'histogram' :
-                createHistogramChart();
-                break;
-              case 'hawkularline' :
-                createHawkularLineChart();
-                break;
-              case 'hawkularmetric' :
-                createHawkularMetricChart(lowBound, highBound);
-                break;
-              case 'area' :
-                createAreaChart();
-                break;
-              case 'scatter' :
-                createScatterChart();
-                break;
-              case 'scatterline' :
-                createScatterLineChart();
-                break;
-              case 'candlestick' :
-                createCandleStickChart();
-                break;
-              default:
-                $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability]');
+          switch (chartType) {
+            case 'rhqbar' :
+              createStackedBars(lowBound, highBound);
+              break;
+            case 'histogram' :
+              createHistogramChart();
+              break;
+            case 'hawkularline' :
+              createHawkularLineChart();
+              break;
+            case 'hawkularmetric' :
+              createHawkularMetricChart(lowBound, highBound);
+              break;
+            case 'area' :
+              createAreaChart();
+              break;
+            case 'scatter' :
+              createScatterChart();
+              break;
+            case 'scatterline' :
+              createScatterLineChart();
+              break;
+            case 'candlestick' :
+              createCandleStickChart();
+              break;
+            default:
+              $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability]');
 
-            }
+          }
 
-            createPreviousRangeOverlay(previousRangeDataPoints);
-            createMultiMetricOverlay();
-            createXandYAxes();
-            showAvgLine = (chartType === 'bar' || chartType === 'scatterline') ? true : false;
-            if (showAvgLine) {
-              createAvgLines();
-            }
-            if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
-              createAlertLine(alertValue);
-            }
-            if (annotationData) {
-              annotateChart(annotationData);
-            }
-            console.timeEnd('chartRender');
-            console.groupEnd('Render Chart');
+          createPreviousRangeOverlay(previousRangeDataPoints);
+          createMultiMetricOverlay();
+          createXandYAxes();
+          showAvgLine = (chartType === 'bar' || chartType === 'scatterline') ? true : false;
+          if (showAvgLine) {
+            createAvgLines();
+          }
+          if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
+            createAlertLine(alertValue);
+          }
+          if (annotationData) {
+            annotateChart(annotationData);
+          }
+          console.timeEnd('chartRender');
+          console.groupEnd('Render Chart');
         };
       }
 
