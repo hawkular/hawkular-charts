@@ -10,11 +10,20 @@
   <link rel="stylesheet" href="css/hawkular-charts.css">
   <style>
     .metricIdLabel {
-      color: #999;
+      color: darkred;
     }
 
     .metricIdHeader {
       margin: 20px 0 -45px 90px;
+    }
+
+    .metricIdHeader > li {
+      margin-left: 40px;
+    }
+
+    .itemDescription {
+      color: #999;
+      font-style: italic;
     }
 
     .chartWrapper {
@@ -1259,9 +1268,11 @@
 <body ng-app="myApp">
 
 <h3>Hawkular Charts - Response Time Sample</h3>
+
 <p>
- This page demonstrates how to the Hawkular Charts angular component showing various configurations.
-  It uses an actual Hawkular Metrics Response Time data set captured to show how different configuration settings change the look of the graph.
+  This page demonstrates how to the Hawkular Charts angular component showing various configurations.
+  It uses an actual Hawkular Metrics Response Time data set captured to show how different configuration settings change
+  the look of the graph.
 </p>
 
 <p>
@@ -1270,11 +1281,25 @@
 
 <div ng-controller="ChartController as vm">
 
-  <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
-    <strong>hawkular-metrics-saas.wildfly.http-response-time</strong> - Alert 2000 ms
+  <div class="metricIdHeader"><span class="metricIdLabel"> Chart Attributes:</span>
+    <li> alert-value="2000"</li>
+    <li> use-zero-min-value="false" <span class="itemDescription">(Zoomed In)</span></li>
   </div>
   <div class="chartWrapper">
+    <hawkular-chart
+      data="{{vm.myData}}"
+      chart-type="hawkularmetric"
+      alert-value="2000"
+      y-axis-units="Response Time (ms)"
+      chart-height="250">
+    </hawkular-chart>
+  </div>
 
+  <div class="metricIdHeader"><span class="metricIdLabel"> Chart Attributes:</span>
+    <li> alert-value="2000"</li>
+    <li> use-zero-min-value="true" <span class="itemDescription">(use zero as the Y Axis)</span></li>
+  </div>
+  <div class="chartWrapper">
     <hawkular-chart
       data="{{vm.myData}}"
       chart-type="hawkularmetric"
@@ -1285,11 +1310,12 @@
     </hawkular-chart>
   </div>
 
-  <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
-    <strong>hawkular-metrics-saas.wildfly.http-response-time</strong> - Alert 6000 ms
+
+  <div class="metricIdHeader"><span class="metricIdLabel"> Chart Attributes:</span>
+    <li> alert-value="6000"</li>
+    <li> use-zero-min-value="true" <span class="itemDescription">(use zero as the Y Axis)</span></li>
   </div>
   <div class="chartWrapper">
-
     <hawkular-chart
       data="{{vm.myData}}"
       chart-type="hawkularmetric"
@@ -1300,11 +1326,11 @@
     </hawkular-chart>
   </div>
 
-  <div class="metricIdHeader"><span class="metricIdLabel"> Metric Id:</span>
-    <strong>hawkular-metrics-saas.wildfly.http-response-time</strong> Alert 1000 ms
+  <div class="metricIdHeader"><span class="metricIdLabel"> Chart Attributes:</span>
+    <li> alert-value="1000"</li>
+    <li> use-zero-min-value="true" <span class="itemDescription">(use zero as the Y Axis)</span></li>
   </div>
   <div class="chartWrapper">
-
     <hawkular-chart
       data="{{vm.myData}}"
       chart-type="hawkularmetric"
@@ -1315,19 +1341,6 @@
     </hawkular-chart>
   </div>
 
-  <div class="metricIdHeader"><span class="metricIdLabel"> Settings:</span>
-    <strong>Alert 2000 ms / Zoomed In</strong>
-  </div>
-  <div class="chartWrapper">
-
-    <hawkular-chart
-      data="{{vm.myData}}"
-      chart-type="hawkularmetric"
-      alert-value="2000"
-      y-axis-units="Response Time (ms)"
-      chart-height="250">
-    </hawkular-chart>
-  </div>
 
 </div>
 
