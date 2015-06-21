@@ -53,7 +53,7 @@ var normalSizeOptions = {
 };
 
 gulp.task('bower', function () {
-    gulp.src('tester.html')
+    gulp.src('metrics-chart-sample.html')
         .pipe(wiredep({}))
         .pipe(gulp.dest('.'));
 });

@@ -44,7 +44,7 @@ svg {
   font-weight: normal;
   font-style: normal;
   fill: #50505a;
-  text-rendering: optimize-legibility;
+  text-rendering: optimizeLegibility;
 }
 
 .x.axis path,
@@ -72,7 +72,7 @@ svg {
   font-weight: bold;
   text-anchor: start;
   fill: #003168;
-  text-rendering: optimize-legibility;
+  text-rendering: optimizeLegibility;
 }
 
 .minText, .avgText, .highText {
@@ -80,7 +80,7 @@ svg {
   font-size: 12px;
   text-anchor: start;
   fill: #003168;
-  text-rendering: optimize-legibility;
+  text-rendering: optimizeLegibility;
 }
 
 .chartTitleName {
@@ -139,10 +139,10 @@ rect.low {
 
 .alertLine {
   fill: none;
-  stroke: #ff5d07;
-  stroke-width: 2;
-  stroke-opacity: 0.6;
-  stroke-dasharray: 10, 5;
+  stroke: #f57f20;
+  stroke-width: 1;
+  /*stroke-opacity: 0.6;*/
+  /*stroke-dasharray: 10, 5;*/
 }
 
 .prevRangeAvgLine {
@@ -151,7 +151,20 @@ rect.low {
   stroke-width: 3;
   stroke-opacity: 0.4;
 }
+.metricLine {
+  fill: none;
+  /*stroke: #0757ff;*/
+  stroke: #1884c7;
+  stroke-width: 2;
+}
 
+.alertBounds {
+  fill: red;
+  stroke: #9d0f06;
+  stroke-width: 1.5;
+  opacity: 0.5;
+
+}
 .avgLine {
   fill: none;
   stroke: #2e376a;
@@ -187,12 +200,6 @@ rect.low {
   stroke-opacity: 0.9;
 }
 
-.titleName {
-  font-size: 12;
-  font-weight: bold;
-  text-anchor: left;
-  fill: #003168;
-}
 
 /* Tooltip */
 .d3-tip {
@@ -260,10 +267,10 @@ rect.low {
 }
 
 .areaChart {
-  fill: #df0000;
-  fill-opacity: 0.4;
+  fill: #E3F1FA;
+  fill-opacity: 0.9;
   stroke-width: 2;
-  /*stroke: #0040FF;*/
+  stroke: #3E81C7;
   stroke-opacity: .8;
 }
 
@@ -309,7 +316,7 @@ rect.low {
 /*}*/
 
 .annotationDot {
-  fill: yellow;
+  fill: ff1a13;
   opacity: 0.6;
   stroke-width: 1;
   stroke: black;

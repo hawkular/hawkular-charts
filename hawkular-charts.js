@@ -65,6 +65,7 @@ var Charts;
                     }
                     chartParent = d3.select(element[0]);
                     chart = chartParent.append("svg");
+                    createSvgDefs(chart);
                     svg = chart.append("g").attr("width", width + margin.left + margin.right).attr("height", innerChartHeight).attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
                 }
                 function determineAvailScale(dataPoints) {
@@ -125,6 +126,10 @@ var Charts;
                     }
                     return outputData;
                 }
+                function createSvgDefs(chart) {
+                    var defs = chart.append("defs");
+                    defs.append("pattern").attr("id", "noDataStripes").attr("patternUnits", "userSpaceOnUse").attr("x", "0").attr("y", "0").attr("width", "6").attr("height", "3").append("path").attr("d", "M 0 0 6 0").attr("style", "stroke:#000000; fill:#d1d1d1;");
+                }
                 function createSideYAxisLabels() {
                     svg.append("text").attr("class", "availUpLabel").attr("x", -10).attr("y", 25).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "12px").attr("fill", "#999").style("text-anchor", "end").text("Up");
                     svg.append("text").attr("class", "availDownLabel").attr("x", -10).attr("y", 55).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "12px").attr("fill", "#999").style("text-anchor", "end").text("Down");
@@ -160,7 +165,7 @@ var Charts;
                             return "#4AA544"; // green
                         }
                         else if (isUnknown(d)) {
-                            return "#B5B5B5"; // gray
+                            return "url(#noDataStripes)";
                         }
                         else {
                             return "#E52527"; // red
@@ -181,12 +186,18 @@ var Charts;
                     });
                     // create x-axis
                     svg.append("g").attr("class", "x axis").call(availXAxis);
-                    var bottomYAxisLine = d3.svg.line().x(function (d) {
-                        return timeScale(d.start);
-                    }).y(function (d) {
-                        return height - yScale(0) + 70;
-                    });
-                    svg.append("path").datum(dataPoints).attr("class", "availYAxisLine").attr("d", bottomYAxisLine);
+                    //var bottomYAxisLine = d3.svg.line()
+                    //  .x((d:ITransformedAvailDataPoint) => {
+                    //    return timeScale(d.start);
+                    //  })
+                    //  .y((d:ITransformedAvailDataPoint) => {
+                    //    return height - yScale(0) + 70;
+                    //  });
+                    //
+                    //svg.append("path")
+                    //  .datum(dataPoints)
+                    //  .attr("class", "availYAxisLine")
+                    //  .attr("d", bottomYAxisLine);
                     createSideYAxisLabels();
                 }
                 function createXandYAxes() {
@@ -265,6 +276,14 @@ var Charts;
 var Charts;
 (function (Charts) {
     'use strict';
+    var AlertBounds = (function () {
+        function AlertBounds(startTimestamp, endTimestamp, alertValue) {
+            this.startTimestamp = startTimestamp;
+            this.endTimestamp = endTimestamp;
+            this.alertValue = alertValue;
+        }
+        return AlertBounds;
+    })();
     //export interface IAvailDataPoint {
     //  start:number;
     //  end:number;
@@ -277,7 +296,7 @@ var Charts;
     /**
      * @ngdoc directive
      * @name hawkularChart
-     * @description A d3 based charting direction to provide charting using various styles of charts like: bar, area, line, scatter.
+     * @description A d3 based charting direction to provide charting using various styles of charts.
      *
      */
     angular.module('hawkular.charts').directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log', function ($rootScope, $http, $interval, $log) {
@@ -788,43 +807,37 @@ var Charts;
                 svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", chartLine);
             }
             function createHawkularMetricChart(lowbound, highbound) {
-                var avgArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
+                var metricChartLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
                     return xStartPosition(d);
-                }).y1(function (d) {
-                    if (isEmptyDataBar(d)) {
-                        return yScale(highbound);
-                    }
-                    else {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
-                    }
-                }).y0(function (d) {
-                    if (alertValue) {
-                        if (d.max > alertValue) {
-                            return yScale(alertValue);
-                        }
-                        else {
-                            return yScale(d.max);
-                        }
-                    }
-                    else {
-                        return yScale(0);
-                    }
+                }).y(function (d) {
+                    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
-                svg.append("path").datum(chartData).attr("class", "areaChart").transition().duration(550).attr("d", avgArea).attr("stroke", function (d) {
-                    if (alertValue) {
-                        if (d.avg > alertValue) {
-                            return "#CC0000";
-                        }
-                        else {
-                            return "#00A8E1";
-                        }
-                    }
-                    else {
-                        return "#00A8E1";
-                    }
-                });
+                svg.append("path").datum(chartData).attr("class", "metricLine").attr("d", metricChartLine);
+                //var avgArea = d3.svg.area()
+                //  .interpolate(interpolation)
+                //  .defined((d) => {
+                //    return !d.empty;
+                //  })
+                //  .x((d)  => {
+                //    return xStartPosition(d);
+                //  })
+                //  .y1((d:IChartDataPoint) => {
+                //    if (isEmptyDataBar(d)) {
+                //      return yScale(highbound);
+                //    } else {
+                //      return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+                //    }
+                //  }).
+                //  y0((d:IChartDataPoint) => {
+                //      return yScale(0);
+                //  });
+                //
+                //svg.append("path")
+                //  .datum(chartData)
+                //  .attr("class", "areaChart")
+                //  .attr("d", avgArea);
             }
             function createAreaChart() {
                 var highArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
@@ -994,6 +1007,44 @@ var Charts;
             }
             function createAlertLine(alertValue) {
                 svg.append("path").datum(chartData).attr("class", "alertLine").attr("d", createAlertLineDef(alertValue));
+            }
+            function extractAlertRanges(chartData, threshold) {
+                var isAboveThreshold = false;
+                var alertBoundAreaItem;
+                var alertBounds = [];
+                var item;
+                console.log("Chartdata records: " + chartData.length);
+                for (var i = 0; i < chartData.length; i++) {
+                    item = chartData[i];
+                    /// look for the end of the alert range
+                    if (isAboveThreshold && alertBoundAreaItem) {
+                        if (i < chartData.length - 1 && chartData[i + 1].avg <= threshold) {
+                            alertBoundAreaItem.endTimestamp = item.timestamp;
+                            alertBounds.push(alertBoundAreaItem);
+                            isAboveThreshold = false;
+                        }
+                    }
+                    /// Look for the beginning of the alert range
+                    if (item.avg > threshold) {
+                        isAboveThreshold = true;
+                        alertBoundAreaItem = new AlertBounds(item.timestamp, 0, threshold);
+                    }
+                }
+                ;
+                return alertBounds;
+            }
+            function createAlertBoundsArea(alertBounds) {
+                svg.selectAll("rect.alert").data(alertBounds).enter().append("rect").attr("class", "alertBounds").attr("x", function (d) {
+                    return timeScale(d.startTimestamp);
+                }).attr("y", function (d) {
+                    return yScale(highBound);
+                }).attr("height", function (d) {
+                    ///@todo: adjust the height
+                    return 185;
+                    //return yScale(0) - height;
+                }).attr("width", function (d) {
+                    return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
+                });
             }
             function createXAxisBrush() {
                 brush = d3.svg.brush().x(timeScaleForBrush).on("brushstart", brushStart).on("brush", brushMove).on("brushend", brushEnd);
@@ -1219,6 +1270,10 @@ var Charts;
                 }
                 if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                     createAlertLine(alertValue);
+                    //var alertBoundsArea = new AlertBounds(1434479701167, 1434479821167, alertValue);
+                    //var alertAreas = [];
+                    //alertAreas.push(alertBoundsArea);
+                    createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
                 }
                 if (annotationData) {
                     annotateChart(annotationData);
