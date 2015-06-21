@@ -16,6 +16,14 @@ module Charts {
     empty: boolean;
   }
 
+
+   class AlertBounds {
+    constructor(public startTimestamp, public endTimestamp:number, public alertValue:number)
+    {
+    }
+
+  }
+
   export interface IChartDataPoint extends IContextChartDataPoint {
     date: Date;
     min: number;
@@ -140,7 +148,7 @@ module Charts {
 
 
         function oneTimeChartSetup():void {
-          console.log("***** Charts: OneTimeChartSetup");
+          console.info("***** Charts: OneTimeChartSetup");
           // destroy any previous charts
           if (chart) {
             chartParent.selectAll('*').remove();
@@ -934,29 +942,48 @@ module Charts {
 
         function createHawkularMetricChart(lowbound, highbound) {
 
-          var avgArea = d3.svg.area()
+          var metricChartLine = d3.svg.line()
             .interpolate(interpolation)
             .defined((d) => {
               return !d.empty;
             })
-            .x((d)  => {
+            .x((d) => {
               return xStartPosition(d);
             })
-            .y1((d:IChartDataPoint) => {
-              if (isEmptyDataBar(d)) {
-                return yScale(highbound);
-              } else {
-                return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
-              }
-            }).
-            y0((d:IChartDataPoint) => {
-                return yScale(0);
+            .y((d) => {
+              return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
             });
 
           svg.append("path")
             .datum(chartData)
-            .attr("class", "areaChart")
-            .attr("d", avgArea);
+            .attr("class", "metricLine")
+            .attr("d", metricChartLine);
+
+
+
+          //var avgArea = d3.svg.area()
+          //  .interpolate(interpolation)
+          //  .defined((d) => {
+          //    return !d.empty;
+          //  })
+          //  .x((d)  => {
+          //    return xStartPosition(d);
+          //  })
+          //  .y1((d:IChartDataPoint) => {
+          //    if (isEmptyDataBar(d)) {
+          //      return yScale(highbound);
+          //    } else {
+          //      return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+          //    }
+          //  }).
+          //  y0((d:IChartDataPoint) => {
+          //      return yScale(0);
+          //  });
+          //
+          //svg.append("path")
+          //  .datum(chartData)
+          //  .attr("class", "areaChart")
+          //  .attr("d", avgArea);
 
         }
 
@@ -1292,6 +1319,55 @@ module Charts {
             .attr("d", createAlertLineDef(alertValue));
         }
 
+        function extractAlertRanges(chartData:IChartDataPoint[], threshold:number):AlertBounds[]{
+          var isAboveThreshold = false;
+          var alertBoundAreaItem:AlertBounds;
+          var alertBounds = [];
+          var item:IChartDataPoint;
+
+          for(var i = 0; i < chartData.length; i++) {
+            item = chartData[i];
+
+            /// look for the end of the alert range
+            if(isAboveThreshold && alertBoundAreaItem){
+              if(i < chartData.length - 1 && chartData[i+1].avg  <= threshold ){
+                alertBoundAreaItem.endTimestamp = item.timestamp;
+                alertBounds.push(alertBoundAreaItem);
+                isAboveThreshold = false;
+              }
+            }
+            /// Look for the beginning of the alert range
+           if(item.avg > threshold){
+             isAboveThreshold = true;
+             alertBoundAreaItem = new AlertBounds(item.timestamp, 0, threshold);
+           }
+
+         };
+          return alertBounds;
+
+        }
+
+        function createAlertBoundsArea(alertBounds:AlertBounds[]) {
+          svg.selectAll("rect.alert")
+            .data(alertBounds)
+            .enter().append("rect")
+            .attr("class", "alertBounds")
+            .attr("x", (d) => {
+              return timeScale(d.startTimestamp);
+            })
+            .attr("y", (d) => {
+              return yScale(highBound);
+            })
+            .attr("height", (d) => {
+              ///@todo: adjust the height
+              return 185;
+              //return yScale(0) - height;
+            })
+            .attr("width", (d) => {
+              return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
+            });
+
+        }
 
         function createXAxisBrush() {
 
@@ -1473,14 +1549,14 @@ module Charts {
 
         scope.$watch('dataUrl', (newUrlData) => {
           if (newUrlData) {
-            console.log('dataUrl has changed: ' + newUrlData);
+            console.debug('dataUrl has changed: ' + newUrlData);
             dataUrl = newUrlData;
           }
         });
 
         scope.$watch('metricId', (newMetricId) => {
           if (newMetricId) {
-            console.log('metricId has changed: ' + newMetricId);
+            console.debug('metricId has changed: ' + newMetricId);
             metricId = newMetricId;
             loadMetricsTimeRangeFromNow();
           }
@@ -1497,7 +1573,7 @@ module Charts {
 
         scope.$watch('timeRangeInSeconds', (newTimeRange) => {
           if (newTimeRange) {
-            console.log("timeRangeInSeconds changed.");
+            console.debug("timeRangeInSeconds changed.");
             timeRangeInSeconds = newTimeRange;
           }
         });
@@ -1582,6 +1658,10 @@ module Charts {
           }
           if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
             createAlertLine(alertValue);
+            //var alertBoundsArea = new AlertBounds(1434479701167, 1434479821167, alertValue);
+            //var alertAreas = [];
+            //alertAreas.push(alertBoundsArea);
+            createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
           }
           if (annotationData) {
             annotateChart(annotationData);
