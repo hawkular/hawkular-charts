@@ -65,7 +65,6 @@ var Charts;
                     }
                     chartParent = d3.select(element[0]);
                     chart = chartParent.append("svg");
-                    createSvgDefs(chart);
                     svg = chart.append("g").attr("width", width + margin.left + margin.right).attr("height", innerChartHeight).attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
                 }
                 function determineAvailScale(dataPoints) {
@@ -126,10 +125,6 @@ var Charts;
                     }
                     return outputData;
                 }
-                function createSvgDefs(chart) {
-                    var defs = chart.append("defs");
-                    defs.append("pattern").attr("id", "noDataStripes").attr("patternUnits", "userSpaceOnUse").attr("x", "0").attr("y", "0").attr("width", "6").attr("height", "3").append("path").attr("d", "M 0 0 6 0").attr("style", "stroke:#000000; fill:#d1d1d1;");
-                }
                 function createSideYAxisLabels() {
                     svg.append("text").attr("class", "availUpLabel").attr("x", -10).attr("y", 25).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "12px").attr("fill", "#999").style("text-anchor", "end").text("Up");
                     svg.append("text").attr("class", "availDownLabel").attr("x", -10).attr("y", 55).style("font-family", "Arial, Verdana, sans-serif;").style("font-size", "12px").attr("fill", "#999").style("text-anchor", "end").text("Down");
@@ -165,7 +160,7 @@ var Charts;
                             return "#4AA544"; // green
                         }
                         else if (isUnknown(d)) {
-                            return "url(#noDataStripes)";
+                            return "#B5B5B5"; // gray
                         }
                         else {
                             return "#E52527"; // red
@@ -186,18 +181,12 @@ var Charts;
                     });
                     // create x-axis
                     svg.append("g").attr("class", "x axis").call(availXAxis);
-                    //var bottomYAxisLine = d3.svg.line()
-                    //  .x((d:ITransformedAvailDataPoint) => {
-                    //    return timeScale(d.start);
-                    //  })
-                    //  .y((d:ITransformedAvailDataPoint) => {
-                    //    return height - yScale(0) + 70;
-                    //  });
-                    //
-                    //svg.append("path")
-                    //  .datum(dataPoints)
-                    //  .attr("class", "availYAxisLine")
-                    //  .attr("d", bottomYAxisLine);
+                    var bottomYAxisLine = d3.svg.line().x(function (d) {
+                        return timeScale(d.start);
+                    }).y(function (d) {
+                        return height - yScale(0) + 70;
+                    });
+                    svg.append("path").datum(dataPoints).attr("class", "availYAxisLine").attr("d", bottomYAxisLine);
                     createSideYAxisLabels();
                 }
                 function createXandYAxes() {
@@ -323,7 +312,7 @@ var Charts;
                 return getChartWidth() <= smallChartThresholdInPixels;
             }
             function oneTimeChartSetup() {
-                console.log("***** Charts: OneTimeChartSetup");
+                console.info("***** Charts: OneTimeChartSetup");
                 // destroy any previous charts
                 if (chart) {
                     chartParent.selectAll('*').remove();
@@ -1012,25 +1001,34 @@ var Charts;
                 var isAboveThreshold = false;
                 var alertBoundAreaItem;
                 var alertBounds = [];
-                var item;
-                console.log("Chartdata records: " + chartData.length);
-                for (var i = 0; i < chartData.length; i++) {
-                    item = chartData[i];
+                chartData.forEach(function (chartItem, i) {
                     /// look for the end of the alert range
                     if (isAboveThreshold && alertBoundAreaItem) {
                         if (i < chartData.length - 1 && chartData[i + 1].avg <= threshold) {
-                            alertBoundAreaItem.endTimestamp = item.timestamp;
+                            alertBoundAreaItem.endTimestamp = chartItem.timestamp;
                             alertBounds.push(alertBoundAreaItem);
                             isAboveThreshold = false;
                         }
                     }
                     /// Look for the beginning of the alert range
-                    if (item.avg > threshold) {
+                    if (chartItem.avg > threshold) {
                         isAboveThreshold = true;
-                        alertBoundAreaItem = new AlertBounds(item.timestamp, 0, threshold);
+                        alertBoundAreaItem = new AlertBounds(chartItem.timestamp, 0, threshold);
                     }
+                });
+                /// Handle special case where all items are above threshold
+                ///var allItemsAboveThreshold = _.every(chartData, (chartItem:IChartDataPoint) => { !chartItem.empty && chartItem.avg > threshold});
+                var allItemsAboveThreshold = chartData.every(function (chartItem) {
+                    return chartItem.avg > threshold;
+                });
+                console.warn("All Items above threshold: " + allItemsAboveThreshold);
+                //// var selectedItems = _.every(chartData, (chartItem:IChartDataPoint) => { !chartItem.empty && chartItem.avg > threshold});
+                //
+                if (allItemsAboveThreshold) {
+                    console.warn("All Points above threshold");
+                    alertBoundAreaItem = new AlertBounds(chartData[0].timestamp, chartData[chartData.length - 1].timestamp, threshold);
+                    alertBounds.push(alertBoundAreaItem);
                 }
-                ;
                 return alertBounds;
             }
             function createAlertBoundsArea(alertBounds) {
@@ -1175,13 +1173,13 @@ var Charts;
             }
             scope.$watch('dataUrl', function (newUrlData) {
                 if (newUrlData) {
-                    console.log('dataUrl has changed: ' + newUrlData);
+                    console.debug('dataUrl has changed: ' + newUrlData);
                     dataUrl = newUrlData;
                 }
             });
             scope.$watch('metricId', function (newMetricId) {
                 if (newMetricId) {
-                    console.log('metricId has changed: ' + newMetricId);
+                    console.debug('metricId has changed: ' + newMetricId);
                     metricId = newMetricId;
                     loadMetricsTimeRangeFromNow();
                 }
@@ -1196,7 +1194,7 @@ var Charts;
             });
             scope.$watch('timeRangeInSeconds', function (newTimeRange) {
                 if (newTimeRange) {
-                    console.log("timeRangeInSeconds changed.");
+                    console.debug("timeRangeInSeconds changed.");
                     timeRangeInSeconds = newTimeRange;
                 }
             });
