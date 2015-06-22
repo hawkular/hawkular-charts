@@ -138,15 +138,14 @@ rect.low {
 }
 
 .alertLine {
-  fill: none;
-  stroke: #f57f20;
-  stroke-width: 1;
+  fill: #cc0000;
+  stroke: #cc0000;
+  stroke-width: 2px;
   stroke-dasharray: 10, 5;
 }
 
 .alertBounds {
-  fill: #e12226;
-  opacity: 0.4;
+  fill: #feedee;
 }
 
 .prevRangeAvgLine {

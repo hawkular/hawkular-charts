@@ -1303,7 +1303,7 @@ module Charts {
           var line = d3.svg.line()
             .interpolate("monotone")
             .x((d) => {
-              return timeScale(d.timestamp) + (calcBarWidth() / 2)
+              return timeScale(d.timestamp);
             })
             .y((d) => {
               return yScale(alertValue);
@@ -1337,6 +1337,7 @@ module Charts {
             /// Look for the beginning of the alert range
            if(chartItem.avg > threshold){
              isAboveThreshold = true;
+             /// the ending timestamp is filled in the above block when the value comes back below the threshold
              alertBoundAreaItem = new AlertBounds(chartItem.timestamp, 0, threshold);
            }
 
@@ -1612,19 +1613,7 @@ module Charts {
         });
 
 
-        scope.render = (dataPoints, previousRangeDataPoints) => {
-          console.group('Render Chart');
-          console.time('chartRender');
-          //NOTE: layering order is important!
-          oneTimeChartSetup();
-          if (dataPoints) {
-            determineScale(dataPoints);
-          }
-
-          createHeader(attrs.chartTitle);
-          createYAxisGridLines();
-          createXAxisBrush();
-
+        function determineChartType(chartType:string) {
           switch (chartType) {
             case 'rhqbar' :
               createStackedBars(lowBound, highBound);
@@ -1654,7 +1643,28 @@ module Charts {
               $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability]');
 
           }
+        }
 
+        scope.render = (dataPoints, previousRangeDataPoints) => {
+          console.group('Render Chart');
+          console.time('chartRender');
+          //NOTE: layering order is important!
+          oneTimeChartSetup();
+          if (dataPoints) {
+            determineScale(dataPoints);
+          }
+
+          createHeader(attrs.chartTitle);
+          createXAxisBrush();
+
+          if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
+            createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
+          }
+
+          createYAxisGridLines();
+
+
+          determineChartType(chartType);
           createPreviousRangeOverlay(previousRangeDataPoints);
           createMultiMetricOverlay();
           createXandYAxes();
@@ -1662,13 +1672,11 @@ module Charts {
           if (showAvgLine) {
             createAvgLines();
           }
+
           if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
             createAlertLine(alertValue);
-            //var alertBoundsArea = new AlertBounds(1434479701167, 1434479821167, alertValue);
-            //var alertAreas = [];
-            //alertAreas.push(alertBoundsArea);
-            createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
           }
+
           if (annotationData) {
             annotateChart(annotationData);
           }
