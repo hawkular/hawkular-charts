@@ -63,7 +63,7 @@ svg {
   fill: #666;
   fill-opacity: .8;
   stroke: #000;
-  stroke-width: 1.5px;
+  stroke-width: 1px;
 }
 
 .minLabel, .avgLabel, .highLabel {
@@ -100,7 +100,7 @@ svg {
 .availYAxisLine {
   stroke: #000;
   fill: #000;
-  stroke-width: 0.5px;
+  stroke-width: 1px;
 }
 
 /*
@@ -141,8 +141,12 @@ rect.low {
   fill: none;
   stroke: #f57f20;
   stroke-width: 1;
-  /*stroke-opacity: 0.6;*/
-  /*stroke-dasharray: 10, 5;*/
+  stroke-dasharray: 10, 5;
+}
+
+.alertBounds {
+  fill: #e12226;
+  opacity: 0.4;
 }
 
 .prevRangeAvgLine {
@@ -151,20 +155,14 @@ rect.low {
   stroke-width: 3;
   stroke-opacity: 0.4;
 }
+
 .metricLine {
   fill: none;
   /*stroke: #0757ff;*/
   stroke: #1884c7;
-  stroke-width: 2;
+  stroke-width: 2px;
 }
 
-.alertBounds {
-  fill: red;
-  stroke: #9d0f06;
-  stroke-width: 1.5;
-  opacity: 0.5;
-
-}
 .avgLine {
   fill: none;
   stroke: #2e376a;
@@ -199,7 +197,6 @@ rect.low {
   stroke-width: 2;
   stroke-opacity: 0.9;
 }
-
 
 /* Tooltip */
 .d3-tip {

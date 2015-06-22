@@ -1323,26 +1323,32 @@ module Charts {
           var isAboveThreshold = false;
           var alertBoundAreaItem:AlertBounds;
           var alertBounds = [];
-          var item:IChartDataPoint;
 
-          for(var i = 0; i < chartData.length; i++) {
-            item = chartData[i];
+          chartData.forEach((chartItem:IChartDataPoint, i:number) => {
 
             /// look for the end of the alert range
             if(isAboveThreshold && alertBoundAreaItem){
               if(i < chartData.length - 1 && chartData[i+1].avg  <= threshold ){
-                alertBoundAreaItem.endTimestamp = item.timestamp;
+                alertBoundAreaItem.endTimestamp = chartItem.timestamp;
                 alertBounds.push(alertBoundAreaItem);
                 isAboveThreshold = false;
               }
             }
             /// Look for the beginning of the alert range
-           if(item.avg > threshold){
+           if(chartItem.avg > threshold){
              isAboveThreshold = true;
-             alertBoundAreaItem = new AlertBounds(item.timestamp, 0, threshold);
+             alertBoundAreaItem = new AlertBounds(chartItem.timestamp, 0, threshold);
            }
 
-         };
+         });
+
+          /// Handle special case where all items are above threshold
+          var allItemsAboveThreshold = chartData.every((chartItem:IChartDataPoint) => {  return chartItem.avg > threshold});
+          if( allItemsAboveThreshold){
+            alertBoundAreaItem = new AlertBounds(chartData[0].timestamp, chartData[chartData.length -1].timestamp, threshold);
+            alertBounds.push(alertBoundAreaItem);
+          }
+
           return alertBounds;
 
         }
