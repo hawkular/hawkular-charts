@@ -988,7 +988,7 @@ var Charts;
             }
             function createAlertLineDef(alertValue) {
                 var line = d3.svg.line().interpolate("monotone").x(function (d) {
-                    return timeScale(d.timestamp) + (calcBarWidth() / 2);
+                    return timeScale(d.timestamp);
                 }).y(function (d) {
                     return yScale(alertValue);
                 });
@@ -1013,19 +1013,15 @@ var Charts;
                     /// Look for the beginning of the alert range
                     if (chartItem.avg > threshold) {
                         isAboveThreshold = true;
+                        /// the ending timestamp is filled in the above block when the value comes back below the threshold
                         alertBoundAreaItem = new AlertBounds(chartItem.timestamp, 0, threshold);
                     }
                 });
                 /// Handle special case where all items are above threshold
-                ///var allItemsAboveThreshold = _.every(chartData, (chartItem:IChartDataPoint) => { !chartItem.empty && chartItem.avg > threshold});
                 var allItemsAboveThreshold = chartData.every(function (chartItem) {
                     return chartItem.avg > threshold;
                 });
-                console.warn("All Items above threshold: " + allItemsAboveThreshold);
-                //// var selectedItems = _.every(chartData, (chartItem:IChartDataPoint) => { !chartItem.empty && chartItem.avg > threshold});
-                //
                 if (allItemsAboveThreshold) {
-                    console.warn("All Points above threshold");
                     alertBoundAreaItem = new AlertBounds(chartData[0].timestamp, chartData[chartData.length - 1].timestamp, threshold);
                     alertBounds.push(alertBoundAreaItem);
                 }
@@ -1220,17 +1216,7 @@ var Charts;
                 $log.debug('Handling DateRangeDragChanged Fired Chart Directive: ' + extent[0] + ' --> ' + extent[1]);
                 scope.$emit('GraphTimeRangeChangedEvent', extent);
             });
-            scope.render = function (dataPoints, previousRangeDataPoints) {
-                console.group('Render Chart');
-                console.time('chartRender');
-                //NOTE: layering order is important!
-                oneTimeChartSetup();
-                if (dataPoints) {
-                    determineScale(dataPoints);
-                }
-                createHeader(attrs.chartTitle);
-                createYAxisGridLines();
-                createXAxisBrush();
+            function determineChartType(chartType) {
                 switch (chartType) {
                     case 'rhqbar':
                         createStackedBars(lowBound, highBound);
@@ -1259,6 +1245,22 @@ var Charts;
                     default:
                         $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability]');
                 }
+            }
+            scope.render = function (dataPoints, previousRangeDataPoints) {
+                console.group('Render Chart');
+                console.time('chartRender');
+                //NOTE: layering order is important!
+                oneTimeChartSetup();
+                if (dataPoints) {
+                    determineScale(dataPoints);
+                }
+                createHeader(attrs.chartTitle);
+                createXAxisBrush();
+                if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
+                    createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
+                }
+                createYAxisGridLines();
+                determineChartType(chartType);
                 createPreviousRangeOverlay(previousRangeDataPoints);
                 createMultiMetricOverlay();
                 createXandYAxes();
@@ -1268,10 +1270,6 @@ var Charts;
                 }
                 if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                     createAlertLine(alertValue);
-                    //var alertBoundsArea = new AlertBounds(1434479701167, 1434479821167, alertValue);
-                    //var alertAreas = [];
-                    //alertAreas.push(alertBoundsArea);
-                    createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
                 }
                 if (annotationData) {
                     annotateChart(annotationData);
