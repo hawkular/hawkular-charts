@@ -79,12 +79,13 @@ module Charts {
           aggregateLabel = attrs.aggregateLabel || 'Aggregate',
           startLabel = attrs.startLabel || 'Start',
           endLabel = attrs.endLabel || 'End',
-          durationLabel = attrs.durationLabel || 'Bar Duration',
+          durationLabel = attrs.durationLabel || 'Interval',
           minLabel = attrs.minLabel || 'Min',
           maxLabel = attrs.maxLabel || 'Max',
           avgLabel = attrs.avgLabel || 'Avg',
           timestampLabel = attrs.timestampLabel || 'Timestamp',
           showAvgLine = true,
+          showDataPoints = false,
           hideHighLowValues = false,
           useZeroMinValue = false,
           chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y',
@@ -128,6 +129,7 @@ module Charts {
           processedPreviousRangeData;
 
         dataPoints = attrs.data;
+        showDataPoints = attrs.showDataPoints;
         previousRangeDataPoints = attrs.previousRangeData;
         multiChartOverlayData = attrs.multiChartOverlayData;
         annotationData = attrs.annotationData;
@@ -148,7 +150,7 @@ module Charts {
 
 
         function oneTimeChartSetup():void {
-          console.info("***** Charts: OneTimeChartSetup");
+          $log.info("Charts: OneTimeChartSetup");
           // destroy any previous charts
           if (chart) {
             chartParent.selectAll('*').remove();
@@ -189,7 +191,6 @@ module Charts {
               minList = [];
 
             angular.forEach(multiChartOverlayData, (series) => {
-              console.debug("Series: " + series.length);
               currentMax = d3.max(series.map((d) => {
                 return !d.empty ? d.avg : 0;
               }));
@@ -329,8 +330,8 @@ module Charts {
           $http.get(url + metricId, searchParams).success((response) => {
 
             processedNewData = formatBucketedChartOutput(response);
-            //console.info("DataPoints from standalone URL: ");
-            //console.table(processedNewData);
+            ///console.info("DataPoints from standalone URL: ");
+            ///console.table(processedNewData);
             scope.render(processedNewData, processedPreviousRangeData);
 
           }).error((reason, status) => {
@@ -959,32 +960,6 @@ module Charts {
             .attr("class", "metricLine")
             .attr("d", metricChartLine);
 
-
-
-          //var avgArea = d3.svg.area()
-          //  .interpolate(interpolation)
-          //  .defined((d) => {
-          //    return !d.empty;
-          //  })
-          //  .x((d)  => {
-          //    return xStartPosition(d);
-          //  })
-          //  .y1((d:IChartDataPoint) => {
-          //    if (isEmptyDataBar(d)) {
-          //      return yScale(highbound);
-          //    } else {
-          //      return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
-          //    }
-          //  }).
-          //  y0((d:IChartDataPoint) => {
-          //      return yScale(0);
-          //  });
-          //
-          //svg.append("path")
-          //  .datum(chartData)
-          //  .attr("class", "areaChart")
-          //  .attr("d", avgArea);
-
         }
 
         function createAreaChart() {
@@ -1459,6 +1434,8 @@ module Charts {
 
         }
 
+
+
         function annotateChart(annotationData) {
           if (annotationData) {
             svg.selectAll(".annotationDot")
@@ -1482,6 +1459,25 @@ module Charts {
                 }
               });
           }
+        }
+
+        function createDataPoints() {
+          var radius = 2;
+          svg.selectAll(".dataPointDot")
+            .data(chartData)
+            .enter().append("circle")
+            .attr("class", "dataPointDot")
+            .attr("r", radius)
+            .attr("cx", function (d) {
+              return timeScale(d.timestamp) + radius;
+            })
+            .attr("cy", function (d) {
+              return d.avg ? yScale(d.avg) : -9999999;
+            }).on("mouseover", function (d, i) {
+              tip.show(d, i);
+            }).on("mouseout", function () {
+              tip.hide();
+            });
         }
 
         scope.$watch('data', (newData) => {
@@ -1556,14 +1552,14 @@ module Charts {
 
         scope.$watch('dataUrl', (newUrlData) => {
           if (newUrlData) {
-            console.debug('dataUrl has changed: ' + newUrlData);
+            $log.debug('dataUrl has changed: ' + newUrlData);
             dataUrl = newUrlData;
           }
         });
 
         scope.$watch('metricId', (newMetricId) => {
           if (newMetricId) {
-            console.debug('metricId has changed: ' + newMetricId);
+            $log.debug('metricId has changed: ' + newMetricId);
             metricId = newMetricId;
             loadMetricsTimeRangeFromNow();
           }
@@ -1580,7 +1576,7 @@ module Charts {
 
         scope.$watch('timeRangeInSeconds', (newTimeRange) => {
           if (newTimeRange) {
-            console.debug("timeRangeInSeconds changed.");
+            $log.debug("timeRangeInSeconds changed.");
             timeRangeInSeconds = newTimeRange;
           }
         });
@@ -1662,9 +1658,10 @@ module Charts {
           }
 
           createYAxisGridLines();
-
-
           determineChartType(chartType);
+          if(showDataPoints){
+            createDataPoints();
+          }
           createPreviousRangeOverlay(previousRangeDataPoints);
           createMultiMetricOverlay();
           createXandYAxes();
@@ -1701,6 +1698,7 @@ module Charts {
           previousRangeData: '@',
           annotationData: '@',
           contextData: '@',
+          showDataPoints: '@',
           alertValue: '@',
           interpolation: '@',
           multiChartOverlayData: '@',
