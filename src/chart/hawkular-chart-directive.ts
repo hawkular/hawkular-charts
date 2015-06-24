@@ -281,15 +281,11 @@ module Charts {
             if (contextData) {
               timeScaleForContext = d3.time.scale()
                 .range([0, width])
-                .domain(d3.extent(contextData, (d:IChartDataPoint) => {
-                  return d.timestamp;
-                }));
+                .domain(d3.extent(contextData, (d:IChartDataPoint) => { return d.timestamp; }));
             } else {
               timeScaleForBrush = d3.time.scale()
                 .range([0, width])
-                .domain(d3.extent(chartData, (d:IChartDataPoint) => {
-                  return d.timestamp;
-                }));
+                .domain(d3.extent(chartData, (d:IChartDataPoint) => { return d.timestamp; }));
 
             }
 
@@ -949,7 +945,7 @@ module Charts {
               return !d.empty;
             })
             .x((d) => {
-              return xStartPosition(d);
+              return timeScale(d.timestamp)
             })
             .y((d) => {
               return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -1268,10 +1264,12 @@ module Charts {
         }
 
         function createAvgLines() {
-          svg.append("path")
-            .datum(chartData)
-            .attr("class", "barAvgLine")
-            .attr("d", createCenteredLine("monotone"));
+          if(chartType === 'bar' || chartType === 'scatterline') {
+            svg.append("path")
+              .datum(chartData)
+              .attr("class", "barAvgLine")
+              .attr("d", createCenteredLine("monotone"));
+          }
         }
 
         function createAlertLineDef(alertValue:number) {
@@ -1318,6 +1316,11 @@ module Charts {
 
          });
 
+          /// Handle open right chart bounds
+          if(chartData[chartData.length -1].avg > threshold){
+
+          }
+
           /// Handle special case where all items are above threshold
           var allItemsAboveThreshold = chartData.every((chartItem:IChartDataPoint) => {  return chartItem.avg > threshold});
           if( allItemsAboveThreshold){
@@ -1341,7 +1344,7 @@ module Charts {
               return yScale(highBound);
             })
             .attr("height", (d) => {
-              ///@todo: adjust the height
+              ///@todo: make the height adjustable
               return 185;
               //return yScale(0) - height;
             })
@@ -1462,14 +1465,14 @@ module Charts {
         }
 
         function createDataPoints() {
-          var radius = 2;
+          var radius = 1;
           svg.selectAll(".dataPointDot")
             .data(chartData)
             .enter().append("circle")
             .attr("class", "dataPointDot")
             .attr("r", radius)
             .attr("cx", function (d) {
-              return timeScale(d.timestamp) + radius;
+              return timeScale(d.timestamp);
             })
             .attr("cy", function (d) {
               return d.avg ? yScale(d.avg) : -9999999;
@@ -1665,12 +1668,12 @@ module Charts {
           createPreviousRangeOverlay(previousRangeDataPoints);
           createMultiMetricOverlay();
           createXandYAxes();
-          showAvgLine = (chartType === 'bar' || chartType === 'scatterline') ? true : false;
           if (showAvgLine) {
             createAvgLines();
           }
 
           if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
+            /// NOTE: this alert line has higher precedence from alert area above
             createAlertLine(alertValue);
           }
 

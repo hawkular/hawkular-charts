@@ -799,7 +799,7 @@ var Charts;
                 var metricChartLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
-                    return xStartPosition(d);
+                    return timeScale(d.timestamp);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
@@ -994,6 +994,9 @@ var Charts;
                         alertBoundAreaItem = new AlertBounds(chartItem.timestamp, 0, threshold);
                     }
                 });
+                /// Handle open right chart bounds
+                if (chartData[chartData.length - 1].avg > threshold) {
+                }
                 /// Handle special case where all items are above threshold
                 var allItemsAboveThreshold = chartData.every(function (chartItem) {
                     return chartItem.avg > threshold;
@@ -1010,7 +1013,7 @@ var Charts;
                 }).attr("y", function (d) {
                     return yScale(highBound);
                 }).attr("height", function (d) {
-                    ///@todo: adjust the height
+                    ///@todo: make the height adjustable
                     return 185;
                     //return yScale(0) - height;
                 }).attr("width", function (d) {
@@ -1084,9 +1087,9 @@ var Charts;
                 }
             }
             function createDataPoints() {
-                var radius = 2;
+                var radius = 1;
                 svg.selectAll(".dataPointDot").data(chartData).enter().append("circle").attr("class", "dataPointDot").attr("r", radius).attr("cx", function (d) {
-                    return timeScale(d.timestamp) + radius;
+                    return timeScale(d.timestamp);
                 }).attr("cy", function (d) {
                     return d.avg ? yScale(d.avg) : -9999999;
                 }).on("mouseover", function (d, i) {
@@ -1261,6 +1264,7 @@ var Charts;
                     createAvgLines();
                 }
                 if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
+                    /// NOTE: this alert line has higher precedence from alert area above
                     createAlertLine(alertValue);
                 }
                 if (annotationData) {
