@@ -8,6 +8,7 @@ declare module Charts {
         avg: number;
         empty: boolean;
     }
+    type AlertThreshold = number;
     interface IChartDataPoint extends IContextChartDataPoint {
         date: Date;
         min: number;
