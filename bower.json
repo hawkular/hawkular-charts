@@ -1,6 +1,6 @@
 {
   "name": "hawkular-charts",
-  "version": "0.3.12",
+  "version": "0.3.13",
   "authors": [
     "Red Hat"
   ],
@@ -38,7 +38,6 @@
   "dependencies": {
     "angular": ">1.2.0",
     "jquery": ">2.0.0",
-    "lodash": ">3.1.0",
     "d3": "3.5.5",
     "moment": ">2.9.0",
     "d3-tip": "0.6.7",

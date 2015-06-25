@@ -265,13 +265,15 @@ var Charts;
 var Charts;
 (function (Charts) {
     'use strict';
-    var AlertBounds = (function () {
-        function AlertBounds(startTimestamp, endTimestamp, alertValue) {
+    var AlertBound = (function () {
+        function AlertBound(startTimestamp, endTimestamp, alertValue) {
             this.startTimestamp = startTimestamp;
             this.endTimestamp = endTimestamp;
             this.alertValue = alertValue;
+            this.startDate = new Date(startTimestamp);
+            this.endDate = new Date(endTimestamp);
         }
-        return AlertBounds;
+        return AlertBound;
     })();
     //export interface IAvailDataPoint {
     //  start:number;
@@ -799,7 +801,7 @@ var Charts;
                 var metricChartLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
-                    return xStartPosition(d);
+                    return timeScale(d.timestamp);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
@@ -961,7 +963,9 @@ var Charts;
                 return line;
             }
             function createAvgLines() {
-                svg.append("path").datum(chartData).attr("class", "barAvgLine").attr("d", createCenteredLine("monotone"));
+                if (chartType === 'bar' || chartType === 'scatterline') {
+                    svg.append("path").datum(chartData).attr("class", "barAvgLine").attr("d", createCenteredLine("monotone"));
+                }
             }
             function createAlertLineDef(alertValue) {
                 var line = d3.svg.line().interpolate("monotone").x(function (d) {
@@ -974,35 +978,119 @@ var Charts;
             function createAlertLine(alertValue) {
                 svg.append("path").datum(chartData).attr("class", "alertLine").attr("d", createAlertLineDef(alertValue));
             }
+            //function extractAlertRanges(chartData:IChartDataPoint[], threshold:number):AlertBound[]{
+            //  var isAboveThreshold = false;
+            //  var alertBoundAreaItem:AlertBound;
+            //  var alertBounds = [];
+            //
+            //  chartData.forEach((chartItem:IChartDataPoint, i:number) => {
+            //
+            //    /// look for the end of the alert range
+            //    if(isAboveThreshold && alertBoundAreaItem){
+            //      if(i < chartData.length - 1 && chartData[i+1].avg  <= threshold ){
+            //        alertBoundAreaItem.endTimestamp = chartItem.timestamp;
+            //        alertBounds.push(alertBoundAreaItem);
+            //        isAboveThreshold = false;
+            //      }
+            //    }
+            //    /// Look for the beginning of the alert range
+            //   if(chartItem.avg > threshold){
+            //     isAboveThreshold = true;
+            //     /// the ending timestamp is filled in the above block when the value comes back below the threshold
+            //     alertBoundAreaItem = new AlertBound(chartItem.timestamp, 0, threshold);
+            //   }
+            //
+            // });
+            //
+            //  /// Handle open right chart bounds
+            //  if(chartData[chartData.length -1].avg > threshold){
+            //
+            //  }
+            //
+            //  /// Handle special case where all items are above threshold
+            //  var allItemsAboveThreshold = chartData.every((chartItem:IChartDataPoint) => {  return chartItem.avg > threshold});
+            //  if( allItemsAboveThreshold){
+            //    alertBoundAreaItem = new AlertBound(chartData[0].timestamp, chartData[chartData.length -1].timestamp, threshold);
+            //    alertBounds.push(alertBoundAreaItem);
+            //  }
+            //
+            //  return alertBounds;
+            //
+            //}
             function extractAlertRanges(chartData, threshold) {
                 var isAboveThreshold = false;
                 var alertBoundAreaItem;
-                var alertBounds = [];
-                chartData.forEach(function (chartItem, i) {
-                    /// look for the end of the alert range
-                    if (isAboveThreshold && alertBoundAreaItem) {
-                        if (i < chartData.length - 1 && chartData[i + 1].avg <= threshold) {
-                            alertBoundAreaItem.endTimestamp = chartItem.timestamp;
-                            alertBounds.push(alertBoundAreaItem);
-                            isAboveThreshold = false;
+                var alertBoundAreaItems;
+                var startPoints;
+                var firstChartPoint = chartData[0];
+                var lastChartPoint = chartData[chartData.length - 1];
+                function findStartPoints(chartData, threshold) {
+                    var startPoints = [];
+                    var prevItem;
+                    chartData.forEach(function (chartItem, i) {
+                        if (i >= 1) {
+                            prevItem = chartData[i - 1];
+                        }
+                        if (prevItem && prevItem.avg <= threshold && chartItem.avg > threshold) {
+                            startPoints.push(i);
+                        }
+                    });
+                    return startPoints;
+                }
+                function findEndPointsForStartPointIndex(startPoints, threshold) {
+                    var alertBoundAreaItems = [];
+                    var currentItem;
+                    var nextItem;
+                    var startItem;
+                    var startPointIndex;
+                    startPoints.forEach(function (startPointIndex) {
+                        startItem = chartData[startPointIndex];
+                        for (var j = startPointIndex; j < chartData.length - 1; j++) {
+                            currentItem = chartData[j];
+                            nextItem = chartData[j + 1];
+                            if (currentItem.avg > threshold && nextItem.avg <= threshold) {
+                                if (startItem.timestamp === currentItem.timestamp) {
+                                    alertBoundAreaItems.push(new AlertBound(startItem.timestamp, nextItem.timestamp, threshold));
+                                }
+                                else {
+                                    alertBoundAreaItems.push(new AlertBound(startItem.timestamp, currentItem.timestamp, threshold));
+                                }
+                                break;
+                            }
+                        }
+                    });
+                    return alertBoundAreaItems;
+                }
+                startPoints = findStartPoints(chartData, threshold);
+                /// handle the case where first chart point is above threshold
+                if (firstChartPoint.avg > threshold) {
+                    startPoints.push(0);
+                }
+                console.warn("Start Points: ");
+                console.dir(startPoints);
+                alertBoundAreaItems = findEndPointsForStartPointIndex(startPoints, threshold);
+                /// handle the case where last chart point is above threshold
+                if (lastChartPoint.avg > threshold) {
+                    for (var k = chartData.length - 1; k >= 0; k--) {
+                        var currentItem = chartData[k];
+                        var nextItem = chartData[k - 1];
+                        if (currentItem.avg > threshold && nextItem.avg <= threshold) {
+                            alertBoundAreaItems.push(new AlertBound(nextItem.timestamp, lastChartPoint.timestamp, threshold));
+                            break;
                         }
                     }
-                    /// Look for the beginning of the alert range
-                    if (chartItem.avg > threshold) {
-                        isAboveThreshold = true;
-                        /// the ending timestamp is filled in the above block when the value comes back below the threshold
-                        alertBoundAreaItem = new AlertBounds(chartItem.timestamp, 0, threshold);
-                    }
-                });
+                }
                 /// Handle special case where all items are above threshold
                 var allItemsAboveThreshold = chartData.every(function (chartItem) {
                     return chartItem.avg > threshold;
                 });
                 if (allItemsAboveThreshold) {
-                    alertBoundAreaItem = new AlertBounds(chartData[0].timestamp, chartData[chartData.length - 1].timestamp, threshold);
-                    alertBounds.push(alertBoundAreaItem);
+                    alertBoundAreaItem = new AlertBound(chartData[0].timestamp, chartData[chartData.length - 1].timestamp, threshold);
+                    alertBoundAreaItems.push(alertBoundAreaItem);
                 }
-                return alertBounds;
+                console.warn('AlertBoundItems:');
+                console.dir(alertBoundAreaItems);
+                return alertBoundAreaItems;
             }
             function createAlertBoundsArea(alertBounds) {
                 svg.selectAll("rect.alert").data(alertBounds).enter().append("rect").attr("class", "alertBounds").attr("x", function (d) {
@@ -1010,7 +1098,7 @@ var Charts;
                 }).attr("y", function (d) {
                     return yScale(highBound);
                 }).attr("height", function (d) {
-                    ///@todo: adjust the height
+                    ///@todo: make the height adjustable
                     return 185;
                     //return yScale(0) - height;
                 }).attr("width", function (d) {
@@ -1083,10 +1171,10 @@ var Charts;
                     });
                 }
             }
-            function createDataPoints() {
-                var radius = 2;
-                svg.selectAll(".dataPointDot").data(chartData).enter().append("circle").attr("class", "dataPointDot").attr("r", radius).attr("cx", function (d) {
-                    return timeScale(d.timestamp) + radius;
+            function createDataPoints(dataPoints) {
+                var radius = 1;
+                svg.selectAll(".dataPointDot").data(dataPoints).enter().append("circle").attr("class", "dataPointDot").attr("r", radius).attr("cx", function (d) {
+                    return timeScale(d.timestamp);
                 }).attr("cy", function (d) {
                     return d.avg ? yScale(d.avg) : -9999999;
                 }).on("mouseover", function (d, i) {
@@ -1251,16 +1339,16 @@ var Charts;
                 createYAxisGridLines();
                 determineChartType(chartType);
                 if (showDataPoints) {
-                    createDataPoints();
+                    createDataPoints(chartData);
                 }
                 createPreviousRangeOverlay(previousRangeDataPoints);
                 createMultiMetricOverlay();
                 createXandYAxes();
-                showAvgLine = (chartType === 'bar' || chartType === 'scatterline') ? true : false;
                 if (showAvgLine) {
                     createAvgLines();
                 }
                 if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
+                    /// NOTE: this alert line has higher precedence from alert area above
                     createAlertLine(alertValue);
                 }
                 if (annotationData) {
