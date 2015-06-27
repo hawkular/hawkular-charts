@@ -9,6 +9,11 @@ declare module Charts {
         empty: boolean;
     }
     type AlertThreshold = number;
+    type TimeInMillis = number;
+    interface IMultiDataPoint {
+        key: string;
+        values: IChartDataPoint[];
+    }
     interface IChartDataPoint extends IContextChartDataPoint {
         date: Date;
         min: number;

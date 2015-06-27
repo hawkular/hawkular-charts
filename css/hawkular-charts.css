@@ -162,6 +162,11 @@ rect.low {
   stroke-width: 2px;
 }
 
+.multiLine {
+  stroke-width: 2px;
+}
+
+
 .dataPointDot {
   fill: #1884c7;
   stroke-width: 1;

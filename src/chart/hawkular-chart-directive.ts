@@ -17,6 +17,7 @@ module Charts {
   }
 
   export type AlertThreshold = number;
+  export type TimeInMillis = number;
 
    class AlertBound {
      public startDate:Date;
@@ -30,6 +31,11 @@ module Charts {
 
   }
 
+  export interface IMultiDataPoint {
+    key: string;
+    values: IChartDataPoint[];
+  }
+
   export interface IChartDataPoint extends IContextChartDataPoint {
     date: Date;
     min: number;
@@ -37,15 +43,6 @@ module Charts {
     percentile95th: number;
     median: number;
   }
-  //export interface IAvailDataPoint {
-  //  start:number;
-  //  end:number;
-  //  uptimeRatio:number;
-  //  dowtimeCount:number;
-  //  downtimeDuration:number;
-  //  lastDowntime:number;
-  //  empty:boolean;
-  //}
 
   /**
    * @ngdoc directive
@@ -64,6 +61,7 @@ module Charts {
 
         // data specific vars
         var dataPoints:IChartDataPoint[] = [],
+          multiDataPoints:IMultiDataPoint[],
           dataUrl = attrs.metricUrl,
           metricId = attrs.metricId || '',
           timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200,
@@ -184,7 +182,7 @@ module Charts {
         }
 
 
-        function setupFilteredData(dataPoints):void {
+        function setupFilteredData(dataPoints:IChartDataPoint[]):void {
           var alertPeak:number,
               highPeak:number;
 
@@ -212,9 +210,6 @@ module Charts {
             return [seriesMin, seriesMax];
           }
 
-          avg = d3.mean(dataPoints.map((d) => {
-            return !d.empty ? d.avg : 0;
-          }));
 
           if (multiChartOverlayData) {
             var minMax = determineMultiMetricMinMax();
@@ -222,13 +217,15 @@ module Charts {
             min = minMax[0];
           }
 
-          peak = d3.max(dataPoints.map((d) => {
-            return !d.empty ? d.max : 0;
-          }));
+          if(dataPoints){
+            peak = d3.max(dataPoints.map((d) => {
+              return !d.empty ? d.max : 0;
+            }));
 
-          min = d3.min(dataPoints.map((d)  => {
-            return !d.empty ? d.min : undefined;
-          }));
+            min = d3.min(dataPoints.map((d)  => {
+              return !d.empty ? d.min : undefined;
+            }));
+          }
 
           lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
           if (alertValue) {
@@ -254,7 +251,7 @@ module Charts {
             }
             else {
               //  we use the width already defined above
-              xTicks = 8;
+              xTicks = 9;
               xTickSubDivide = 5;
               chartData = dataPoints;
             }
@@ -280,9 +277,7 @@ module Charts {
 
             timeScale = d3.time.scale()
               .range([0, width])
-              .domain(d3.extent(chartData, (d:IChartDataPoint) => {
-                return d.timestamp;
-              }));
+              .domain(d3.extent(chartData, (d:IChartDataPoint) => { return d.timestamp; }));
 
             if (contextData) {
               timeScaleForContext = d3.time.scale()
@@ -294,6 +289,96 @@ module Charts {
                 .domain(d3.extent(chartData, (d:IChartDataPoint) => { return d.timestamp; }));
 
             }
+
+            xAxis = d3.svg.axis()
+              .scale(timeScale)
+              .ticks(xTicks)
+              .tickSubdivide(xTickSubDivide)
+              .tickSize(4, 4, 0)
+              .orient("bottom");
+
+          }
+        }
+
+
+        function setupFilteredMultiData(multiDataPoints:IMultiDataPoint[]):any {
+          var alertPeak:number,
+            highPeak:number,
+            highbound:number,
+            lowbound:number;
+
+          function determineMultiDataMinMax() {
+            var currentMax:number,
+              currentMin:number,
+              seriesMax:number,
+              seriesMin:number,
+              maxList: number[] = [],
+              minList: number[] = [];
+
+            angular.forEach(multiDataPoints, (series) => {
+              currentMax = d3.max(series.values.map((d) => {
+                return !d.empty ? d.avg : 0;
+              }));
+              maxList.push(currentMax);
+              currentMin = d3.min(series.values.map((d) => {
+                return !d.empty ? d.avg : Number.MAX_VALUE;
+              }));
+              minList.push(currentMin);
+
+            });
+            seriesMax = d3.max(maxList);
+            seriesMin = d3.min(minList);
+            return [seriesMin, seriesMax];
+          }
+
+
+          var minMax = determineMultiDataMinMax();
+          peak = minMax[1];
+          min = minMax[0];
+
+          lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
+          if (alertValue) {
+            alertPeak =  (alertValue  * 1.2);
+            highPeak = peak + ((peak - min) * 0.2);
+            highBound =  alertPeak > highPeak ? alertPeak : highPeak;
+          } else {
+            highBound = peak + ((peak - min) * 0.2);
+          }
+
+          return [lowBound, highBound];
+        }
+
+
+        function determineMultiScale(multiDataPoints) {
+          var xTicks = 9,
+            xTickSubDivide =5,
+            firstDataArray;
+
+          if (multiDataPoints) {
+
+            firstDataArray = multiDataPoints[0].values;
+
+            var lowHigh = setupFilteredMultiData(multiDataPoints);
+            lowBound = lowHigh[0];
+            highBound = lowHigh[1]
+
+            yScale = d3.scale.linear()
+              .clamp(true)
+              .rangeRound([height, 0])
+              .domain([lowBound, highBound]);
+
+            yAxis = d3.svg.axis()
+              .scale(yScale)
+              .tickSubdivide(1)
+              .ticks(5)
+              .tickSize(4, 4, 0)
+              .orient("left");
+
+
+            timeScale = d3.time.scale()
+              .range([0, width])
+              .domain(d3.extent(firstDataArray, (d:IChartDataPoint) => { return d.timestamp; }));
+
 
             xAxis = d3.svg.axis()
               .scale(timeScale)
@@ -863,62 +948,7 @@ module Charts {
 
         }
 
-        function createLineChart() {
-          var avgLine = d3.svg.line()
-              .interpolate(interpolation)
-              .defined((d)  => {
-                return !d.empty;
-              })
-              .x((d) => {
-                return xStartPosition(d);
-              })
-              .y((d) => {
-                return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-              }),
-            highLine = d3.svg.line()
-              .interpolate(interpolation)
-              .defined((d) => {
-                return !d.empty;
-              })
-              .x((d) => {
-                return xStartPosition(d);
-              })
-              .y((d) => {
-                return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
-              }),
-            lowLine = d3.svg.line()
-              .interpolate(interpolation)
-              .defined((d) => {
-                return !d.empty;
-              })
-              .x((d) => {
-                return xStartPosition(d);
-              })
-              .y((d) => {
-                return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
-              });
 
-          // Bar avg line
-          svg.append("path")
-            .datum(chartData)
-            .attr("class", "avgLine")
-            .attr("d", avgLine);
-
-
-          if (hideHighLowValues === false) {
-
-            svg.append("path")
-              .datum(chartData)
-              .attr("class", "highLine")
-              .attr("d", highLine);
-
-            svg.append("path")
-              .datum(chartData)
-              .attr("class", "lowLine")
-              .attr("d", lowLine);
-          }
-
-        }
 
         function createHawkularLineChart() {
           var chartLine = d3.svg.line()
@@ -943,7 +973,7 @@ module Charts {
         }
 
 
-        function createHawkularMetricChart(lowbound, highbound) {
+        function createHawkularMetricChart() {
 
           var metricChartLine = d3.svg.line()
             .interpolate(interpolation)
@@ -961,6 +991,31 @@ module Charts {
             .datum(chartData)
             .attr("class", "metricLine")
             .attr("d", metricChartLine);
+
+        }
+
+        function createMultiLineChart(multiDataPoints:IMultiDataPoint[]) {
+          var colorScale = d3.scale.category10(),
+            g = 0;;
+
+          if (multiDataPoints) {
+            angular.forEach(multiDataPoints, (singleChartData) => {
+              //$log.debug("Processing data for: "+singleChartData.key);
+              //console.dir(singleChartData.values);
+              svg.append("path")
+                .datum(singleChartData.values)
+                .attr("class", "multiLine")
+                .attr("fill", "none")
+                .attr("stroke", () => {
+                  return colorScale(g);
+                })
+                .attr("d", createLine("linear"));
+              g++;
+
+            });
+          } else {
+            $log.warn("No multi-data set for multiline chart");
+          }
 
         }
 
@@ -1269,6 +1324,23 @@ module Charts {
           return line;
         }
 
+        function createLine(newInterpolation) {
+          var interpolate = newInterpolation || 'monotone',
+            line = d3.svg.line()
+              .interpolate(interpolate)
+              .defined((d) => {
+                return !d.empty;
+              })
+              .x((d) => {
+                return timeScale(d.timestamp);
+              })
+              .y((d)=> {
+                return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+              });
+
+          return line;
+        }
+
         function createAvgLines() {
           if(chartType === 'bar' || chartType === 'scatterline') {
             svg.append("path")
@@ -1298,48 +1370,8 @@ module Charts {
             .attr("d", createAlertLineDef(alertValue));
         }
 
-        //function extractAlertRanges(chartData:IChartDataPoint[], threshold:number):AlertBound[]{
-        //  var isAboveThreshold = false;
-        //  var alertBoundAreaItem:AlertBound;
-        //  var alertBounds = [];
-        //
-        //  chartData.forEach((chartItem:IChartDataPoint, i:number) => {
-        //
-        //    /// look for the end of the alert range
-        //    if(isAboveThreshold && alertBoundAreaItem){
-        //      if(i < chartData.length - 1 && chartData[i+1].avg  <= threshold ){
-        //        alertBoundAreaItem.endTimestamp = chartItem.timestamp;
-        //        alertBounds.push(alertBoundAreaItem);
-        //        isAboveThreshold = false;
-        //      }
-        //    }
-        //    /// Look for the beginning of the alert range
-        //   if(chartItem.avg > threshold){
-        //     isAboveThreshold = true;
-        //     /// the ending timestamp is filled in the above block when the value comes back below the threshold
-        //     alertBoundAreaItem = new AlertBound(chartItem.timestamp, 0, threshold);
-        //   }
-        //
-        // });
-        //
-        //  /// Handle open right chart bounds
-        //  if(chartData[chartData.length -1].avg > threshold){
-        //
-        //  }
-        //
-        //  /// Handle special case where all items are above threshold
-        //  var allItemsAboveThreshold = chartData.every((chartItem:IChartDataPoint) => {  return chartItem.avg > threshold});
-        //  if( allItemsAboveThreshold){
-        //    alertBoundAreaItem = new AlertBound(chartData[0].timestamp, chartData[chartData.length -1].timestamp, threshold);
-        //    alertBounds.push(alertBoundAreaItem);
-        //  }
-        //
-        //  return alertBounds;
-        //
-        //}
 
         function extractAlertRanges(chartData:IChartDataPoint[], threshold:AlertThreshold):AlertBound[]{
-          var isAboveThreshold = false;
           var alertBoundAreaItem:AlertBound;
           var alertBoundAreaItems:AlertBound[];
           var startPoints:number[] ;
@@ -1367,7 +1399,6 @@ module Charts {
           var currentItem:IChartDataPoint;
           var nextItem:IChartDataPoint;
           var startItem:IChartDataPoint;
-          var startPointIndex;
 
           startPoints.forEach((startPointIndex:number) => {
               startItem = chartData[startPointIndex];
@@ -1502,10 +1533,7 @@ module Charts {
         }
 
         function createMultiMetricOverlay() {
-          var multiLine,
-            g = 0,
-            colorScale = d3.scale.category20();
-
+          var colorScale = d3.scale.category20();
 
           if (multiChartOverlayData) {
             $log.warn("Running MultiChartOverlay for %i metrics", multiChartOverlayData.length);
@@ -1525,7 +1553,6 @@ module Charts {
                 .attr("stroke-opacity", ".8")
                 .attr("d", createCenteredLine("linear"));
             });
-            g++;
           }
 
         }
@@ -1583,6 +1610,15 @@ module Charts {
             scope.render(processedNewData, processedPreviousRangeData);
           }
         }, true);
+
+        scope.$watch('multiData', (newMultiData) => {
+          if (newMultiData) {
+            $log.debug('MultiData Chart Data Changed');
+            multiDataPoints = angular.fromJson(newMultiData);
+            scope.render(processedNewData, processedPreviousRangeData);
+          }
+        }, true);
+
 
         scope.$watch('availData', (newAvailData) => {
           if (newAvailData) {
@@ -1700,7 +1736,6 @@ module Charts {
         });
 
         scope.$on('DateRangeDragChanged', (event, extent) => {
-          $log.debug('Handling DateRangeDragChanged Fired Chart Directive: ' + extent[0] + ' --> ' + extent[1]);
           scope.$emit('GraphTimeRangeChangedEvent', extent);
         });
 
@@ -1717,7 +1752,10 @@ module Charts {
               createHawkularLineChart();
               break;
             case 'hawkularmetric' :
-              createHawkularMetricChart(lowBound, highBound);
+              createHawkularMetricChart();
+              break;
+            case 'multiline' :
+              createMultiLineChart(multiDataPoints);
               break;
             case 'area' :
               createAreaChart();
@@ -1744,6 +1782,10 @@ module Charts {
           oneTimeChartSetup();
           if (dataPoints) {
             determineScale(dataPoints);
+          }
+
+          if(multiDataPoints){
+            determineMultiScale(multiDataPoints);
           }
 
           createHeader(attrs.chartTitle);
@@ -1784,6 +1826,7 @@ module Charts {
         replace: true,
         scope: {
           data: '@',
+          multiData: '@',
           availData: '@',
           metricUrl: '@',
           metricId: '@',

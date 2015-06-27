@@ -123,6 +123,9 @@ gulp.task('clean', ['concat'], function () {
         .pipe(plugins.clean());
 });
 
+gulp.task('watch', function() {
+  gulp.watch(config.ts, ['build']);
+});
 
 
 gulp.task('build', ['bower', 'path-adjust', 'tslint', 'tsc', 'concat', 'clean']);
