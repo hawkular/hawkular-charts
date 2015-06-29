@@ -818,14 +818,13 @@ var Charts;
                 svg.append("path").datum(chartData).attr("class", "metricLine").attr("d", metricChartLine);
             }
             function createMultiLineChart(multiDataPoints) {
-                var colorScale = d3.scale.category10(), g = 0;
-                ;
+                var g = 0;
                 if (multiDataPoints) {
                     angular.forEach(multiDataPoints, function (singleChartData) {
                         //$log.debug("Processing data for: "+singleChartData.key);
                         //console.dir(singleChartData.values);
                         svg.append("path").datum(singleChartData.values).attr("class", "multiLine").attr("fill", "none").attr("stroke", function () {
-                            return colorScale(g);
+                            return singleChartData.color;
                         }).attr("d", createLine("linear"));
                         g++;
                     });
