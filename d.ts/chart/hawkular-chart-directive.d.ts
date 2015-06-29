@@ -12,7 +12,7 @@ declare module Charts {
     type TimeInMillis = number;
     interface IMultiDataPoint {
         key: string;
-        color: string;
+        color?: string;
         values: IChartDataPoint[];
     }
     interface IChartDataPoint extends IContextChartDataPoint {

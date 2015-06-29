@@ -33,7 +33,7 @@ module Charts {
 
   export interface IMultiDataPoint {
     key: string;
-    color: string; /// #fffeee
+    color?: string; /// #fffeee
     values: IChartDataPoint[];
   }
 
@@ -996,7 +996,8 @@ module Charts {
         }
 
         function createMultiLineChart(multiDataPoints:IMultiDataPoint[]) {
-          var g = 0;
+          var colorScale = d3.scale.category10(),
+            g = 0;
 
           if (multiDataPoints) {
             angular.forEach(multiDataPoints, (singleChartData) => {
@@ -1007,7 +1008,11 @@ module Charts {
                 .attr("class", "multiLine")
                 .attr("fill", "none")
                 .attr("stroke", () => {
-                  return singleChartData.color;
+                  if(singleChartData.color){
+                    return singleChartData.color;
+                  }else {
+                    return colorScale(g);
+                  }
                 })
                 .attr("d", createLine("linear"));
               g++;
