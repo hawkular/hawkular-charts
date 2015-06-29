@@ -145,7 +145,7 @@ rect.low {
 }
 
 .alertBounds {
-  fill: #feedee;
+  fill: #fce6dc;
 }
 
 .prevRangeAvgLine {
@@ -161,6 +161,11 @@ rect.low {
   stroke: #1884c7;
   stroke-width: 2px;
 }
+
+.multiLine {
+  stroke-width: 2px;
+}
+
 
 .dataPointDot {
   fill: #1884c7;

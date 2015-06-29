@@ -275,15 +275,6 @@ var Charts;
         }
         return AlertBound;
     })();
-    //export interface IAvailDataPoint {
-    //  start:number;
-    //  end:number;
-    //  uptimeRatio:number;
-    //  dowtimeCount:number;
-    //  downtimeDuration:number;
-    //  lastDowntime:number;
-    //  empty:boolean;
-    //}
     /**
      * @ngdoc directive
      * @name hawkularChart
@@ -295,7 +286,7 @@ var Charts;
         var BASE_URL = '/hawkular/metrics';
         function link(scope, element, attrs) {
             // data specific vars
-            var dataPoints = [], dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
+            var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
             // chart specific vars
             var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
             dataPoints = attrs.data;
@@ -347,20 +338,19 @@ var Charts;
                     seriesMin = d3.min(minList);
                     return [seriesMin, seriesMax];
                 }
-                avg = d3.mean(dataPoints.map(function (d) {
-                    return !d.empty ? d.avg : 0;
-                }));
                 if (multiChartOverlayData) {
                     var minMax = determineMultiMetricMinMax();
                     peak = minMax[1];
                     min = minMax[0];
                 }
-                peak = d3.max(dataPoints.map(function (d) {
-                    return !d.empty ? d.max : 0;
-                }));
-                min = d3.min(dataPoints.map(function (d) {
-                    return !d.empty ? d.min : undefined;
-                }));
+                if (dataPoints) {
+                    peak = d3.max(dataPoints.map(function (d) {
+                        return !d.empty ? d.max : 0;
+                    }));
+                    min = d3.min(dataPoints.map(function (d) {
+                        return !d.empty ? d.min : undefined;
+                    }));
+                }
                 lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
                 if (alertValue) {
                     alertPeak = (alertValue * 1.2);
@@ -383,7 +373,7 @@ var Charts;
                     }
                     else {
                         //  we use the width already defined above
-                        xTicks = 8;
+                        xTicks = 9;
                         xTickSubDivide = 5;
                         chartData = dataPoints;
                     }
@@ -406,6 +396,53 @@ var Charts;
                             return d.timestamp;
                         }));
                     }
+                    xAxis = d3.svg.axis().scale(timeScale).ticks(xTicks).tickSubdivide(xTickSubDivide).tickSize(4, 4, 0).orient("bottom");
+                }
+            }
+            function setupFilteredMultiData(multiDataPoints) {
+                var alertPeak, highPeak, highbound, lowbound;
+                function determineMultiDataMinMax() {
+                    var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
+                    angular.forEach(multiDataPoints, function (series) {
+                        currentMax = d3.max(series.values.map(function (d) {
+                            return !d.empty ? d.avg : 0;
+                        }));
+                        maxList.push(currentMax);
+                        currentMin = d3.min(series.values.map(function (d) {
+                            return !d.empty ? d.avg : Number.MAX_VALUE;
+                        }));
+                        minList.push(currentMin);
+                    });
+                    seriesMax = d3.max(maxList);
+                    seriesMin = d3.min(minList);
+                    return [seriesMin, seriesMax];
+                }
+                var minMax = determineMultiDataMinMax();
+                peak = minMax[1];
+                min = minMax[0];
+                lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
+                if (alertValue) {
+                    alertPeak = (alertValue * 1.2);
+                    highPeak = peak + ((peak - min) * 0.2);
+                    highBound = alertPeak > highPeak ? alertPeak : highPeak;
+                }
+                else {
+                    highBound = peak + ((peak - min) * 0.2);
+                }
+                return [lowBound, highBound];
+            }
+            function determineMultiScale(multiDataPoints) {
+                var xTicks = 9, xTickSubDivide = 5, firstDataArray;
+                if (multiDataPoints) {
+                    firstDataArray = multiDataPoints[0].values;
+                    var lowHigh = setupFilteredMultiData(multiDataPoints);
+                    lowBound = lowHigh[0];
+                    highBound = lowHigh[1];
+                    yScale = d3.scale.linear().clamp(true).rangeRound([height, 0]).domain([lowBound, highBound]);
+                    yAxis = d3.svg.axis().scale(yScale).tickSubdivide(1).ticks(5).tickSize(4, 4, 0).orient("left");
+                    timeScale = d3.time.scale().range([0, width]).domain(d3.extent(firstDataArray, function (d) {
+                        return d.timestamp;
+                    }));
                     xAxis = d3.svg.axis().scale(timeScale).ticks(xTicks).tickSubdivide(xTickSubDivide).tickSize(4, 4, 0).orient("bottom");
                 }
             }
@@ -759,33 +796,6 @@ var Charts;
                     });
                 }
             }
-            function createLineChart() {
-                var avgLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
-                    return !d.empty;
-                }).x(function (d) {
-                    return xStartPosition(d);
-                }).y(function (d) {
-                    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                }), highLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
-                    return !d.empty;
-                }).x(function (d) {
-                    return xStartPosition(d);
-                }).y(function (d) {
-                    return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
-                }), lowLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
-                    return !d.empty;
-                }).x(function (d) {
-                    return xStartPosition(d);
-                }).y(function (d) {
-                    return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
-                });
-                // Bar avg line
-                svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", avgLine);
-                if (hideHighLowValues === false) {
-                    svg.append("path").datum(chartData).attr("class", "highLine").attr("d", highLine);
-                    svg.append("path").datum(chartData).attr("class", "lowLine").attr("d", lowLine);
-                }
-            }
             function createHawkularLineChart() {
                 var chartLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
@@ -797,7 +807,7 @@ var Charts;
                 // Bar avg line
                 svg.append("path").datum(chartData).attr("class", "avgLine").attr("d", chartLine);
             }
-            function createHawkularMetricChart(lowbound, highbound) {
+            function createHawkularMetricChart() {
                 var metricChartLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
@@ -806,6 +816,23 @@ var Charts;
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
                 svg.append("path").datum(chartData).attr("class", "metricLine").attr("d", metricChartLine);
+            }
+            function createMultiLineChart(multiDataPoints) {
+                var colorScale = d3.scale.category10(), g = 0;
+                ;
+                if (multiDataPoints) {
+                    angular.forEach(multiDataPoints, function (singleChartData) {
+                        //$log.debug("Processing data for: "+singleChartData.key);
+                        //console.dir(singleChartData.values);
+                        svg.append("path").datum(singleChartData.values).attr("class", "multiLine").attr("fill", "none").attr("stroke", function () {
+                            return colorScale(g);
+                        }).attr("d", createLine("linear"));
+                        g++;
+                    });
+                }
+                else {
+                    $log.warn("No multi-data set for multiline chart");
+                }
             }
             function createAreaChart() {
                 var highArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
@@ -962,6 +989,16 @@ var Charts;
                 });
                 return line;
             }
+            function createLine(newInterpolation) {
+                var interpolate = newInterpolation || 'monotone', line = d3.svg.line().interpolate(interpolate).defined(function (d) {
+                    return !d.empty;
+                }).x(function (d) {
+                    return timeScale(d.timestamp);
+                }).y(function (d) {
+                    return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                });
+                return line;
+            }
             function createAvgLines() {
                 if (chartType === 'bar' || chartType === 'scatterline') {
                     svg.append("path").datum(chartData).attr("class", "barAvgLine").attr("d", createCenteredLine("monotone"));
@@ -978,47 +1015,7 @@ var Charts;
             function createAlertLine(alertValue) {
                 svg.append("path").datum(chartData).attr("class", "alertLine").attr("d", createAlertLineDef(alertValue));
             }
-            //function extractAlertRanges(chartData:IChartDataPoint[], threshold:number):AlertBound[]{
-            //  var isAboveThreshold = false;
-            //  var alertBoundAreaItem:AlertBound;
-            //  var alertBounds = [];
-            //
-            //  chartData.forEach((chartItem:IChartDataPoint, i:number) => {
-            //
-            //    /// look for the end of the alert range
-            //    if(isAboveThreshold && alertBoundAreaItem){
-            //      if(i < chartData.length - 1 && chartData[i+1].avg  <= threshold ){
-            //        alertBoundAreaItem.endTimestamp = chartItem.timestamp;
-            //        alertBounds.push(alertBoundAreaItem);
-            //        isAboveThreshold = false;
-            //      }
-            //    }
-            //    /// Look for the beginning of the alert range
-            //   if(chartItem.avg > threshold){
-            //     isAboveThreshold = true;
-            //     /// the ending timestamp is filled in the above block when the value comes back below the threshold
-            //     alertBoundAreaItem = new AlertBound(chartItem.timestamp, 0, threshold);
-            //   }
-            //
-            // });
-            //
-            //  /// Handle open right chart bounds
-            //  if(chartData[chartData.length -1].avg > threshold){
-            //
-            //  }
-            //
-            //  /// Handle special case where all items are above threshold
-            //  var allItemsAboveThreshold = chartData.every((chartItem:IChartDataPoint) => {  return chartItem.avg > threshold});
-            //  if( allItemsAboveThreshold){
-            //    alertBoundAreaItem = new AlertBound(chartData[0].timestamp, chartData[chartData.length -1].timestamp, threshold);
-            //    alertBounds.push(alertBoundAreaItem);
-            //  }
-            //
-            //  return alertBounds;
-            //
-            //}
             function extractAlertRanges(chartData, threshold) {
-                var isAboveThreshold = false;
                 var alertBoundAreaItem;
                 var alertBoundAreaItems;
                 var startPoints;
@@ -1042,7 +1039,6 @@ var Charts;
                     var currentItem;
                     var nextItem;
                     var startItem;
-                    var startPointIndex;
                     startPoints.forEach(function (startPointIndex) {
                         startItem = chartData[startPointIndex];
                         for (var j = startPointIndex; j < chartData.length - 1; j++) {
@@ -1050,6 +1046,7 @@ var Charts;
                             nextItem = chartData[j + 1];
                             if (currentItem.avg > threshold && nextItem.avg <= threshold) {
                                 if (startItem.timestamp === currentItem.timestamp) {
+                                    /// case for when there is only one point above the threshold
                                     alertBoundAreaItems.push(new AlertBound(startItem.timestamp, nextItem.timestamp, threshold));
                                 }
                                 else {
@@ -1066,8 +1063,6 @@ var Charts;
                 if (firstChartPoint.avg > threshold) {
                     startPoints.push(0);
                 }
-                console.warn("Start Points: ");
-                console.dir(startPoints);
                 alertBoundAreaItems = findEndPointsForStartPointIndex(startPoints, threshold);
                 /// handle the case where last chart point is above threshold
                 if (lastChartPoint.avg > threshold) {
@@ -1088,8 +1083,6 @@ var Charts;
                     alertBoundAreaItem = new AlertBound(chartData[0].timestamp, chartData[chartData.length - 1].timestamp, threshold);
                     alertBoundAreaItems.push(alertBoundAreaItem);
                 }
-                console.warn('AlertBoundItems:');
-                console.dir(alertBoundAreaItems);
                 return alertBoundAreaItems;
             }
             function createAlertBoundsArea(alertBounds) {
@@ -1139,7 +1132,7 @@ var Charts;
                 }
             }
             function createMultiMetricOverlay() {
-                var multiLine, g = 0, colorScale = d3.scale.category20();
+                var colorScale = d3.scale.category20();
                 if (multiChartOverlayData) {
                     $log.warn("Running MultiChartOverlay for %i metrics", multiChartOverlayData.length);
                     angular.forEach(multiChartOverlayData, function (singleChartData) {
@@ -1149,7 +1142,6 @@ var Charts;
                             return colorScale(i);
                         }).attr("stroke-width", "1").attr("stroke-opacity", ".8").attr("d", createCenteredLine("linear"));
                     });
-                    g++;
                 }
             }
             function annotateChart(annotationData) {
@@ -1187,6 +1179,13 @@ var Charts;
                 if (newData) {
                     $log.debug('Chart Data Changed');
                     processedNewData = angular.fromJson(newData);
+                    scope.render(processedNewData, processedPreviousRangeData);
+                }
+            }, true);
+            scope.$watch('multiData', function (newMultiData) {
+                if (newMultiData) {
+                    $log.debug('MultiData Chart Data Changed');
+                    multiDataPoints = angular.fromJson(newMultiData);
                     scope.render(processedNewData, processedPreviousRangeData);
                 }
             }, true);
@@ -1290,7 +1289,6 @@ var Charts;
                 }
             });
             scope.$on('DateRangeDragChanged', function (event, extent) {
-                $log.debug('Handling DateRangeDragChanged Fired Chart Directive: ' + extent[0] + ' --> ' + extent[1]);
                 scope.$emit('GraphTimeRangeChangedEvent', extent);
             });
             function determineChartType(chartType) {
@@ -1305,7 +1303,10 @@ var Charts;
                         createHawkularLineChart();
                         break;
                     case 'hawkularmetric':
-                        createHawkularMetricChart(lowBound, highBound);
+                        createHawkularMetricChart();
+                        break;
+                    case 'multiline':
+                        createMultiLineChart(multiDataPoints);
                         break;
                     case 'area':
                         createAreaChart();
@@ -1330,6 +1331,9 @@ var Charts;
                 oneTimeChartSetup();
                 if (dataPoints) {
                     determineScale(dataPoints);
+                }
+                if (multiDataPoints) {
+                    determineMultiScale(multiDataPoints);
                 }
                 createHeader(attrs.chartTitle);
                 createXAxisBrush();
@@ -1364,6 +1368,7 @@ var Charts;
             replace: true,
             scope: {
                 data: '@',
+                multiData: '@',
                 availData: '@',
                 metricUrl: '@',
                 metricId: '@',

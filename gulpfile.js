@@ -53,7 +53,7 @@ var normalSizeOptions = {
 };
 
 gulp.task('bower', function () {
-    gulp.src('metrics-chart-sample.html')
+    gulp.src('multi-chart-sample.html')
         .pipe(wiredep({}))
         .pipe(gulp.dest('.'));
 });
@@ -80,7 +80,7 @@ gulp.task('tsc', ['clean-defs'], function () {
     var tsResult = gulp.src(config.ts)
         .pipe(plugins.typescript(config.tsProject))
         .on('error', plugins.notify.onError({
-            message: '#{ error.message }',
+            message: '<%= error.message %>',
             title: 'Typescript compilation error'
         }));
 
@@ -123,6 +123,9 @@ gulp.task('clean', ['concat'], function () {
         .pipe(plugins.clean());
 });
 
+gulp.task('watch', function() {
+  gulp.watch(config.ts, ['build']);
+});
 
 
 gulp.task('build', ['bower', 'path-adjust', 'tslint', 'tsc', 'concat', 'clean']);
