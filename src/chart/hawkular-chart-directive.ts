@@ -983,7 +983,7 @@ module Charts {
               return !d.empty;
             })
             .x((d) => {
-              return timeScale(d.timestamp)
+              return xStartPosition(d);
             })
             .y((d) => {
               return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -1598,7 +1598,7 @@ module Charts {
             .attr("class", "dataPointDot")
             .attr("r", radius)
             .attr("cx", function (d) {
-              return timeScale(d.timestamp);
+              return xStartPosition(d);
             })
             .attr("cy", function (d) {
               return d.avg ? yScale(d.avg) : -9999999;
