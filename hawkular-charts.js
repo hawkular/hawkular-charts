@@ -811,7 +811,7 @@ var Charts;
                 var metricChartLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
-                    return timeScale(d.timestamp);
+                    return xStartPosition(d);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
@@ -1170,7 +1170,7 @@ var Charts;
             function createDataPoints(dataPoints) {
                 var radius = 1;
                 svg.selectAll(".dataPointDot").data(dataPoints).enter().append("circle").attr("class", "dataPointDot").attr("r", radius).attr("cx", function (d) {
-                    return timeScale(d.timestamp);
+                    return xStartPosition(d);
                 }).attr("cy", function (d) {
                     return d.avg ? yScale(d.avg) : -9999999;
                 }).on("mouseover", function (d, i) {
