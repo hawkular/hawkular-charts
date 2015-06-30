@@ -396,7 +396,7 @@ var Charts;
                             return d.timestamp;
                         }));
                     }
-                    xAxis = d3.svg.axis().scale(timeScale).ticks(xTicks).tickSubdivide(xTickSubDivide).tickSize(4, 4, 0).orient("bottom");
+                    xAxis = d3.svg.axis().scale(timeScale).ticks(xTicks).tickFormat(d3.time.format("%H:%M")).tickSubdivide(xTickSubDivide).tickSize(4, 4, 0).orient("bottom");
                 }
             }
             function setupFilteredMultiData(multiDataPoints) {
@@ -443,7 +443,7 @@ var Charts;
                     timeScale = d3.time.scale().range([0, width]).domain(d3.extent(firstDataArray, function (d) {
                         return d.timestamp;
                     }));
-                    xAxis = d3.svg.axis().scale(timeScale).ticks(xTicks).tickSubdivide(xTickSubDivide).tickSize(4, 4, 0).orient("bottom");
+                    xAxis = d3.svg.axis().scale(timeScale).ticks(xTicks).tickFormat(d3.time.format("%H:%M")).tickSubdivide(xTickSubDivide).tickSize(4, 4, 0).orient("bottom");
                 }
             }
             function getBaseUrl() {
