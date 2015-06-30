@@ -11,9 +11,9 @@ module Charts {
     timestamp: number;
     start?: number;
     end?: number;
-    value: any;
-    avg: number;
-    empty: boolean;
+    value?: any; /// Only for Raw data (no buckets or aggregates)
+    avg: number; /// most of the time this is the useful value
+    empty: boolean; /// will show up in the chart as blank - set this when you have NaN
   }
 
   export type AlertThreshold = number;
@@ -275,7 +275,6 @@ module Charts {
               .tickSize(4, 4, 0)
               .orient("left");
 
-
             timeScale = d3.time.scale()
               .range([0, width])
               .domain(d3.extent(chartData, (d:IChartDataPoint) => { return d.timestamp; }));
@@ -294,6 +293,7 @@ module Charts {
             xAxis = d3.svg.axis()
               .scale(timeScale)
               .ticks(xTicks)
+              .tickFormat(d3.time.format("%H:%M"))
               .tickSubdivide(xTickSubDivide)
               .tickSize(4, 4, 0)
               .orient("bottom");
@@ -384,6 +384,7 @@ module Charts {
             xAxis = d3.svg.axis()
               .scale(timeScale)
               .ticks(xTicks)
+              .tickFormat(d3.time.format("%H:%M"))
               .tickSubdivide(xTickSubDivide)
               .tickSize(4, 4, 0)
               .orient("bottom");
