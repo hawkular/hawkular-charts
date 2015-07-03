@@ -1439,7 +1439,7 @@ module Charts {
 
           /// handle the case where last chart point is above threshold
           if(lastChartPoint.avg > threshold){
-            for(var k = chartData.length - 1 ; k >= 0; k--){
+            for(var k = chartData.length - 1 ; k >= 1; k--){
               var currentItem =  chartData[k];
               var nextItem =  chartData[k - 1];
 
