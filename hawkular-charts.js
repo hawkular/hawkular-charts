@@ -52,10 +52,13 @@ var Charts;
                 // data specific vars
                 var dataPoints = [], transformedDataPoints, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, brush, timeScaleForBrush, chart, chartParent, svg;
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, brush, tip, timeScaleForBrush, chart, chartParent, svg;
                 function getChartWidth() {
                     ///return angular.element("#" + chartContext.chartHandle).width();
                     return 760;
+                }
+                function buildAvailHover(d) {
+                    return "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>" + d.value.toUpperCase() + "</span></small></div>" + "<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>" + d.duration + "</span></small> </div>";
                 }
                 function oneTimeChartSetup() {
                     console.log("OneTimeChartSetup");
@@ -65,7 +68,11 @@ var Charts;
                     }
                     chartParent = d3.select(element[0]);
                     chart = chartParent.append("svg");
+                    tip = d3.tip().attr('class', 'd3-tip').offset([-10, 0]).html(function (d) {
+                        return buildAvailHover(d);
+                    });
                     svg = chart.append("g").attr("width", width + margin.left + margin.right).attr("height", innerChartHeight).attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
+                    svg.call(tip);
                 }
                 function determineAvailScale(dataPoints) {
                     var adjustedTimeRange = [];
@@ -176,8 +183,10 @@ var Charts;
                         return availTimeScale(+d.end) - availTimeScale(+d.start);
                     }).attr("fill", function (d) {
                         return calcBarFill(d);
-                    }).append("title").text(function (d) {
-                        return d.value.toUpperCase() + " for " + d.duration;
+                    }).on("mouseover", function (d, i) {
+                        tip.show(d, i);
+                    }).on("mouseout", function () {
+                        tip.hide();
                     });
                     // create x-axis
                     svg.append("g").attr("class", "x axis").call(availXAxis);

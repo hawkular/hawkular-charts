@@ -3,13 +3,10 @@
 module Charts {
   'use strict';
 
-  declare
-  var angular:ng.IAngularStatic;
+  declare var angular:ng.IAngularStatic;
 
-  declare
-  var d3:any;
-  declare
-  var console:any;
+  declare var d3:any;
+  declare var console:any;
 
   /**
    * This is the input data format.
@@ -98,6 +95,7 @@ module Charts {
         yAxis,
         xAxis,
         brush,
+        tip,
         timeScaleForBrush,
         chart,
         chartParent,
@@ -106,6 +104,14 @@ module Charts {
       function getChartWidth():number {
         ///return angular.element("#" + chartContext.chartHandle).width();
         return 760;
+      }
+
+      function buildAvailHover(d:ITransformedAvailDataPoint ) {
+
+        return  "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>" + d.value.toUpperCase() + "</span></small></div>" +
+          "<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>" + d.duration + "</span></small> </div>";
+
+
       }
 
       function oneTimeChartSetup():void {
@@ -117,16 +123,24 @@ module Charts {
         chartParent = d3.select(element[0]);
         chart = chartParent.append("svg");
 
+        tip = d3.tip()
+          .attr('class', 'd3-tip')
+          .offset([-10, 0])
+          .html((d:ITransformedAvailDataPoint) => {
+            return buildAvailHover(d);
+          });
+
         svg = chart.append("g")
           .attr("width", width + margin.left + margin.right)
           .attr("height", innerChartHeight)
           .attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
 
+        svg.call(tip);
       }
 
 
       function determineAvailScale(dataPoints:ITransformedAvailDataPoint[]) {
-        var adjustedTimeRange:number[] = [] ;
+        var adjustedTimeRange:number[] = [];
 
         var oneHourAgo = +moment().subtract('hours', 1);
 
@@ -139,7 +153,7 @@ module Charts {
             });
 
             // TODO adjust the start time to date range picker
-            if (adjustedTimeRange[0]< oneHourAgo) {
+            if (adjustedTimeRange[0] < oneHourAgo) {
               adjustedTimeRange[0] = oneHourAgo;
             }
 
@@ -187,15 +201,15 @@ module Charts {
 
       function formatTransformedDataPoints(inAvailData:IAvailDataPoint[]):ITransformedAvailDataPoint[] {
         var outputData:ITransformedAvailDataPoint[] = [];
-        if (inAvailData && inAvailData.length>0 && inAvailData[0].timestamp) {
+        if (inAvailData && inAvailData.length > 0 && inAvailData[0].timestamp) {
           var items = inAvailData.length;
           var now = new Date().getTime();
 
-          if (items===1) {
-            var availItem=inAvailData[0];
+          if (items === 1) {
+            var availItem = inAvailData[0];
 
             // we only have one item with start time. Assume unknown for the time before (last 1h) TODO adjust to time picker
-            outputData.push(new TransformedAvailDataPoint(now -  60 * 60 * 1000, availItem.timestamp, 'unknown'));
+            outputData.push(new TransformedAvailDataPoint(now - 60 * 60 * 1000, availItem.timestamp, 'unknown'));
             // and the determined value up until the end.
             outputData.push(new TransformedAvailDataPoint(availItem.timestamp, now, availItem.value));
           }
@@ -205,8 +219,8 @@ module Charts {
             var i:number;
             endTime = now;
             for (i = items; i > 0; i--) {
-              outputData.push(new TransformedAvailDataPoint(inAvailData[i-1].timestamp,endTime,inAvailData[i-1].value));
-              endTime = inAvailData[i-1].timestamp;
+              outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp, endTime, inAvailData[i - 1].value));
+              endTime = inAvailData[i - 1].timestamp;
             }
           }
         }
@@ -316,10 +330,12 @@ module Charts {
           .attr("fill", (d:ITransformedAvailDataPoint) => {
             return calcBarFill(d);
           })
-          .append("title")
-          .text((d) => {
-            return d.value.toUpperCase() + " for " + d.duration;
+          .on("mouseover", (d, i) => {
+            tip.show(d, i);
+          }).on("mouseout", () => {
+            tip.hide();
           });
+
 
         // create x-axis
         svg.append("g")
@@ -342,7 +358,6 @@ module Charts {
 
         createSideYAxisLabels();
       }
-
 
 
       function createXandYAxes() {
