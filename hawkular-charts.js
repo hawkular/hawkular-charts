@@ -304,7 +304,7 @@ var Charts;
             multiChartOverlayData = attrs.multiChartOverlayData;
             annotationData = attrs.annotationData;
             contextData = attrs.contextData;
-            function xStartPosition(d) {
+            function xMidPointStartPosition(d) {
                 return timeScale(d.timestamp) + (calcBarWidth() / 2);
             }
             function getChartWidth() {
@@ -748,9 +748,9 @@ var Charts;
                 });
                 if (hideHighLowValues === false) {
                     svg.selectAll(".histogram.top.stem").data(chartData).enter().append("line").attr("class", "histogramTopStem").attr("x1", function (d) {
-                        return xStartPosition(d);
+                        return xMidPointStartPosition(d);
                     }).attr("x2", function (d) {
-                        return xStartPosition(d);
+                        return xMidPointStartPosition(d);
                     }).attr("y1", function (d) {
                         return yScale(d.max);
                     }).attr("y2", function (d) {
@@ -761,9 +761,9 @@ var Charts;
                         return strokeOpacity;
                     });
                     svg.selectAll(".histogram.bottom.stem").data(chartData).enter().append("line").attr("class", "histogramBottomStem").attr("x1", function (d) {
-                        return xStartPosition(d);
+                        return xMidPointStartPosition(d);
                     }).attr("x2", function (d) {
-                        return xStartPosition(d);
+                        return xMidPointStartPosition(d);
                     }).attr("y1", function (d) {
                         return yScale(d.avg);
                     }).attr("y2", function (d) {
@@ -774,9 +774,9 @@ var Charts;
                         return strokeOpacity;
                     });
                     svg.selectAll(".histogram.top.cross").data(chartData).enter().append("line").attr("class", "histogramTopCross").attr("x1", function (d) {
-                        return xStartPosition(d) - 3;
+                        return xMidPointStartPosition(d) - 3;
                     }).attr("x2", function (d) {
-                        return xStartPosition(d) + 3;
+                        return xMidPointStartPosition(d) + 3;
                     }).attr("y1", function (d) {
                         return yScale(d.max);
                     }).attr("y2", function (d) {
@@ -789,9 +789,9 @@ var Charts;
                         return strokeOpacity;
                     });
                     svg.selectAll(".histogram.bottom.cross").data(chartData).enter().append("line").attr("class", "histogramBottomCross").attr("x1", function (d) {
-                        return xStartPosition(d) - 3;
+                        return xMidPointStartPosition(d) - 3;
                     }).attr("x2", function (d) {
-                        return xStartPosition(d) + 3;
+                        return xMidPointStartPosition(d) + 3;
                     }).attr("y1", function (d) {
                         return yScale(d.min);
                     }).attr("y2", function (d) {
@@ -809,7 +809,7 @@ var Charts;
                 var chartLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
-                    return xStartPosition(d);
+                    return timeScale(d.timestamp);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
@@ -820,7 +820,7 @@ var Charts;
                 var metricChartLine = d3.svg.line().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
-                    return xStartPosition(d);
+                    return timeScale(d.timestamp);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 });
@@ -851,7 +851,7 @@ var Charts;
                 var highArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
-                    return xStartPosition(d);
+                    return xMidPointStartPosition(d);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                 }).y0(function (d) {
@@ -859,7 +859,7 @@ var Charts;
                 }), avgArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
-                    return xStartPosition(d);
+                    return xMidPointStartPosition(d);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 }).y0(function (d) {
@@ -867,7 +867,7 @@ var Charts;
                 }), lowArea = d3.svg.area().interpolate(interpolation).defined(function (d) {
                     return !d.empty;
                 }).x(function (d) {
-                    return xStartPosition(d);
+                    return xMidPointStartPosition(d);
                 }).y(function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
                 }).y0(function () {
@@ -882,7 +882,7 @@ var Charts;
             function createScatterChart() {
                 if (hideHighLowValues === false) {
                     svg.selectAll(".highDot").data(chartData).enter().append("circle").attr("class", "highDot").attr("r", 3).attr("cx", function (d) {
-                        return xStartPosition(d);
+                        return xMidPointStartPosition(d);
                     }).attr("cy", function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                     }).style("fill", function () {
@@ -893,7 +893,7 @@ var Charts;
                         tip.hide();
                     });
                     svg.selectAll(".lowDot").data(chartData).enter().append("circle").attr("class", "lowDot").attr("r", 3).attr("cx", function (d) {
-                        return xStartPosition(d);
+                        return xMidPointStartPosition(d);
                     }).attr("cy", function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
                     }).style("fill", function () {
@@ -905,7 +905,7 @@ var Charts;
                     });
                 }
                 svg.selectAll(".avgDot").data(chartData).enter().append("circle").attr("class", "avgDot").attr("r", 3).attr("cx", function (d) {
-                    return xStartPosition(d);
+                    return xMidPointStartPosition(d);
                 }).attr("cy", function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 }).style("fill", function () {
@@ -918,9 +918,9 @@ var Charts;
             }
             function createScatterLineChart() {
                 svg.selectAll(".scatterline.top.stem").data(chartData).enter().append("line").attr("class", "scatterLineTopStem").attr("x1", function (d) {
-                    return xStartPosition(d);
+                    return xMidPointStartPosition(d);
                 }).attr("x2", function (d) {
-                    return xStartPosition(d);
+                    return xMidPointStartPosition(d);
                 }).attr("y1", function (d) {
                     return yScale(d.max);
                 }).attr("y2", function (d) {
@@ -929,9 +929,9 @@ var Charts;
                     return "#000";
                 });
                 svg.selectAll(".scatterline.bottom.stem").data(chartData).enter().append("line").attr("class", "scatterLineBottomStem").attr("x1", function (d) {
-                    return xStartPosition(d);
+                    return xMidPointStartPosition(d);
                 }).attr("x2", function (d) {
-                    return xStartPosition(d);
+                    return xMidPointStartPosition(d);
                 }).attr("y1", function (d) {
                     return yScale(d.avg);
                 }).attr("y2", function (d) {
@@ -940,9 +940,9 @@ var Charts;
                     return "#000";
                 });
                 svg.selectAll(".scatterline.top.cross").data(chartData).enter().append("line").attr("class", "scatterLineTopCross").attr("x1", function (d) {
-                    return xStartPosition(d) - 3;
+                    return xMidPointStartPosition(d) - 3;
                 }).attr("x2", function (d) {
-                    return xStartPosition(d) + 3;
+                    return xMidPointStartPosition(d) + 3;
                 }).attr("y1", function (d) {
                     return yScale(d.max);
                 }).attr("y2", function (d) {
@@ -953,9 +953,9 @@ var Charts;
                     return "0.5";
                 });
                 svg.selectAll(".scatterline.bottom.cross").data(chartData).enter().append("line").attr("class", "scatterLineBottomCross").attr("x1", function (d) {
-                    return xStartPosition(d) - 3;
+                    return xMidPointStartPosition(d) - 3;
                 }).attr("x2", function (d) {
-                    return xStartPosition(d) + 3;
+                    return xMidPointStartPosition(d) + 3;
                 }).attr("y1", function (d) {
                     return yScale(d.min);
                 }).attr("y2", function (d) {
@@ -966,7 +966,7 @@ var Charts;
                     return "0.5";
                 });
                 svg.selectAll(".scatterDot").data(chartData).enter().append("circle").attr("class", "avgDot").attr("r", 3).attr("cx", function (d) {
-                    return xStartPosition(d);
+                    return xMidPointStartPosition(d);
                 }).attr("cy", function (d) {
                     return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 }).style("fill", function () {
@@ -981,7 +981,9 @@ var Charts;
             }
             function createYAxisGridLines() {
                 // create the y axis grid lines
-                svg.append("g").classed("grid y_grid", true).call(d3.svg.axis().scale(yScale).orient("left").ticks(10).tickSize(-width, 0, 0).tickFormat(""));
+                if (yScale) {
+                    svg.append("g").classed("grid y_grid", true).call(d3.svg.axis().scale(yScale).orient("left").ticks(10).tickSize(-width, 0, 0).tickFormat(""));
+                }
             }
             function createXandYAxes() {
                 var xAxisGroup;
@@ -1179,7 +1181,7 @@ var Charts;
             function createDataPoints(dataPoints) {
                 var radius = 1;
                 svg.selectAll(".dataPointDot").data(dataPoints).enter().append("circle").attr("class", "dataPointDot").attr("r", radius).attr("cx", function (d) {
-                    return xStartPosition(d);
+                    return timeScale(d.timestamp);
                 }).attr("cy", function (d) {
                     return d.avg ? yScale(d.avg) : -9999999;
                 }).on("mouseover", function (d, i) {
