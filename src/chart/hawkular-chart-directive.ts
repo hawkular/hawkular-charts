@@ -1272,14 +1272,16 @@ module Charts {
 
         function createYAxisGridLines() {
           // create the y axis grid lines
-          svg.append("g").classed("grid y_grid", true)
-            .call(d3.svg.axis()
-              .scale(yScale)
-              .orient("left")
-              .ticks(10)
-              .tickSize(-width, 0, 0)
-              .tickFormat("")
-          );
+          if (yScale) {
+            svg.append("g").classed("grid y_grid", true)
+              .call(d3.svg.axis()
+                .scale(yScale)
+                .orient("left")
+                .ticks(10)
+                .tickSize(-width, 0, 0)
+                .tickFormat("")
+            );
+          }
         }
 
         function createXandYAxes() {
