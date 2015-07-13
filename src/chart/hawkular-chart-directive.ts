@@ -140,7 +140,7 @@ module Charts {
         annotationData = attrs.annotationData;
         contextData = attrs.contextData;
 
-        function xStartPosition(d) {
+        function xMidPointStartPosition(d) {
           return timeScale(d.timestamp) + (calcBarWidth() / 2);
         }
 
@@ -854,10 +854,10 @@ module Charts {
               .enter().append("line")
               .attr("class", "histogramTopStem")
               .attr("x1", (d) => {
-                return xStartPosition(d);
+                return xMidPointStartPosition(d);
               })
               .attr("x2", (d) => {
-                return xStartPosition(d);
+                return xMidPointStartPosition(d);
               })
               .attr("y1", (d) => {
                 return yScale(d.max);
@@ -877,10 +877,10 @@ module Charts {
               .enter().append("line")
               .attr("class", "histogramBottomStem")
               .attr("x1", (d) => {
-                return xStartPosition(d);
+                return xMidPointStartPosition(d);
               })
               .attr("x2", (d)  => {
-                return xStartPosition(d);
+                return xMidPointStartPosition(d);
               })
               .attr("y1", (d) => {
                 return yScale(d.avg);
@@ -899,10 +899,10 @@ module Charts {
               .enter().append("line")
               .attr("class", "histogramTopCross")
               .attr("x1", function (d) {
-                return xStartPosition(d) - 3;
+                return xMidPointStartPosition(d) - 3;
               })
               .attr("x2", function (d) {
-                return xStartPosition(d) + 3;
+                return xMidPointStartPosition(d) + 3;
               })
               .attr("y1", function (d) {
                 return yScale(d.max);
@@ -925,10 +925,10 @@ module Charts {
               .enter().append("line")
               .attr("class", "histogramBottomCross")
               .attr("x1", function (d) {
-                return xStartPosition(d) - 3;
+                return xMidPointStartPosition(d) - 3;
               })
               .attr("x2", function (d) {
-                return xStartPosition(d) + 3;
+                return xMidPointStartPosition(d) + 3;
               })
               .attr("y1", function (d) {
                 return yScale(d.min);
@@ -959,7 +959,7 @@ module Charts {
               return !d.empty;
             })
             .x((d) => {
-              return xStartPosition(d);
+              return timeScale(d.timestamp);
             })
             .y((d) => {
               return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -983,7 +983,7 @@ module Charts {
               return !d.empty;
             })
             .x((d) => {
-              return xStartPosition(d);
+              return timeScale(d.timestamp);
             })
             .y((d) => {
               return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -1032,7 +1032,7 @@ module Charts {
                 return !d.empty;
               })
               .x((d) => {
-                return xStartPosition(d);
+                return xMidPointStartPosition(d);
               })
               .y((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
@@ -1047,7 +1047,7 @@ module Charts {
                 return !d.empty;
               })
               .x((d) => {
-                return xStartPosition(d);
+                return xMidPointStartPosition(d);
               })
               .y((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -1062,7 +1062,7 @@ module Charts {
                 return !d.empty;
               })
               .x((d) => {
-                return xStartPosition(d);
+                return xMidPointStartPosition(d);
               })
               .y((d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
@@ -1101,7 +1101,7 @@ module Charts {
               .attr("class", "highDot")
               .attr("r", 3)
               .attr("cx", function (d) {
-                return xStartPosition(d);
+                return xMidPointStartPosition(d);
               })
               .attr("cy", function (d) {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
@@ -1121,7 +1121,7 @@ module Charts {
               .attr("class", "lowDot")
               .attr("r", 3)
               .attr("cx", function (d) {
-                return xStartPosition(d);
+                return xMidPointStartPosition(d);
               })
               .attr("cy", function (d) {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
@@ -1141,7 +1141,7 @@ module Charts {
             .attr("class", "avgDot")
             .attr("r", 3)
             .attr("cx", function (d) {
-              return xStartPosition(d);
+              return xMidPointStartPosition(d);
             })
             .attr("cy", function (d) {
               return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -1163,10 +1163,10 @@ module Charts {
             .enter().append("line")
             .attr("class", "scatterLineTopStem")
             .attr("x1", function (d) {
-              return xStartPosition(d);
+              return xMidPointStartPosition(d);
             })
             .attr("x2", function (d) {
-              return xStartPosition(d);
+              return xMidPointStartPosition(d);
             })
             .attr("y1", function (d) {
               return yScale(d.max);
@@ -1183,10 +1183,10 @@ module Charts {
             .enter().append("line")
             .attr("class", "scatterLineBottomStem")
             .attr("x1", function (d) {
-              return xStartPosition(d);
+              return xMidPointStartPosition(d);
             })
             .attr("x2", function (d) {
-              return xStartPosition(d);
+              return xMidPointStartPosition(d);
             })
             .attr("y1", function (d) {
               return yScale(d.avg);
@@ -1203,10 +1203,10 @@ module Charts {
             .enter().append("line")
             .attr("class", "scatterLineTopCross")
             .attr("x1", function (d) {
-              return xStartPosition(d) - 3;
+              return xMidPointStartPosition(d) - 3;
             })
             .attr("x2", function (d) {
-              return xStartPosition(d) + 3;
+              return xMidPointStartPosition(d) + 3;
             })
             .attr("y1", function (d) {
               return yScale(d.max);
@@ -1226,10 +1226,10 @@ module Charts {
             .enter().append("line")
             .attr("class", "scatterLineBottomCross")
             .attr("x1", function (d) {
-              return xStartPosition(d) - 3;
+              return xMidPointStartPosition(d) - 3;
             })
             .attr("x2", function (d) {
-              return xStartPosition(d) + 3;
+              return xMidPointStartPosition(d) + 3;
             })
             .attr("y1", function (d) {
               return yScale(d.min);
@@ -1250,7 +1250,7 @@ module Charts {
             .attr("class", "avgDot")
             .attr("r", 3)
             .attr("cx", function (d) {
-              return xStartPosition(d);
+              return xMidPointStartPosition(d);
             })
             .attr("cy", function (d) {
               return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -1598,7 +1598,7 @@ module Charts {
             .attr("class", "dataPointDot")
             .attr("r", radius)
             .attr("cx", function (d) {
-              return xStartPosition(d);
+              return timeScale(d.timestamp);
             })
             .attr("cy", function (d) {
               return d.avg ? yScale(d.avg) : -9999999;
