@@ -20,6 +20,17 @@
     .chartWrapper {
       height: 250px;
     }
+
+    .paramWrapper {
+      border: 1px solid gray;
+      padding: 10px;
+      margin: 10px;
+    }
+
+    .description {
+      color: darkgray;
+      margin-left: 10px;
+    }
   </style>
 
   <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
@@ -32,8 +43,16 @@
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
 
-    app.controller('StandAloneController', function ($scope) {
+    app.controller('StandAloneController', function () {
       // this is just a dummy controller required to render the directive
+      // the values here are just to link the input widgets
+      // this can just be an empty controller
+      this.tenantId = '28026b36-8fe4-4332-84c8-524e173a68bf';
+      this.metricId = 'MI~R~%5BLocal~%2F%5D~MT~WildFly%20Memory%20Metrics~Heap%20Used';
+      this.metricUrl = 'http://localhost:8080/hawkular/metrics/gauges/';
+      this.timeRangeInSeconds = 7200;
+      this.refreshIntervalInSeconds = 30;
+
     });
 
   </script>
@@ -68,19 +87,60 @@
   hawkular-chart tags with relevant metric-id and metric-url attributes. So this will all be boiled down to several
   additional lines of code (&lt; 5) to support angular tags in pages; with one angular tag for each chart. </p>
 
+<p> Go ahead and play with the input values below to see that no handlers are needed, just link your atrributes
+  to the chart directive and let two-way binding work its magic.</p>
+
+
 <div ng-controller="StandAloneController as standalone">
 
-  <div class="metricIdHeader">
-    <span class="metricIdLabel"> Localhost Response Time Metrics:</span>
-    <strong>Replace Metric-Tenant-Id with your own</strong>
+  <div class="paramWrapper">
+
+    <div>
+      <label for="tenantId">Tenant Id:</label>
+      <input id="tenantId"
+             type="text"
+             value="{{standalone.tenantId}}"
+             size="60">
+    </div>
+    <div>
+      <label for="metricId">Metric Id:</label>
+      <input id="metricId"
+             type="text"
+             value="{{standalone.metricId}}"
+             size="120"><span class="description">(URI encoded)</span>
+    </div>
+    <div>
+      <label for="metricUrl">Metric Url:</label>
+      <input id="metricUrl"
+             type="url"
+             value="{{standalone.metricUrl}}"
+             size="120">
+    </div>
+    <div>
+      <label for="timeRange">Time Range (in seconds):</label>
+      <input id="timeRange"
+             type="number"
+             value="{{standalone.timeRangeInSeconds}}">
+    </div>
+    <div>
+      <label for="refreshInterval">Refresh Interval (in seconds):</label>
+      <input id="refreshInterval"
+             type="number"
+             value="{{standalone.refreshIntervalInSeconds}}">
+    </div>
   </div>
+
+  <div class="metricIdHeader">
+    <span class="metricIdLabel"> Localhost Memory Heap Used Metrics:</span>
+  </div>
+
   <div class="chartWrapper">
-    <hawkular-chart chart-type="bar"
-                    metric-id="c6867d527c482e2c253a5a53ad10dadf.status.duration"
-                    metric-url="http://localhost:8080/hawkular/metrics/gauges/"
-                    metric-tenant-id="-8fe4-4332-84c8-524e173a68b"
-                    time-range-in-seconds="7200"
-                    refresh-interval-in-seconds="30"
+    <hawkular-chart chart-type="hawkularmetric"
+                    metric-id="{{standalone.metricId}}"
+                    metric-url="{{standalone.metricUrl}}"
+                    metric-tenant-id="{{standalone.tenantId}}"
+                    time-range-in-seconds="{{standalone.timeRangeInSeconds}}"
+                    refresh-interval-in-seconds="{{standalone.refreshIntervalInSeconds}}"
                     chart-height="250">
     </hawkular-chart>
   </div>
