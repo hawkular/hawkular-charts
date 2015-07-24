@@ -733,9 +733,6 @@ var Charts;
                     if (isEmptyDataBar(d)) {
                         return 'url(#noDataStripes)';
                     }
-                    else if (i % 5 === 0) {
-                        return '#989898';
-                    }
                     else {
                         return '#C0C0C0';
                     }
