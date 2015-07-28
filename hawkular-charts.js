@@ -33,7 +33,7 @@ var Charts;
      * @description A d3 based charting directive for charting availability.
      *
      */
-    angular.module('hawkular.charts').directive('availabilityChart', function () {
+    var hawkularCharts = angular.module('hawkular.charts').directive('availabilityChart', function () {
         return new Charts.AvailabilityChartDirective();
     });
     var AvailabilityChartDirective = (function () {
@@ -42,6 +42,8 @@ var Charts;
             this.replace = true;
             this.scope = {
                 data: '@',
+                startTimestamp: '@',
+                endTimestamp: '@',
                 chartHeight: '@',
                 timeLabel: '@',
                 dateLabel: '@',
@@ -50,7 +52,7 @@ var Charts;
             };
             this.link = function (scope, element, attrs) {
                 // data specific vars
-                var dataPoints = [], transformedDataPoints, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
+                var dataPoints = [], startTimestamp = +attrs.startTimestamp, endTimestamp = +attrs.endTimestamp, transformedDataPoints, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
                 // chart specific vars
                 var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, brush, tip, timeScaleForBrush, chart, chartParent, svg;
                 function getChartWidth() {
@@ -83,10 +85,6 @@ var Charts;
                             adjustedTimeRange[0] = d3.min(dataPoints, function (d) {
                                 return d.start;
                             });
-                            // TODO adjust the start time to date range picker
-                            if (adjustedTimeRange[0] < oneHourAgo) {
-                                adjustedTimeRange[0] = oneHourAgo;
-                            }
                             // Provide "now" as end // TODO adjust to date range picker
                             adjustedTimeRange[1] = +moment();
                         }
@@ -110,10 +108,10 @@ var Charts;
                 }
                 function formatTransformedDataPoints(inAvailData) {
                     var outputData = [];
-                    if (inAvailData && inAvailData.length > 0 && inAvailData[0].timestamp) {
-                        var items = inAvailData.length;
+                    var itemCount = inAvailData.length;
+                    if (inAvailData && itemCount > 0 && inAvailData[0].timestamp) {
                         var now = new Date().getTime();
-                        if (items === 1) {
+                        if (itemCount === 1) {
                             var availItem = inAvailData[0];
                             // we only have one item with start time. Assume unknown for the time before (last 1h) TODO adjust to time picker
                             outputData.push(new TransformedAvailDataPoint(now - 60 * 60 * 1000, availItem.timestamp, 'unknown'));
@@ -121,12 +119,12 @@ var Charts;
                             outputData.push(new TransformedAvailDataPoint(availItem.timestamp, now, availItem.value));
                         }
                         else {
-                            var endTime;
+                            var backwardsEndTime;
                             var i;
-                            endTime = now;
-                            for (i = items; i > 0; i--) {
-                                outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp, endTime, inAvailData[i - 1].value));
-                                endTime = inAvailData[i - 1].timestamp;
+                            backwardsEndTime = now;
+                            for (i = inAvailData.length; i > 0; i--) {
+                                outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp, backwardsEndTime, inAvailData[i - 1].value));
+                                backwardsEndTime = inAvailData[i - 1].timestamp;
                             }
                         }
                     }
@@ -141,7 +139,8 @@ var Charts;
                         return +d.start;
                     }), xAxisMax = d3.max(dataPoints, function (d) {
                         return +d.end;
-                    }), availTimeScale = d3.time.scale().range([0, width]).domain([xAxisMin, xAxisMax]), yScale = d3.scale.linear().clamp(true).range([height, 0]).domain([0, 4]), availXAxis = d3.svg.axis().scale(availTimeScale).ticks(8).tickSize(13, 0).orient("top");
+                    });
+                    var availTimeScale = d3.time.scale().range([0, width]).domain([xAxisMin, xAxisMax]), yScale = d3.scale.linear().clamp(true).range([height, 0]).domain([0, 4]), availXAxis = d3.svg.axis().scale(availTimeScale).ticks(8).tickSize(13, 0).orient("top");
                     function calcBarY(d) {
                         var offset;
                         if (isUp(d) || isUnknown(d)) {
@@ -247,6 +246,20 @@ var Charts;
                         scope.render(transformedDataPoints);
                     }
                 }, true);
+                scope.$watch('startTimestamp', function (newStartTimestap) {
+                    console.debug('Avail Chart Start Timestamp Changed');
+                    if (newStartTimestap) {
+                        startTimestamp = newStartTimestap;
+                        scope.render(transformedDataPoints);
+                    }
+                }, false);
+                scope.$watch('endTimestamp', function (newEndTimestap) {
+                    console.debug('Avail Chart End Timestamp Changed');
+                    if (newEndTimestap) {
+                        endTimestamp = newEndTimestap;
+                        scope.render(transformedDataPoints);
+                    }
+                }, false);
                 scope.render = function (dataPoints) {
                     console.debug("Starting Avail Chart Directive Render");
                     console.group('Render Avail Chart');

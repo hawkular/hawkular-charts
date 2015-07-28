@@ -34,6 +34,8 @@ declare module Charts {
         replace: boolean;
         scope: {
             data: string;
+            startTimestamp: string;
+            endTimestamp: string;
             chartHeight: string;
             timeLabel: string;
             dateLabel: string;

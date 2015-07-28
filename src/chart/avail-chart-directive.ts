@@ -23,7 +23,7 @@ module Charts {
     start:number;
     end:number;
     value:string;
-    startDate?:Date;
+    startDate?:Date; /// Mainly for debugger human readable dates instead of a number
     endDate?:Date;
     duration?:string;
     message?:string;
@@ -53,7 +53,7 @@ module Charts {
    * @description A d3 based charting directive for charting availability.
    *
    */
-  angular.module('hawkular.charts')
+var hawkularCharts =  angular.module('hawkular.charts')
     .directive('availabilityChart', () => {
       return new Charts.AvailabilityChartDirective();
     });
@@ -65,6 +65,8 @@ module Charts {
 
     public scope = {
       data: '@',
+      startTimestamp: '@',
+      endTimestamp: '@',
       chartHeight: '@',
       timeLabel: '@',
       dateLabel: '@',
@@ -77,6 +79,8 @@ module Charts {
 
       // data specific vars
       var dataPoints:IAvailDataPoint[] = [],
+        startTimestamp:number = +attrs.startTimestamp,
+        endTimestamp:number = +attrs.endTimestamp,
         transformedDataPoints:ITransformedAvailDataPoint[],
         chartHeight = +attrs.chartHeight || 150,
         noDataLabel = attrs.noDataLabel || 'No Data';
@@ -152,11 +156,6 @@ module Charts {
               return d.start;
             });
 
-            // TODO adjust the start time to date range picker
-            if (adjustedTimeRange[0] < oneHourAgo) {
-              adjustedTimeRange[0] = oneHourAgo;
-            }
-
             // Provide "now" as end // TODO adjust to date range picker
             adjustedTimeRange[1] = +moment();
           } else {
@@ -201,11 +200,11 @@ module Charts {
 
       function formatTransformedDataPoints(inAvailData:IAvailDataPoint[]):ITransformedAvailDataPoint[] {
         var outputData:ITransformedAvailDataPoint[] = [];
-        if (inAvailData && inAvailData.length > 0 && inAvailData[0].timestamp) {
-          var items = inAvailData.length;
+        var itemCount = inAvailData.length;
+        if (inAvailData && itemCount > 0 && inAvailData[0].timestamp) {
           var now = new Date().getTime();
 
-          if (items === 1) {
+          if (itemCount === 1) {
             var availItem = inAvailData[0];
 
             // we only have one item with start time. Assume unknown for the time before (last 1h) TODO adjust to time picker
@@ -215,12 +214,13 @@ module Charts {
           }
           else {
 
-            var endTime:number;
+            var backwardsEndTime:number;
             var i:number;
-            endTime = now;
-            for (i = items; i > 0; i--) {
-              outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp, endTime, inAvailData[i - 1].value));
-              endTime = inAvailData[i - 1].timestamp;
+
+            backwardsEndTime = now;
+            for (i = inAvailData.length; i > 0; i--) {
+              outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp, backwardsEndTime, inAvailData[i - 1].value));
+              backwardsEndTime = inAvailData[i - 1].timestamp;
             }
           }
         }
@@ -259,9 +259,9 @@ module Charts {
           }),
           xAxisMax = d3.max(dataPoints, (d:ITransformedAvailDataPoint) => {
             return +d.end;
-          }),
+          });
 
-          availTimeScale = d3.time.scale()
+          var availTimeScale = d3.time.scale()
             .range([0, width])
             .domain([xAxisMin, xAxisMax]),
 
@@ -434,6 +434,22 @@ module Charts {
           scope.render(transformedDataPoints);
         }
       }, true);
+
+      scope.$watch('startTimestamp', (newStartTimestap) => {
+        console.debug('Avail Chart Start Timestamp Changed');
+        if (newStartTimestap) {
+          startTimestamp = newStartTimestap;
+          scope.render(transformedDataPoints);
+        }
+      }, false);
+
+      scope.$watch('endTimestamp', (newEndTimestap) => {
+        console.debug('Avail Chart End Timestamp Changed');
+        if (newEndTimestap) {
+          endTimestamp = newEndTimestap;
+          scope.render(transformedDataPoints);
+        }
+      }, false);
 
       scope.render = (dataPoints:ITransformedAvailDataPoint[]) => {
         console.debug("Starting Avail Chart Directive Render");
