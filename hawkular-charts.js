@@ -618,7 +618,7 @@ var Charts;
                     //  The schema is different for bucketed output
                     if (response) {
                         return response.map(function (point) {
-                            var timestamp = point.start + (point.start - point.end) / 2;
+                            var timestamp = point.start + (point.end - point.start) / 2;
                             return {
                                 timestamp: timestamp,
                                 date: new Date(timestamp),
