@@ -65,6 +65,7 @@ module Charts {
             dataUrl = attrs.metricUrl,
             metricId = attrs.metricId || '',
             metricTenantId = attrs.metricTenantId || '',
+            metricType = attrs.metricType || 'gauge',
             timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200,
             refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600,
             alertValue = +attrs.alertValue,
@@ -430,7 +431,7 @@ module Charts {
 
             /// sample url:
             /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?buckets=120&end=1436831797533&start=1436828197533' -H 'Hawkular-Tenant: 28026b36-8fe4-4332-84c8-524e173a68bf'     -H 'Accept: application/json'
-            $http.get(url + metricId, requestConfig).success((response) => {
+            $http.get(url + "/" + metricType + "s/" + metricId + "/data", requestConfig).success((response) => {
 
               processedNewData = formatBucketedChartOutput(response);
               console.info("DataPoints from standalone URL: ");
@@ -446,11 +447,11 @@ module Charts {
           function formatBucketedChartOutput(response) {
             //  The schema is different for bucketed output
             if (response) {
-
               return response.map((point:IChartDataPoint) => {
+                var timestamp = point.start + (point.start - point.end)/2;
                 return {
-                  timestamp: point.timestamp,
-                  date: new Date(point.timestamp),
+                  timestamp: timestamp,
+                  date: new Date(timestamp),
                   value: !angular.isNumber(point.value) ? 0 : point.value,
                   avg: (point.empty) ? 0 : point.avg,
                   min: !angular.isNumber(point.min) ? 0 : point.min,
@@ -1862,6 +1863,7 @@ module Charts {
             availData: '@',
             metricUrl: '@',
             metricId: '@',
+            metricType: '@',
             metricTenantId: '@',
             startTimestamp: '@',
             endTimestamp: '@',
