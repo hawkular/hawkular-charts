@@ -119,7 +119,7 @@ var hawkularCharts =  angular.module('hawkular.charts')
       }
 
       function oneTimeChartSetup():void {
-        console.log("OneTimeChartSetup");
+        ///console.log("Availability OneTimeChartSetup");
         // destroy any previous charts
         if (chart) {
           chartParent.selectAll('*').remove();
@@ -426,38 +426,29 @@ var hawkularCharts =  angular.module('hawkular.charts')
         }
       }
 
-      scope.$watch('data', (newData) => {
+      scope.$watchCollection('data', (newData) => {
         console.debug('Avail Chart Data Changed');
         if (newData) {
           transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
-          console.dir(transformedDataPoints);
+          ///console.dir(transformedDataPoints);
           scope.render(transformedDataPoints);
         }
-      }, true);
+      });
 
-      scope.$watch('startTimestamp', (newStartTimestap) => {
-        console.debug('Avail Chart Start Timestamp Changed');
-        if (newStartTimestap) {
-          startTimestamp = newStartTimestap;
+      scope.$watchGroup(['startTimestamp','endTimestamp', (newTimestamp) => {
+        console.debug('Avail Chart Start/End Timestamp Changed');
+          startTimestamp = newTimestamp[0];
+          endTimestamp = newTimestamp[1];
           scope.render(transformedDataPoints);
-        }
-      }, false);
-
-      scope.$watch('endTimestamp', (newEndTimestap) => {
-        console.debug('Avail Chart End Timestamp Changed');
-        if (newEndTimestap) {
-          endTimestamp = newEndTimestap;
-          scope.render(transformedDataPoints);
-        }
-      }, false);
+      });
 
       scope.render = (dataPoints:ITransformedAvailDataPoint[]) => {
         console.debug("Starting Avail Chart Directive Render");
         console.group('Render Avail Chart');
         if (dataPoints) {
           console.time('availChartRender');
-          //NOTE: layering order is important!
-          console.dir(dataPoints);
+          ///NOTE: layering order is important!
+          ///console.dir(dataPoints);
           oneTimeChartSetup();
           determineAvailScale(dataPoints);
           createXAxisBrush();

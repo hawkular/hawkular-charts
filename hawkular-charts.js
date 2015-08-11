@@ -238,35 +238,27 @@ var Charts;
                         }
                     }
                 }
-                scope.$watch('data', function (newData) {
+                scope.$watchCollection('data', function (newData) {
                     console.debug('Avail Chart Data Changed');
                     if (newData) {
                         transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
-                        console.dir(transformedDataPoints);
+                        ///console.dir(transformedDataPoints);
                         scope.render(transformedDataPoints);
                     }
-                }, true);
-                scope.$watch('startTimestamp', function (newStartTimestap) {
-                    console.debug('Avail Chart Start Timestamp Changed');
-                    if (newStartTimestap) {
-                        startTimestamp = newStartTimestap;
-                        scope.render(transformedDataPoints);
-                    }
-                }, false);
-                scope.$watch('endTimestamp', function (newEndTimestap) {
-                    console.debug('Avail Chart End Timestamp Changed');
-                    if (newEndTimestap) {
-                        endTimestamp = newEndTimestap;
-                        scope.render(transformedDataPoints);
-                    }
-                }, false);
+                });
+                scope.$watchGroup('startTimestamp', function (newTimestamp) {
+                    console.debug('Avail Chart Start/End Timestamp Changed');
+                    startTimestamp = newTimestamp[0];
+                    endTimestamp = newTimestamp[1];
+                    scope.render(transformedDataPoints);
+                });
                 scope.render = function (dataPoints) {
                     console.debug("Starting Avail Chart Directive Render");
                     console.group('Render Avail Chart');
                     if (dataPoints) {
                         console.time('availChartRender');
-                        //NOTE: layering order is important!
-                        console.dir(dataPoints);
+                        ///NOTE: layering order is important!
+                        ///console.dir(dataPoints);
                         oneTimeChartSetup();
                         determineAvailScale(dataPoints);
                         createXAxisBrush();

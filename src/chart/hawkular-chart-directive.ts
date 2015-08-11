@@ -155,8 +155,8 @@ module Charts {
           }
 
 
-          function oneTimeChartSetup():void {
-            $log.info("Charts: OneTimeChartSetup");
+          function initialization():void {
+            $log.debug("Charts: Initialization");
             // destroy any previous charts
             if (chart) {
               chartParent.selectAll('*').remove();
@@ -435,7 +435,7 @@ module Charts {
 
               processedNewData = formatBucketedChartOutput(response);
               console.info("DataPoints from standalone URL: ");
-              console.table(processedNewData);
+              ///console.table(processedNewData);
               scope.render(processedNewData, processedPreviousRangeData);
 
             }).error((reason, status) => {
@@ -448,7 +448,7 @@ module Charts {
             //  The schema is different for bucketed output
             if (response) {
               return response.map((point:IChartDataPoint) => {
-                var timestamp = point.start + (point.end - point.start)/2;
+                var timestamp = point.start + (point.end - point.start) / 2;
                 return {
                   timestamp: timestamp,
                   date: new Date(timestamp),
@@ -1646,14 +1646,6 @@ module Charts {
           }, true);
 
 
-          scope.$watch('availData', (newAvailData) => {
-            if (newAvailData) {
-              $log.debug('Avail Data Changed');
-              processedNewData = angular.fromJson(newAvailData);
-              scope.render(processedNewData, processedPreviousRangeData);
-            }
-          }, true);
-
           scope.$watch('previousRangeData', (newPreviousRangeValues) => {
             if (newPreviousRangeValues) {
               $log.debug("Previous Range data changed");
@@ -1688,19 +1680,15 @@ module Charts {
             scope.render(processedNewData, processedPreviousRangeData);
           });
 
-          scope.$watch('alertValue', (newAlert) => {
-            if (newAlert) {
-              alertValue = newAlert;
-              scope.render(processedNewData, processedPreviousRangeData);
-            }
+          scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue','showAvgLine'], (chartAttrs) => {
+            alertValue = chartAttrs[0];
+            chartType = chartAttrs[1];
+            hideHighLowValues = chartAttrs[2];
+            useZeroMinValue = chartAttrs[3];
+            showAvgLine = chartAttrs[4];
+            scope.render(processedNewData, processedPreviousRangeData);
           });
 
-          scope.$watch('chartType', (newChartType) => {
-            if (newChartType) {
-              chartType = newChartType;
-              scope.render(processedNewData, processedPreviousRangeData);
-            }
-          });
 
           function loadMetricsTimeRangeFromNow() {
             endTimestamp = Date.now();
@@ -1708,26 +1696,14 @@ module Charts {
             loadMetricsForTimeRange(getBaseUrl(), metricId, startTimestamp, endTimestamp, 60);
           }
 
-          scope.$watch('dataUrl', (newUrlData) => {
-            if (newUrlData) {
-              $log.debug('dataUrl has changed: ' + newUrlData);
-              dataUrl = newUrlData;
-            }
-          });
-
-          scope.$watch('metricId', (newMetricId) => {
-            if (newMetricId) {
-              $log.debug('metricId has changed: ' + newMetricId);
-              metricId = newMetricId;
-              loadMetricsTimeRangeFromNow();
-            }
-          });
-
-          scope.$watch('metricTenantId', (newMetricTenantId) => {
-            if (newMetricTenantId) {
-              $log.debug('metricTenantId has changed: ' + newMetricTenantId);
-              metricTenantId = newMetricTenantId;
-            }
+          /// standalone charts attributes
+          scope.$watchGroup(['dataUrl', 'metricId', 'metricTenantId', 'timeRangeInSeconds'], (standAloneParams) => {
+            $log.debug('standalone params has changed');
+            dataUrl = standAloneParams[0];
+            metricId = standAloneParams[1];
+            metricTenantId = standAloneParams[2];
+            timeRangeInSeconds = standAloneParams[3];
+            loadMetricsTimeRangeFromNow();
           });
 
           scope.$watch('refreshIntervalInSeconds', (newRefreshInterval) => {
@@ -1736,35 +1712,6 @@ module Charts {
               var startIntervalPromise = $interval(() => {
                 loadMetricsTimeRangeFromNow();
               }, refreshIntervalInSeconds * 1000);
-            }
-          });
-
-          scope.$watch('timeRangeInSeconds', (newTimeRange) => {
-            if (newTimeRange) {
-              $log.debug("timeRangeInSeconds changed.");
-              timeRangeInSeconds = newTimeRange;
-            }
-          });
-
-          scope.$watch('showAvgLine', (newShowAvgLine) => {
-            if (newShowAvgLine) {
-              showAvgLine = newShowAvgLine;
-              scope.render(processedNewData, processedPreviousRangeData);
-            }
-          });
-
-
-          scope.$watch('hideHighLowValues', (newHideHighLowValues) => {
-            if (newHideHighLowValues) {
-              hideHighLowValues = newHideHighLowValues;
-              scope.render(processedNewData, processedPreviousRangeData);
-            }
-          });
-
-          scope.$watch('useZeroMinValue', (newUseZeroMinValue) => {
-            if (newUseZeroMinValue) {
-              useZeroMinValue = newUseZeroMinValue;
-              scope.render(processedNewData, processedPreviousRangeData);
             }
           });
 
@@ -1812,7 +1759,7 @@ module Charts {
             console.group('Render Chart');
             console.time('chartRender');
             //NOTE: layering order is important!
-            oneTimeChartSetup();
+            initialization();
             if (dataPoints) {
               determineScale(dataPoints);
             }
@@ -1821,7 +1768,7 @@ module Charts {
               determineMultiScale(multiDataPoints);
             }
 
-            createHeader(attrs.chartTitle);
+            ///createHeader(attrs.chartTitle);
             createXAxisBrush();
 
             if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
@@ -1860,7 +1807,6 @@ module Charts {
           scope: {
             data: '@',
             multiData: '@',
-            availData: '@',
             metricUrl: '@',
             metricId: '@',
             metricType: '@',
@@ -1900,6 +1846,9 @@ module Charts {
             chartTitle: '@'
           }
         };
-      }]
-  );
+      }
+
+    ]
+  )
+  ;
 }
