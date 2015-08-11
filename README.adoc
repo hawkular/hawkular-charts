@@ -128,7 +128,7 @@ This allows dashboard templates to be emailed around (although they need to be r
 
 The environment is now ready to be built.
 
-The *Hawkular Charts*  directives can be built with: `gulp`. Only the one command is needed as building is so fast that a watcher task is not necessary.
+The *Hawkular Charts*  directives can be built with: `gulp`. Or for dev build `gulp watch`
 
 The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
