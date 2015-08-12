@@ -60,7 +60,7 @@ var hawkularCharts =  angular.module('hawkular.charts')
 
   export class AvailabilityChartDirective {
 
-    public restrict = 'EA';
+    public restrict = 'E';
     public replace = true;
 
     public scope = {

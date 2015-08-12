@@ -38,7 +38,7 @@ var Charts;
     });
     var AvailabilityChartDirective = (function () {
         function AvailabilityChartDirective() {
-            this.restrict = 'EA';
+            this.restrict = 'E';
             this.replace = true;
             this.scope = {
                 data: '@',
@@ -63,7 +63,7 @@ var Charts;
                     return "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>" + d.value.toUpperCase() + "</span></small></div>" + "<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>" + d.duration + "</span></small> </div>";
                 }
                 function oneTimeChartSetup() {
-                    console.log("OneTimeChartSetup");
+                    ///console.log("Availability OneTimeChartSetup");
                     // destroy any previous charts
                     if (chart) {
                         chartParent.selectAll('*').remove();
@@ -246,7 +246,7 @@ var Charts;
                         scope.render(transformedDataPoints);
                     }
                 });
-                scope.$watchGroup('startTimestamp', function (newTimestamp) {
+                scope.$watchGroup(['startTimestamp', 'endTimestamp'], function (newTimestamp) {
                     console.debug('Avail Chart Start/End Timestamp Changed');
                     startTimestamp = newTimestamp[0];
                     endTimestamp = newTimestamp[1];
@@ -319,8 +319,8 @@ var Charts;
             function useSmallCharts() {
                 return getChartWidth() <= smallChartThresholdInPixels;
             }
-            function oneTimeChartSetup() {
-                $log.info("Charts: OneTimeChartSetup");
+            function initialization() {
+                $log.debug("Charts: Initialization");
                 // destroy any previous charts
                 if (chart) {
                     chartParent.selectAll('*').remove();
@@ -487,7 +487,7 @@ var Charts;
                 $http.get(url + "/" + metricType + "s/" + metricId + "/data", requestConfig).success(function (response) {
                     processedNewData = formatBucketedChartOutput(response);
                     console.info("DataPoints from standalone URL: ");
-                    console.table(processedNewData);
+                    ///console.table(processedNewData);
                     scope.render(processedNewData, processedPreviousRangeData);
                 }).error(function (reason, status) {
                     $log.error('Error Loading Chart Data:' + status + ", " + reason);
@@ -1206,22 +1206,15 @@ var Charts;
             }
             scope.$watch('data', function (newData) {
                 if (newData) {
-                    $log.debug('Chart Data Changed');
+                    ///$log.debug('Chart Data Changed');
                     processedNewData = angular.fromJson(newData);
                     scope.render(processedNewData, processedPreviousRangeData);
                 }
             }, true);
             scope.$watch('multiData', function (newMultiData) {
                 if (newMultiData) {
-                    $log.debug('MultiData Chart Data Changed');
+                    ///$log.debug('MultiData Chart Data Changed');
                     multiDataPoints = angular.fromJson(newMultiData);
-                    scope.render(processedNewData, processedPreviousRangeData);
-                }
-            }, true);
-            scope.$watch('availData', function (newAvailData) {
-                if (newAvailData) {
-                    $log.debug('Avail Data Changed');
-                    processedNewData = angular.fromJson(newAvailData);
                     scope.render(processedNewData, processedPreviousRangeData);
                 }
             }, true);
@@ -1255,41 +1248,27 @@ var Charts;
                 }
                 scope.render(processedNewData, processedPreviousRangeData);
             });
-            scope.$watch('alertValue', function (newAlert) {
-                if (newAlert) {
-                    alertValue = newAlert;
-                    scope.render(processedNewData, processedPreviousRangeData);
-                }
-            });
-            scope.$watch('chartType', function (newChartType) {
-                if (newChartType) {
-                    chartType = newChartType;
-                    scope.render(processedNewData, processedPreviousRangeData);
-                }
+            scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'], function (chartAttrs) {
+                alertValue = chartAttrs[0];
+                chartType = chartAttrs[1];
+                hideHighLowValues = chartAttrs[2];
+                useZeroMinValue = chartAttrs[3];
+                showAvgLine = chartAttrs[4];
+                scope.render(processedNewData, processedPreviousRangeData);
             });
             function loadMetricsTimeRangeFromNow() {
                 endTimestamp = Date.now();
                 startTimestamp = moment().subtract('seconds', timeRangeInSeconds).valueOf();
                 loadMetricsForTimeRange(getBaseUrl(), metricId, startTimestamp, endTimestamp, 60);
             }
-            scope.$watch('dataUrl', function (newUrlData) {
-                if (newUrlData) {
-                    $log.debug('dataUrl has changed: ' + newUrlData);
-                    dataUrl = newUrlData;
-                }
-            });
-            scope.$watch('metricId', function (newMetricId) {
-                if (newMetricId) {
-                    $log.debug('metricId has changed: ' + newMetricId);
-                    metricId = newMetricId;
-                    loadMetricsTimeRangeFromNow();
-                }
-            });
-            scope.$watch('metricTenantId', function (newMetricTenantId) {
-                if (newMetricTenantId) {
-                    $log.debug('metricTenantId has changed: ' + newMetricTenantId);
-                    metricTenantId = newMetricTenantId;
-                }
+            /// standalone charts attributes
+            scope.$watchGroup(['dataUrl', 'metricId', 'metricTenantId', 'timeRangeInSeconds'], function (standAloneParams) {
+                ///$log.debug('standalone params has changed');
+                dataUrl = standAloneParams[0];
+                metricId = standAloneParams[1];
+                metricTenantId = standAloneParams[2];
+                timeRangeInSeconds = standAloneParams[3];
+                loadMetricsTimeRangeFromNow();
             });
             scope.$watch('refreshIntervalInSeconds', function (newRefreshInterval) {
                 if (newRefreshInterval) {
@@ -1297,30 +1276,6 @@ var Charts;
                     var startIntervalPromise = $interval(function () {
                         loadMetricsTimeRangeFromNow();
                     }, refreshIntervalInSeconds * 1000);
-                }
-            });
-            scope.$watch('timeRangeInSeconds', function (newTimeRange) {
-                if (newTimeRange) {
-                    $log.debug("timeRangeInSeconds changed.");
-                    timeRangeInSeconds = newTimeRange;
-                }
-            });
-            scope.$watch('showAvgLine', function (newShowAvgLine) {
-                if (newShowAvgLine) {
-                    showAvgLine = newShowAvgLine;
-                    scope.render(processedNewData, processedPreviousRangeData);
-                }
-            });
-            scope.$watch('hideHighLowValues', function (newHideHighLowValues) {
-                if (newHideHighLowValues) {
-                    hideHighLowValues = newHideHighLowValues;
-                    scope.render(processedNewData, processedPreviousRangeData);
-                }
-            });
-            scope.$watch('useZeroMinValue', function (newUseZeroMinValue) {
-                if (newUseZeroMinValue) {
-                    useZeroMinValue = newUseZeroMinValue;
-                    scope.render(processedNewData, processedPreviousRangeData);
                 }
             });
             scope.$on('DateRangeDragChanged', function (event, extent) {
@@ -1363,14 +1318,14 @@ var Charts;
                 console.group('Render Chart');
                 console.time('chartRender');
                 //NOTE: layering order is important!
-                oneTimeChartSetup();
+                initialization();
                 if (dataPoints) {
                     determineScale(dataPoints);
                 }
                 if (multiDataPoints) {
                     determineMultiScale(multiDataPoints);
                 }
-                createHeader(attrs.chartTitle);
+                ///createHeader(attrs.chartTitle);
                 createXAxisBrush();
                 if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                     createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
@@ -1399,12 +1354,11 @@ var Charts;
         }
         return {
             link: link,
-            restrict: 'EA',
+            restrict: 'E',
             replace: true,
             scope: {
                 data: '@',
                 multiData: '@',
-                availData: '@',
                 metricUrl: '@',
                 metricId: '@',
                 metricType: '@',
