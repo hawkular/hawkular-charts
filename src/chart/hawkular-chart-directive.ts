@@ -1631,7 +1631,7 @@ module Charts {
 
           scope.$watch('data', (newData) => {
             if (newData) {
-              $log.debug('Chart Data Changed');
+              ///$log.debug('Chart Data Changed');
               processedNewData = angular.fromJson(newData);
               scope.render(processedNewData, processedPreviousRangeData);
             }
@@ -1639,7 +1639,7 @@ module Charts {
 
           scope.$watch('multiData', (newMultiData) => {
             if (newMultiData) {
-              $log.debug('MultiData Chart Data Changed');
+              ///$log.debug('MultiData Chart Data Changed');
               multiDataPoints = angular.fromJson(newMultiData);
               scope.render(processedNewData, processedPreviousRangeData);
             }
@@ -1698,7 +1698,7 @@ module Charts {
 
           /// standalone charts attributes
           scope.$watchGroup(['dataUrl', 'metricId', 'metricTenantId', 'timeRangeInSeconds'], (standAloneParams) => {
-            $log.debug('standalone params has changed');
+            ///$log.debug('standalone params has changed');
             dataUrl = standAloneParams[0];
             metricId = standAloneParams[1];
             metricTenantId = standAloneParams[2];
@@ -1802,7 +1802,7 @@ module Charts {
 
         return {
           link: link,
-          restrict: 'EA',
+          restrict: 'E',
           replace: true,
           scope: {
             data: '@',

@@ -1,18 +1,22 @@
 = http://github.com/hawkular/hawkular-charts[Hawkular Charting Directives]
 
-This project provides AngularJS directives for displaying visual representations of time series data as charts. It uses http://d3js.org[D3] as its charting toolkit and tries to simply creating metrics visualizations by using Angular.js.
+This project provides AngularJS directives for displaying custom visual representations of time series data as charts.
+It uses http://d3js.org[D3] as its charting toolkit and tries to simplify creating advanced metrics visualizations
+with Angular.js.
 
 == About
 
-The parent project that spurred this project is http://github.com/hawkular/hawkular[Hawkular] - A Metrics engine based
-on http://cassandra.apache.org/[Cassandra]. The console in Hawkular uses these charting components and will further push the development
+Hawkular Charts is a direct result of wanting metric visualizations for the parent project:
+http://github.com/hawkular/hawkular[Hawkular] - _An Open Source
+Monitoring Tool_. The console in Hawkular uses these charting components and will further push the development
 of these charting components into the future with additional features and specialized chart types.
-This will also make adhoc development quicker/easier with components that can render Hawkular Metrics graphs with very little effort.
+This will also make adhoc development quicker/easier with components that can render Hawkular Metrics charts with very
+little effort.
 
 == Charts
 
 ==== Metrics Chart Type
-image::img/hawkular-metrics-chart.png[Hawkular Metrics Chart Type]
+image::img/hawkular-metric-charts.png[Hawkular Metrics Chart Type]
 
 _Sample code for this chart:_
 
@@ -27,9 +31,12 @@ _Sample code for this chart:_
 </hawkular-chart>
 ----
 Want to update the chart, no problem, just alter the dataPoints array with new data and the chart will re-render itself.
-Need to change the threshold or chart-type just use Angular's two way binding to bind to a field on the screen and watch the dynamics unfold.
+Through custom attributes it is very easy to configure a custom chart just the way you want using advanced
+capabilities that standard charting libraries don't provide.
+Need to change the threshold alert value or chart-type just use Angular's two way binding to bind to a field on the
+screen and watch the dynamics unfold.
 
-Explore the actual implementation in Hawkular Console: https://github.com/hawkular/hawkular/blob/master/ui/console/src/main/scripts/plugins/metrics/plugins/metrics/html/response-time.html[here]
+Explore an actual implementation in Hawkular Console: https://github.com/hawkular/hawkular/blob/master/ui/console/src/main/scripts/plugins/metrics/plugins/metrics/html/response-time.html[here]
 
 ==== Availability Chart Type
 image::img/avail-chart.png[Hawkular Availability Chart Type]
@@ -44,15 +51,23 @@ _Sample code for this chart:_
 </availability-chart>
 
 ----
-Use the Availability charts for your own projects, the format is universal.
-Availability charts are quite simple just pass an array of [time:number, value:string] (where the value is ('up', 'down' or 'unknown') points to render.
+The availability chart makes it easy to visualize the availability types:
 
-Explore the actual implementation in Hawkular Console: https://github.com/hawkular/hawkular/blob/master/ui/console/src/main/scripts/plugins/metrics/plugins/metrics/html/availability.html[here]
+* up
+* down
+* unknown (no data was collected for this time period, so we don't know if it was up or down)
+
+on a time line.
+Hovering over one of the areas provides additional information such as: when the period started/ended, the duration
+of the period and the status of the period.
+
 
 ==== Other Chart Types
-image::img/chart-sample.jpg[Charts]
+Here is an screen shot from the Hawkular Console that uses the multi-line chart for displaying JVM metrics:
 
-Don't like the charts we have? Take one of the existing charts and modify (coming soon!)
+image::img/jvm-heap-chart.png[JVM Heap Chart via Multi-line Chart]
+
+Don't like the charts we have? Take one of the existing charts and modify (there are many types in the code).
 
 == How to Get
 
@@ -60,7 +75,7 @@ Don't like the charts we have? Take one of the existing charts and modify (comin
 
 Or
 
-*Download:* http://github.com/hawkular/hawkular-charts/blob/master/hawkular-charts.js[hawkular-charts.js]
+*Download:* http://rawgit.com/hawkular/hawkular-charts/master/hawkular-charts.js[hawkular-charts.js]
 
 == Using the Charting Directives
 Bind to a javascript array of metrics:
@@ -79,13 +94,14 @@ This results in less code and more productivity.
 
 .Prerequisite setup:
 . Add the hawkular-charts.css to the main index.html page
+. Add the hawkular-charts.js to the main index.html page
 . Add the charting module to the application module: `app.module('myApp', ['hawkular.charts']);`
 
 All that's left to do now is select the chart type and bind the _data_ attribute on the __<hawkular-chart>__ directive.
 
 
 === Stand Alone Live Updating Tag Example
-__Want to add some dynamically updating charts to your own pages?__
+__Quickly and easily add some dynamically updating charts to your own pages__
 
 
 The stand alone version of the tag allows for linking to hawkular-metrics servers (or any supplier of formatted metric data) without any dependencies except for a few js libs and 2 lines of script to setup an Angular app.
@@ -112,9 +128,7 @@ This allows dashboard templates to be emailed around (although they need to be r
 
 .This project is built around customization. There are several forms of customization:
 - Most cosmetic issues are controlled via standard css through the http://github.com/hawkular/hawkular-charts/blob/master/css/hawkular-charts.css[hawkular-charts.css].
-- Overlay previous time period
-- Tag a point or range on the Chart and annotate with description and/or symbol for later retrieval/comparison. This includes the ability to persist to either client brwowser store or Hawkular Metrics Cassandra: _Soon!_
-- Custom Indicators: _Soon!_
+- Additional(new) functionality is offered through custom attributes.
 
 
 == Building the Project
@@ -128,7 +142,8 @@ This allows dashboard templates to be emailed around (although they need to be r
 
 The environment is now ready to be built.
 
-The *Hawkular Charts*  directives can be built with: `gulp`. Or for dev build `gulp watch`
+The *Hawkular Charts*  directives can be built with: `gulp build`. Or, for dev build that updates with every
+change: `gulp watch`
 
 The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
@@ -144,4 +159,5 @@ We're always interested in contributions from the community.
 .Please ensure that your Pull Request provides the following:
 * Detailed description of the proposed changes
 * Rebased onto the latest master commit
-* This is a http://github.com/Microsoft/TypeScript/[Typescript] project, so please submit the typescript source (not the javascript source; javascript submissions will be rejected)
+* This is a http://github.com/Microsoft/TypeScript/[Typescript] project, so please submit the _Typescript source_ (*not*
+ the javascript source; javascript submissions will be rejected)
