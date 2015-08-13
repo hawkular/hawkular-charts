@@ -1,17 +1,15 @@
 = http://github.com/hawkular/hawkular-charts[Hawkular Charting Directives]
 
 This project provides AngularJS directives for displaying custom visual representations of time series data as charts.
-It uses http://d3js.org[D3] as its charting toolkit and tries to simplify creating advanced metrics visualizations
-with Angular.js.
+It uses http://d3js.org[D3] as its charting toolkit and tries to simplify the creation of advanced metrics visualizations with Angular.js.
 
 == About
 
-Hawkular Charts is a direct result of wanting metric visualizations for the parent project:
+Hawkular Charts is a direct result of needing metric visualizations for the parent project:
 http://github.com/hawkular/hawkular[Hawkular] - _An Open Source
-Monitoring Tool_. The console in Hawkular uses these charting components and will further push the development
+Monitoring Tool_. The console in Hawkular uses these charting components, and will further push the development
 of these charting components into the future with additional features and specialized chart types.
-This will also make adhoc development quicker/easier with components that can render Hawkular Metrics charts with very
-little effort.
+This will also make adhoc development quicker/easier with components that can render Hawkular Metrics charts with very little effort.
 
 == Charts
 
@@ -148,9 +146,12 @@ change: `gulp watch`
 The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
 == Consuming Hawkular Charts from Hawkular Project
-Easily setup bower linking so that changes to the charts are instantly reflected in Hawkular console...
+Easily setup bower linking so that changes to the charts are instantly reflected in Hawkular console.
 
-https://github.com/hawkular/hawkular/tree/master/ui#other-packages-development[Integrating with Hawkular]
+* Run the `bower link` command from inside hawkular-charts
+
+* From Hawkular project build with `mvn clean install -Pdev,link -Dbower.link.package=hawkular-charts`
+
 
 == Contributing
 
