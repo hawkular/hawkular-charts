@@ -147,12 +147,23 @@ change: `gulp watch`
 
 The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
+== Examples
+
+To run the examples, start an http server from the _hawkular-charts_ root directory (such as `python -m SimpleHTTPServer 8000 .`)
+
+* http://rawgit.com/hawkular/hawkular-charts/master/metrics-chart-sample.html.js[Metric Chart]
+* http://rawgit.com/hawkular/hawkular-charts/master/multi-chart-sample.html.js[Multi-line Chart]
+* http://rawgit.com/hawkular/hawkular-charts/master/avail-test.html.js[Availability Chart]
+
+
 == Consuming Hawkular Charts from Hawkular Project
+
 Easily setup bower linking so that changes to the charts are instantly reflected in Hawkular console...
 
 http://www.hawkular.org/docs/dev/ui-dev.html[Integrating with Hawkular]
 
 == Next Steps
+
 * Interactive Hovers: https://issues.jboss.org/browse/HAWKULAR-355
 * Visual Alert Markers (and annotation markers in general): https://issues.jboss.org/browse/HAWKULAR-344
 * Automatically Scale Units for Human Readability: https://issues.jboss.org/browse/HAWKULAR-535
