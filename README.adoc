@@ -1,15 +1,17 @@
 = http://github.com/hawkular/hawkular-charts[Hawkular Charting Directives]
 
 This project provides AngularJS directives for displaying custom visual representations of time series data as charts.
-It uses http://d3js.org[D3] as its charting toolkit and tries to simplify the creation of advanced metrics visualizations with Angular.js.
+It uses http://d3js.org[D3] as its charting toolkit and tries to simplify creating advanced metrics visualizations
+with Angular.js.
 
 == About
 
-Hawkular Charts is a direct result of needing metric visualizations for the parent project:
+Hawkular Charts is a direct result of wanting metric visualizations for the parent project:
 http://github.com/hawkular/hawkular[Hawkular] - _An Open Source
-Monitoring Tool_. The console in Hawkular uses these charting components, and will further push the development
+Monitoring Tool_. The console in Hawkular uses these charting components and will further push the development
 of these charting components into the future with additional features and specialized chart types.
-This will also make adhoc development quicker/easier with components that can render Hawkular Metrics charts with very little effort.
+This will also make adhoc development quicker/easier with components that can render Hawkular Metrics charts with very
+little effort.
 
 == Charts
 
@@ -146,12 +148,15 @@ change: `gulp watch`
 The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
 == Consuming Hawkular Charts from Hawkular Project
-Easily setup bower linking so that changes to the charts are instantly reflected in Hawkular console.
+Easily setup bower linking so that changes to the charts are instantly reflected in Hawkular console...
 
-* Run the `bower link` command from inside hawkular-charts
+http://www.hawkular.org/docs/dev/ui-dev.html[Integrating with Hawkular]
 
-* From Hawkular project build with `mvn clean install -Pdev,link -Dbower.link.package=hawkular-charts`
-
+== Next Steps
+* Interactive Hovers: https://issues.jboss.org/browse/HAWKULAR-355
+* Visual Alert Markers (and annotation markers in general): https://issues.jboss.org/browse/HAWKULAR-344
+* Automatically Scale Units for Human Readability: https://issues.jboss.org/browse/HAWKULAR-535
+* Add Gauge Chart type: https://issues.jboss.org/browse/HAWKULAR-378
 
 == Contributing
 
@@ -159,6 +164,9 @@ We're always interested in contributions from the community.
 
 .Please ensure that your Pull Request provides the following:
 * Detailed description of the proposed changes
+* Use the https://github.com/hawkular/hawkular/blob/master/angular-style-guide.adoc[Angular Typescript Style Guide]
+for reference.
 * Rebased onto the latest master commit
 * This is a http://github.com/Microsoft/TypeScript/[Typescript] project, so please submit the _Typescript source_ (*not*
  the javascript source; javascript submissions will be rejected)
+* Issues/Bugs can be reported via https://issues.jboss.org/browse/HAWKULAR/[Hawkular Jira]
