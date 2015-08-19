@@ -13,7 +13,40 @@ of these charting components into the future with additional features and specia
 This will also make adhoc development quicker/easier with components that can render Hawkular Metrics charts with very
 little effort.
 
+
+== Quickstart
+
+The quickest way to start using the charts is to fire up a http server and start playing with the code. To run the
+ examples, start an http server from the _hawkular-charts_ root directory:
+
+ `python -m SimpleHTTPServer 8000 .`
+
+Then start playing around the the examples (each has data in the example):
+
+* http://rawgit.com/hawkular/hawkular-charts/master/metrics-chart-sample.html.js[metrics-chart-sample.html.js]
+* http://rawgit.com/hawkular/hawkular-charts/master/multi-chart-sample.html.js[multi-chart-sample.html.js[]
+* http://rawgit.com/hawkular/hawkular-charts/master/avail-test.html.js[avail-test.html.js]
+
+These controls are currently being used in the Hawkular Console to view various metrics charts displayed there.
+Please see https://github.com/hawkular/hawkular/tree/master/console for more real examples.
+
 == Charts
+
+=== Chart Types
+
+Chart types are set via the *chart-type* attribute of the *hawkular-chart* directive.
+The following chart types are available:
+
+* *histogram:* histogram bar chart (used in Hawkular GC chart)
+* *area:* standard area chart with hawkular extensions
+* *scatter:* regular scatter plot supporting avg/high/low
+* *hawkularline:* line chart with settings defaulted to hawkular project
+* *hawkularmetric:* specifically tailored toward Single Metrics Display
+* *multiline:* specifically made for display multiple metrics in a singe graph
+* *rhqbar:* http://rhq-project.github.io/rhq/[RHQ/JON] style graphs https://docs.jboss.org/author/display/RHQ/d3+Charts
+
+All of the chart types are either in the process of being approved by Red Hat UxD, or have been approved.
+
 
 ==== Metrics Chart Type
 image::img/hawkular-metric-charts.png[Hawkular Metrics Chart Type]
@@ -49,7 +82,6 @@ _Sample code for this chart:_
     data="{{vm.availabilityDataPoints}}"
     chart-type="availability">
 </availability-chart>
-
 ----
 The availability chart makes it easy to visualize the availability types:
 
@@ -57,16 +89,17 @@ The availability chart makes it easy to visualize the availability types:
 * down
 * unknown (no data was collected for this time period, so we don't know if it was up or down)
 
-on a time line.
+on a time line. (The data formats are discussed later).
 Hovering over one of the areas provides additional information such as: when the period started/ended, the duration
 of the period and the status of the period.
 
 
-==== Other Chart Types
+==== Multi-line Chart Type
 Here is an screen shot from the Hawkular Console that uses the multi-line chart for displaying JVM metrics:
 
 image::img/jvm-heap-chart.png[JVM Heap Chart via Multi-line Chart]
 
+__This chart type would also be used for displaying multiple metrics in a single chart.__
 Don't like the charts we have? Take one of the existing charts and modify (there are many types in the code).
 
 == How to Get
@@ -92,7 +125,7 @@ Bind to a javascript array of metrics:
 The nice part of about using angular in the charting framework is that whenever the underlying data changes, watchers automatically load and re-render the chart (as well as any of the properties that may have changed like chart-type).
 This results in less code and more productivity.
 
-.Prerequisite setup:
+Prerequisite setup:
 . Add the hawkular-charts.css to the main index.html page
 . Add the hawkular-charts.js to the main index.html page
 . Add the charting module to the application module: `app.module('myApp', ['hawkular.charts']);`
@@ -123,6 +156,118 @@ This allows plain html web pages to be sprinkled with tags and a couple js libs 
 *Sample Stand Alone Example Page:*  https://github.com/hawkular/hawkular-charts/blob/master/stand-alone-chart-sample.html[stand-alone-chart-sample.html]
 This allows dashboard templates to be emailed around (although they need to be rendered behind a http server of your choice).
 
+== Data Formats
+
+Metric Time Series data is generally viewed as a Tuple: `{metric, time, value}`. The Hawkular charts version looks like
+this:
+
+=== Availability Data
+
+.Table Availability Data Format
+|===
+|Name |Type |Required |Description
+
+|start
+|number
+|Yes
+|Integer representing Starting period timestamp - milli-seconds since epoch(unix)
+
+|end
+|number
+|Yes
+|Integer representing Ending period timestamp - milli-seconds since epoch(unix)
+
+|value
+|text
+|Yes
+|String enum of Availability Type('up','down','unknown')
+
+
+|duration
+|text
+|No
+|String with duration period to show in hover
+
+
+|message
+|text
+|No
+|String with message **Not Used Yet**
+|===
+
+_Example:_
+[source,javascript]
+----
+ var availChartData = [{"timestamp": 1438025381038, "value": "up"},
+     {"timestamp": 1438031047504, "value": "down"}];
+----
+
+
+
+=== Metrics Data
+
+.Table Aggregated Metrics Data Format
+|===
+|Name |Type |Required |Description
+
+|timestamp
+|number
+|Yes
+|Integer representing milli-seconds since epoch(unix)
+
+|avg
+|number
+|Yes
+|Any valid number (int or decimal)
+
+|min
+|number
+|No
+|Any valid number (int or decimal)
+
+|max
+|number
+|No
+|Any valid number (int or decimal)
+
+
+|empty
+|boolean
+|No
+|boolean indicating if the chart should show *missing* data representation for this time period. This overrides the
+actual values.
+|===
+
+_Aggregate Metrics Example:_
+[source,javascript]
+----
+  var metricData = [{
+        "timestamp": 1434476761167,
+        "avg": 1912,
+        "min": 1482,
+        "max": 2342,
+        "empty": false
+      }, {
+        "timestamp": 1434476791167,
+        "avg": 1816,
+        "min": 1816,
+        "max": 1816,
+        "empty": false
+      }];
+----
+
+TIP: If you don't have aggregate values then just populate the *avg* value with the desired metric value. Min, Max
+and Empty are optional.
+
+NOTE: Everything ends up being an aggregated value in time (usually after 8 hours). This is due to needing a
+consistently representable dataset that charts nicely. Raw datasets can easily become bottlenecks to the clients
+charting the data and unintended consequences of very large or small datasets can make for _strange_ looking charts.
+For this reason, we recommend bucketing data into a fixed set of datapoints that the charting client is comfortable
+handling performance-wise and that generally _fits_ the chart
+
+
+
+
 
 == Chart Customization
 
@@ -147,13 +292,7 @@ change: `gulp watch`
 
 The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
-== Examples
 
-To run the examples, start an http server from the _hawkular-charts_ root directory (such as `python -m SimpleHTTPServer 8000 .`)
-
-* http://rawgit.com/hawkular/hawkular-charts/master/metrics-chart-sample.html.js[Metric Chart]
-* http://rawgit.com/hawkular/hawkular-charts/master/multi-chart-sample.html.js[Multi-line Chart]
-* http://rawgit.com/hawkular/hawkular-charts/master/avail-test.html.js[Availability Chart]
 
 
 == Consuming Hawkular Charts from Hawkular Project
@@ -181,3 +320,5 @@ for reference.
 * This is a http://github.com/Microsoft/TypeScript/[Typescript] project, so please submit the _Typescript source_ (*not*
  the javascript source; javascript submissions will be rejected)
 * Issues/Bugs can be reported via https://issues.jboss.org/browse/HAWKULAR/[Hawkular Jira]
+
+__We would like to give special Thanks to the Red Hat, User Experience Team (UxD) for their design expertise.__
