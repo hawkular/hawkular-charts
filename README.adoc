@@ -314,10 +314,50 @@ __What good is a chart if you don't have a way to get the metric data?__
 
 If you don't want to retrieve data directly from the REST Url, we have an API that is a wrapper around ngResources. For angular apps this is probably the easiest and most powerful way to access Hawkular data. There are currently API wrappers around:
 
+. http://www.hawkular.org/docs/rest/rest-metrics.html[Hawkular Metrics] 
 . http://www.hawkular.org/docs/rest/rest-inventory.html[Hawkular Inventory]
-. http://www.hawkular.org/docs/rest/rest-metrics.html[Hawkular Metrics]
 . http://www.hawkular.org/docs/rest/rest-alerts.html[Hawkular Alerts]
 . https://github.com/hawkular/hawkular-agent[Hawkular Agent] (via websockets)
+
+[source,javascript]
+----
+//
+// Querying Availability
+//
+ HawkularMetric.AvailabilityMetricData(this.$rootScope.currentPersona.id).query({
+          availabilityId: metricId,
+          start: startTime,
+          end: endTime,
+          distinct: true
+        }).$promise
+          .then((response) => {
+            this.availabilityDataPoints = response;
+          }, (error) => {
+            this.NotificationsService.error('Error Loading Avail Data: ' + error);
+          });
+//
+// Here is a real-world example querying multiple metrics for a multi-line graph
+// the data is put into the chartWebSessionData array for charting
+// Querying both Gauge and Counter metrics
+//
+ HawkularMetric.GaugeMetricData(this.$rootScope.currentPersona.id).queryMetrics({
+        gaugeId: 'MI~R~[' + this.$routeParams.resourceId +
+        '~/]~MT~WildFly Aggregated Web Metrics~Aggregated Active Web Sessions',
+        start: this.startTimeStamp,
+        end: this.endTimeStamp, buckets:60}, (data) => {
+        this.chartWebSessionData[0] = { key: 'Active Sessions',
+          color: AppServerWebDetailsController.ACTIVE_COLOR, values: this.formatBucketedChartOutput(data) };
+      }, this);
+      
+ HawkularMetric.CounterMetricData(this.$rootScope.currentPersona.id).queryMetrics({
+        counterId: 'MI~R~[' + this.$routeParams.resourceId +
+          '~/]~MT~WildFly Aggregated Web Metrics~Aggregated Expired Web Sessions',
+        start: this.startTimeStamp,
+        end: this.endTimeStamp, buckets:60}, (data) => {
+        this.chartWebSessionData[1] = { key: 'Expired Sessions',
+          color: AppServerWebDetailsController.EXPIRED_COLOR, values: this.formatCounterChartOutput(data) };
+      }, this);
+----
 
 https://github.com/hawkular/hawkular-ui-services
 
