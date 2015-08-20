@@ -125,7 +125,7 @@ Bind to a javascript array of metrics:
 The nice part of about using angular in the charting framework is that whenever the underlying data changes, watchers automatically load and re-render the chart (as well as any of the properties that may have changed like chart-type).
 This results in less code and more productivity.
 
-Prerequisite setup:
+.Prerequisite setup:
 . Add the hawkular-charts.css to the main index.html page
 . Add the hawkular-charts.js to the main index.html page
 . Add the charting module to the application module: `app.module('myApp', ['hawkular.charts']);`
@@ -307,6 +307,20 @@ http://www.hawkular.org/docs/dev/ui-dev.html[Integrating with Hawkular]
 * Visual Alert Markers (and annotation markers in general): https://issues.jboss.org/browse/HAWKULAR-344
 * Automatically Scale Units for Human Readability: https://issues.jboss.org/browse/HAWKULAR-535
 * Add Gauge Chart type: https://issues.jboss.org/browse/HAWKULAR-378
+
+== Hawkular UI Services
+
+__What good is a chart if you don't have a way to get the metric data?__
+
+If you don't want to retrieve data directly from the REST Url, we have an API that is a wrapper around ngResources. For angular apps this is probably the easiest and most powerful way to access Hawkular data. There are currently API wrappers around:
+
+. http://www.hawkular.org/docs/rest/rest-inventory.html[Hawkular Inventory]
+. http://www.hawkular.org/docs/rest/rest-metrics.html[Hawkular Metrics]
+. http://www.hawkular.org/docs/rest/rest-alerts.html[Hawkular Alerts]
+. https://github.com/hawkular/hawkular-agent[Hawkular Agent] (via websockets)
+
+https://github.com/hawkular/hawkular-ui-services
+
 
 == Contributing
 
