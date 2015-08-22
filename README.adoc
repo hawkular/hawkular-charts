@@ -206,6 +206,8 @@ _Example:_
 
 === Metrics Data
 
+==== Single Chart Data Format
+
 .Table Aggregated Metrics Data Format
 |===
 |Name |Type |Required |Description
@@ -264,6 +266,20 @@ consistently representable dataset that charts nicely. Raw datasets can easily b
 charting the data and unintended consequences of very large or small datasets can make for _strange_ looking charts.
 For this reason, we recommend bucketing data into a fixed set of datapoints that the charting client is comfortable
 handling performance-wise and that generally _fits_ the chart
+
+==== Multi-Chart Data Format
+
+.Table Multi-Chart Data Format
+The multi-chart data format used to show multiple charts(metrics) on a single chart is the same _values_ data as the above metrics data format, but just adds a nested (__d3 nested__) array of map values. This consists of key --> values pairs with the _key_ being the name of the dataset and the _values_ being the array of values metric data described in the preceding section. This is probably most easily illustrated by a code example:
+
+_Example:_
+[source,javascript]
+----
+ var nestedData = [
+  {"key" : "red hat", "values" : redhatData },
+  {"key" : "amazon", "values" : amazonData }
+ ];
+----
 
 
 
