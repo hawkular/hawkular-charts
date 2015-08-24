@@ -1697,7 +1697,7 @@ module Charts {
           }
 
           /// standalone charts attributes
-          scope.$watchGroup(['dataUrl', 'metricId', 'metricTenantId', 'timeRangeInSeconds'], (standAloneParams) => {
+          scope.$watchGroup(['metricUrl', 'metricId', 'metricTenantId', 'timeRangeInSeconds'], (standAloneParams) => {
             ///$log.debug('standalone params has changed');
             dataUrl = standAloneParams[0];
             metricId = standAloneParams[1];
