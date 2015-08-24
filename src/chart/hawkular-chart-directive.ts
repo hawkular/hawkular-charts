@@ -143,6 +143,8 @@ module Charts {
           annotationData = attrs.annotationData;
           contextData = attrs.contextData;
 
+          var startIntervalPromise;
+
           function xMidPointStartPosition(d) {
             return timeScale(d.timestamp) + (calcBarWidth() / 2);
           }
@@ -1709,10 +1711,15 @@ module Charts {
           scope.$watch('refreshIntervalInSeconds', (newRefreshInterval) => {
             if (newRefreshInterval) {
               refreshIntervalInSeconds = +newRefreshInterval;
-              var startIntervalPromise = $interval(() => {
+              $interval.cancel(startIntervalPromise);
+              startIntervalPromise = $interval(() => {
                 loadStandAloneMetricsTimeRangeFromNow();
               }, refreshIntervalInSeconds * 1000);
             }
+          });
+
+          scope.$on('$destroy', () => {
+            $interval.cancel(startIntervalPromise);
           });
 
           scope.$on('DateRangeDragChanged', (event, extent) => {
