@@ -156,7 +156,7 @@ module Charts {
 
 
           function initialization():void {
-            $log.debug("Charts: Initialization");
+            ///$log.debug("Charts: Initialization");
             // destroy any previous charts
             if (chart) {
               chartParent.selectAll('*').remove();
@@ -401,16 +401,11 @@ module Charts {
             }
           }
 
-          function getBaseUrl():string {
-            var baseUrl = dataUrl || 'http://' + $rootScope.$storage.server.replace(/['"]+/g, '') + ':' + $rootScope.$storage.port + BASE_URL;
-            return baseUrl;
-          }
 
-
-          function loadMetricsForTimeRange(url, metricId, startTimestamp, endTimestamp, buckets) {
-            $log.debug('-- Retrieving metrics data for urlData: ' + metricId);
-            $log.debug('-- Date Range: ' + new Date(startTimestamp) + ' - ' + new Date(endTimestamp));
-            $log.debug('-- TenantId: ' + metricTenantId);
+          function loadStandAloneMetricsForTimeRange(url, metricId, startTimestamp, endTimestamp, buckets) {
+            ///$log.debug('-- Retrieving metrics data for urlData: ' + metricId);
+            ///$log.debug('-- Date Range: ' + new Date(startTimestamp) + ' - ' + new Date(endTimestamp));
+            ///$log.debug('-- TenantId: ' + metricTenantId);
 
             var numBuckets = buckets || 60;
             var requestConfig = {
@@ -429,18 +424,21 @@ module Charts {
             }
 
 
-            /// sample url:
-            /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?buckets=120&end=1436831797533&start=1436828197533' -H 'Hawkular-Tenant: 28026b36-8fe4-4332-84c8-524e173a68bf'     -H 'Accept: application/json'
-            $http.get(url + "/" + metricType + "s/" + metricId + "/data", requestConfig).success((response) => {
+            if (url && metricType && metricId) {
 
-              processedNewData = formatBucketedChartOutput(response);
-              console.info("DataPoints from standalone URL: ");
-              ///console.table(processedNewData);
-              scope.render(processedNewData, processedPreviousRangeData);
+              /// sample url:
+              /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?buckets=120&end=1436831797533&start=1436828197533' -H 'Hawkular-Tenant: 28026b36-8fe4-4332-84c8-524e173a68bf'     -H 'Accept: application/json'
+              $http.get(url + "/" + metricType + "s/" + metricId + "/data", requestConfig).success((response) => {
 
-            }).error((reason, status) => {
-              $log.error('Error Loading Chart Data:' + status + ", " + reason);
-            });
+                processedNewData = formatBucketedChartOutput(response);
+                ///console.info("DataPoints from standalone URL: ");
+                ///console.table(processedNewData);
+                scope.render(processedNewData, processedPreviousRangeData);
+
+              }).error((reason, status) => {
+                $log.error('Error Loading Chart Data:' + status + ", " + reason);
+              });
+            }
 
           }
 
@@ -1680,7 +1678,7 @@ module Charts {
             scope.render(processedNewData, processedPreviousRangeData);
           });
 
-          scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue','showAvgLine'], (chartAttrs) => {
+          scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'], (chartAttrs) => {
             alertValue = chartAttrs[0];
             chartType = chartAttrs[1];
             hideHighLowValues = chartAttrs[2];
@@ -1690,10 +1688,10 @@ module Charts {
           });
 
 
-          function loadMetricsTimeRangeFromNow() {
+          function loadStandAloneMetricsTimeRangeFromNow() {
             endTimestamp = Date.now();
             startTimestamp = moment().subtract('seconds', timeRangeInSeconds).valueOf();
-            loadMetricsForTimeRange(getBaseUrl(), metricId, startTimestamp, endTimestamp, 60);
+            loadStandAloneMetricsForTimeRange(dataUrl, metricId, startTimestamp, endTimestamp, 60);
           }
 
           /// standalone charts attributes
@@ -1703,14 +1701,14 @@ module Charts {
             metricId = standAloneParams[1];
             metricTenantId = standAloneParams[2];
             timeRangeInSeconds = standAloneParams[3];
-            loadMetricsTimeRangeFromNow();
+            loadStandAloneMetricsTimeRangeFromNow();
           });
 
           scope.$watch('refreshIntervalInSeconds', (newRefreshInterval) => {
             if (newRefreshInterval) {
               refreshIntervalInSeconds = +newRefreshInterval;
               var startIntervalPromise = $interval(() => {
-                loadMetricsTimeRangeFromNow();
+                loadStandAloneMetricsTimeRangeFromNow();
               }, refreshIntervalInSeconds * 1000);
             }
           });
