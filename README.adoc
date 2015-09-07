@@ -56,7 +56,7 @@ _Sample code for this chart:_
 [source,javascript]
 ----
 <hawkular-chart
-    data="{{dataPoints}}"
+    data="dataPoints"
     chart-type="hawkularmetric"
     alert-value="{{threshold}}"
     y-axis-units="Response Time (ms)"
@@ -79,7 +79,7 @@ _Sample code for this chart:_
 [source,javascript]
 ----
 <availability-chart
-    data="{{vm.availabilityDataPoints}}"
+    data="vm.availabilityDataPoints"
     chart-type="availability">
 </availability-chart>
 ----
@@ -116,7 +116,7 @@ Bind to a javascript array of metrics:
 [source,javascript]
 ----
  <hawkular-chart
-     data="{{vm.getChartDataFor(selectedMetric)}}"
+     data="vm.getChartDataFor(selectedMetric)"
      chart-type="{{selectedChart.chartType}}"
      chart-height="250">
  </hawkular-chart>
@@ -330,7 +330,7 @@ __What good is a chart if you don't have a way to get the metric data?__
 
 If you don't want to retrieve data directly from the REST Url, we have an API that is a wrapper around ngResources. For angular apps this is probably the easiest and most powerful way to access Hawkular data. There are currently API wrappers around:
 
-. http://www.hawkular.org/docs/rest/rest-metrics.html[Hawkular Metrics] 
+. http://www.hawkular.org/docs/rest/rest-metrics.html[Hawkular Metrics]
 . http://www.hawkular.org/docs/rest/rest-inventory.html[Hawkular Inventory]
 . http://www.hawkular.org/docs/rest/rest-alerts.html[Hawkular Alerts]
 . https://github.com/hawkular/hawkular-agent[Hawkular Agent] (via websockets)
@@ -364,7 +364,7 @@ If you don't want to retrieve data directly from the REST Url, we have an API th
         this.chartWebSessionData[0] = { key: 'Active Sessions',
           color: AppServerWebDetailsController.ACTIVE_COLOR, values: this.formatBucketedChartOutput(data) };
       }, this);
-      
+
  HawkularMetric.CounterMetricData(this.$rootScope.currentPersona.id).queryMetrics({
         counterId: 'MI~R~[' + this.$routeParams.resourceId +
           '~/]~MT~WildFly Aggregated Web Metrics~Aggregated Expired Web Sessions',
