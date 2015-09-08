@@ -7,6 +7,8 @@ module Charts {
   declare var numeral:any;
   declare var console:any;
 
+  var debug: boolean = false;
+
   export interface IContextChartDataPoint {
     timestamp: number;
     start?: number;
@@ -1754,8 +1756,8 @@ module Charts {
           }
 
           scope.render = (dataPoints, previousRangeDataPoints) => {
-            console.group('Render Chart');
-            console.time('chartRender');
+            debug && console.group('Render Chart');
+            debug && console.time('chartRender');
             //NOTE: layering order is important!
             initialization();
             if (dataPoints) {
@@ -1793,8 +1795,8 @@ module Charts {
             if (annotationData) {
               annotateChart(annotationData);
             }
-            console.timeEnd('chartRender');
-            console.groupEnd('Render Chart');
+            debug && console.timeEnd('chartRender');
+            debug && console.groupEnd('Render Chart');
           };
         }
 
@@ -1803,8 +1805,8 @@ module Charts {
           restrict: 'E',
           replace: true,
           scope: {
-            data: '@',
-            multiData: '@',
+            data: '=',
+            multiData: '=',
             metricUrl: '@',
             metricId: '@',
             metricType: '@',

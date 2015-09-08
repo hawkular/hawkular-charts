@@ -64,7 +64,7 @@ var hawkularCharts =  angular.module('hawkular.charts')
     public replace = true;
 
     public scope = {
-      data: '@',
+      data: '=',
       startTimestamp: '@',
       endTimestamp: '@',
       chartHeight: '@',

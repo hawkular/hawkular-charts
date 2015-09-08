@@ -72,7 +72,7 @@
   <p>Standard, multiple avail points.</p>
 
   <div ng-controller="AvailTestController as avail">
-    <availability-chart data="{{avail.availAllChartData}}"
+    <availability-chart data="avail.availAllChartData"
                         start-timestamp="{{avail.startTime}}"
                         end-timestamp="{{avail.endTime}}"
       />
@@ -86,7 +86,7 @@
 <!--needs to be augmented by adding another point in order to plot.</p>-->
 
 <!--<div ng-controller="AvailTestController as avail">-->
-<!--<availability-chart data="{{avail.singleAvailData}}"/>-->
+<!--<availability-chart data="avail.singleAvailData"/>-->
 <!--</div>-->
 <!--</div>-->
 
