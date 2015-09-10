@@ -437,8 +437,8 @@ var hawkularCharts =  angular.module('hawkular.charts')
 
       scope.$watchGroup(['startTimestamp','endTimestamp'], (newTimestamp) => {
         console.debug('Avail Chart Start/End Timestamp Changed');
-          startTimestamp = newTimestamp[0];
-          endTimestamp = newTimestamp[1];
+          startTimestamp = newTimestamp[0] || startTimestamp;
+          endTimestamp = newTimestamp[1] || endTimestamp;
           scope.render(transformedDataPoints);
       });
 

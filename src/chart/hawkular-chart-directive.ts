@@ -1683,28 +1683,28 @@ module Charts {
           });
 
           scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'], (chartAttrs) => {
-            alertValue = chartAttrs[0];
-            chartType = chartAttrs[1];
-            hideHighLowValues = chartAttrs[2];
-            useZeroMinValue = chartAttrs[3];
-            showAvgLine = chartAttrs[4];
+            alertValue = chartAttrs[0] || alertValue;
+            chartType = chartAttrs[1] || chartType;
+            hideHighLowValues = chartAttrs[2] || hideHighLowValues;
+            useZeroMinValue = chartAttrs[3] || useZeroMinValue;
+            showAvgLine = chartAttrs[4] || showAvgLine;
             scope.render(processedNewData, processedPreviousRangeData);
           });
 
 
           function loadStandAloneMetricsTimeRangeFromNow() {
             endTimestamp = Date.now();
-            startTimestamp = moment().subtract('seconds', timeRangeInSeconds).valueOf();
+            startTimestamp = moment().subtract(timeRangeInSeconds, 'seconds').valueOf();
             loadStandAloneMetricsForTimeRange(dataUrl, metricId, startTimestamp, endTimestamp, 60);
           }
 
           /// standalone charts attributes
           scope.$watchGroup(['metricUrl', 'metricId', 'metricTenantId', 'timeRangeInSeconds'], (standAloneParams) => {
             ///$log.debug('standalone params has changed');
-            dataUrl = standAloneParams[0];
-            metricId = standAloneParams[1];
-            metricTenantId = standAloneParams[2];
-            timeRangeInSeconds = standAloneParams[3];
+            dataUrl = standAloneParams[0] || dataUrl;
+            metricId = standAloneParams[1] || metricId;
+            metricTenantId = standAloneParams[2] || metricTenantId;
+            timeRangeInSeconds = standAloneParams[3] || timeRangeInSeconds;
             loadStandAloneMetricsTimeRangeFromNow();
           });
 
