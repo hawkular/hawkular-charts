@@ -424,7 +424,7 @@ module Charts {
             };
 
             if (startTimestamp >= endTimestamp) {
-              $log.warn('Start date was after end date');
+              $log.log('Start date was after end date');
             }
 
 
