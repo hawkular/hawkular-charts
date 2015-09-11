@@ -1446,6 +1446,11 @@ module Charts {
                 }
               });
 
+              /// means the whole data is above threshold, use last data point
+              if (startPoints.length === 1 && alertBoundAreaItems.length === 0) {
+                alertBoundAreaItems.push(new AlertBound(chartData[startPoints[0]].timestamp, chartData[chartData.length - 1].timestamp, threshold));
+              }
+
               return alertBoundAreaItems
             }
 
