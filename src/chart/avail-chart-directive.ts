@@ -125,7 +125,8 @@ var hawkularCharts =  angular.module('hawkular.charts')
           chartParent.selectAll('*').remove();
         }
         chartParent = d3.select(element[0]);
-        chart = chartParent.append("svg");
+        chart = chartParent.append("svg")
+          .attr('viewBox', '0 0 760 150').attr('preserveAspectRatio', 'xMinYMin meet');
 
         tip = d3.tip()
           .attr('class', 'd3-tip')

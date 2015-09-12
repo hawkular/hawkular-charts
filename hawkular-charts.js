@@ -71,7 +71,8 @@ var Charts;
                         chartParent.selectAll('*').remove();
                     }
                     chartParent = d3.select(element[0]);
-                    chart = chartParent.append("svg");
+                    chart = chartParent.append("svg")
+                        .attr('viewBox', '0 0 760 150').attr('preserveAspectRatio', 'xMinYMin meet');
                     tip = d3.tip()
                         .attr('class', 'd3-tip')
                         .offset([-10, 0])
@@ -399,7 +400,8 @@ var Charts;
                         chartParent.selectAll('*').remove();
                     }
                     chartParent = d3.select(element[0]);
-                    chart = chartParent.append("svg");
+                    chart = chartParent.append("svg")
+                        .attr('viewBox', '0 0 760 250').attr('preserveAspectRatio', 'xMinYMin meet');
                     createSvgDefs(chart);
                     tip = d3.tip()
                         .attr('class', 'd3-tip')
