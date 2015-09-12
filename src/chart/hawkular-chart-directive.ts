@@ -166,7 +166,8 @@ module Charts {
               chartParent.selectAll('*').remove();
             }
             chartParent = d3.select(element[0]);
-            chart = chartParent.append("svg");
+            chart = chartParent.append("svg")
+              .attr('viewBox', '0 0 760 250').attr('preserveAspectRatio', 'xMinYMin meet');
 
             createSvgDefs(chart);
 
