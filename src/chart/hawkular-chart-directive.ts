@@ -7,7 +7,7 @@ namespace Charts {
   declare let numeral:any;
   declare let console:any;
 
-  let debug: boolean = false;
+  let debug:boolean = false;
 
   export interface IContextChartDataPoint {
     timestamp: number;
@@ -200,7 +200,7 @@ namespace Charts {
                 maxList = [],
                 minList = [];
 
-              angular.forEach(multiChartOverlayData, (series) => {
+              multiChartOverlayData.forEach((series) => {
                 currentMax = d3.max(series.map((d) => {
                   return !d.empty ? d.avg : 0;
                 }));
@@ -327,7 +327,7 @@ namespace Charts {
                 maxList:number[] = [],
                 minList:number[] = [];
 
-              angular.forEach(multiDataPoints, (series) => {
+              multiDataPoints.forEach((series) => {
                 currentMax = d3.max(series.values.map((d) => {
                   return !d.empty ? d.avg : 0;
                 }));
@@ -366,7 +366,7 @@ namespace Charts {
               xTickSubDivide = 5,
               firstDataArray;
 
-            if (multiDataPoints && multiDataPoints[0].values) {
+            if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
 
               firstDataArray = multiDataPoints[0].values;
 
@@ -1017,23 +1017,24 @@ namespace Charts {
               g = 0;
 
             if (multiDataPoints) {
-              angular.forEach(multiDataPoints, (singleChartData) => {
-                //$log.debug('Processing data for: '+singleChartData.key);
-                //console.dir(singleChartData.values);
-                svg.append('path')
-                  .datum(singleChartData.values)
-                  .attr('class', 'multiLine')
-                  .attr('fill', 'none')
-                  .attr('stroke', () => {
-                    if (singleChartData.color) {
-                      return singleChartData.color;
-                    } else {
-                      return colorScale(g);
-                    }
-                  })
-                  .attr('d', createLine('linear'));
-                g++;
+              multiDataPoints.forEach((singleChartData) => {
+                if (singleChartData && singleChartData.values) {
 
+                  svg.append('path')
+                    .datum(singleChartData.values)
+                    .attr('class', 'multiLine')
+                    .attr('fill', 'none')
+                    .attr('stroke', () => {
+                      if (singleChartData.color) {
+                        return singleChartData.color;
+                      } else {
+                        return colorScale(g);
+                      }
+                    })
+                    .attr('d', createLine('linear'));
+                  g++;
+
+                }
               });
             } else {
               $log.warn('No multi-data set for multiline chart');
@@ -1416,7 +1417,7 @@ namespace Charts {
                 else {
                   prevItem = chartData[i - 1];
                   if (chartItem.avg > threshold && prevItem && (!prevItem.avg || prevItem.avg <= threshold)) {
-                    startPoints.push(prevItem.avg ? (i-1) : i);
+                    startPoints.push(prevItem.avg ? (i - 1) : i);
                   }
                 }
 
@@ -1543,7 +1544,7 @@ namespace Charts {
             if (multiChartOverlayData) {
               $log.warn('Running MultiChartOverlay for %i metrics', multiChartOverlayData.length);
 
-              angular.forEach(multiChartOverlayData, (singleChartData) => {
+              multiChartOverlayData.forEach((singleChartData) => {
 
                 svg.append('path')
                   .datum(singleChartData)

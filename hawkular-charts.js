@@ -7,7 +7,7 @@
  */
 angular.module('hawkular.charts', []);
 
-/// <reference path="../../vendor/vendor.d.ts" />
+/// <reference path='../../vendor/vendor.d.ts' />
 var Charts;
 (function (Charts) {
     'use strict';
@@ -57,20 +57,19 @@ var Charts;
                 // chart specific vars
                 var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, brush, tip, timeScaleForBrush, chart, chartParent, svg;
                 function getChartWidth() {
-                    ///return angular.element("#" + chartContext.chartHandle).width();
+                    ///return angular.element('#' + chartContext.chartHandle).width();
                     return 760;
                 }
                 function buildAvailHover(d) {
-                    return "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>\" + d.value.toUpperCase() + \"</span></small></div>\" +\n          \"<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>\" + d.duration + \"</span></small> </div>";
+                    return "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>' + d.value.toUpperCase() + '</span></small></div>' +\n          '<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>' + d.duration + '</span></small> </div>";
                 }
                 function oneTimeChartSetup() {
-                    ///console.log("Availability OneTimeChartSetup");
                     // destroy any previous charts
                     if (chart) {
                         chartParent.selectAll('*').remove();
                     }
                     chartParent = d3.select(element[0]);
-                    chart = chartParent.append("svg")
+                    chart = chartParent.append('svg')
                         .attr('viewBox', '0 0 760 150').attr('preserveAspectRatio', 'xMinYMin meet');
                     tip = d3.tip()
                         .attr('class', 'd3-tip')
@@ -78,10 +77,10 @@ var Charts;
                         .html(function (d) {
                         return buildAvailHover(d);
                     });
-                    svg = chart.append("g")
-                        .attr("width", width + margin.left + margin.right)
-                        .attr("height", innerChartHeight)
-                        .attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
+                    svg = chart.append('g')
+                        .attr('width', width + margin.left + margin.right)
+                        .attr('height', innerChartHeight)
+                        .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
                     svg.call(tip);
                 }
                 function determineAvailScale(dataPoints) {
@@ -93,7 +92,7 @@ var Charts;
                             adjustedTimeRange[0] = d3.min(dataPoints, function (d) {
                                 return d.start;
                             });
-                            // Provide "now" as end // TODO adjust to date range picker
+                            // Provide 'now' as end // TODO adjust to date range picker
                             adjustedTimeRange[1] = +moment();
                         }
                         else {
@@ -107,14 +106,14 @@ var Charts;
                             .scale(yScale)
                             .ticks(0)
                             .tickSize(0, 0)
-                            .orient("left");
+                            .orient('left');
                         timeScale = d3.time.scale()
                             .range([0, width])
                             .domain(adjustedTimeRange);
                         xAxis = d3.svg.axis()
                             .scale(timeScale)
                             .tickSize(-70, 0)
-                            .orient("top");
+                            .orient('top');
                     }
                 }
                 function isUp(d) {
@@ -152,24 +151,24 @@ var Charts;
                 }
                 function createSideYAxisLabels() {
                     ///@Todo: move out to stylesheet
-                    svg.append("text")
-                        .attr("class", "availUpLabel")
-                        .attr("x", -10)
-                        .attr("y", 25)
-                        .style("font-family", "Arial, Verdana, sans-serif;")
-                        .style("font-size", "12px")
-                        .attr("fill", "#999")
-                        .style("text-anchor", "end")
-                        .text("Up");
-                    svg.append("text")
-                        .attr("class", "availDownLabel")
-                        .attr("x", -10)
-                        .attr("y", 55)
-                        .style("font-family", "Arial, Verdana, sans-serif;")
-                        .style("font-size", "12px")
-                        .attr("fill", "#999")
-                        .style("text-anchor", "end")
-                        .text("Down");
+                    svg.append('text')
+                        .attr('class', 'availUpLabel')
+                        .attr('x', -10)
+                        .attr('y', 25)
+                        .style('font-family', 'Arial, Verdana, sans-serif;')
+                        .style('font-size', '12px')
+                        .attr('fill', '#999')
+                        .style('text-anchor', 'end')
+                        .text('Up');
+                    svg.append('text')
+                        .attr('class', 'availDownLabel')
+                        .attr('x', -10)
+                        .attr('y', 55)
+                        .style('font-family', 'Arial, Verdana, sans-serif;')
+                        .style('font-size', '12px')
+                        .attr('fill', '#999')
+                        .style('text-anchor', 'end')
+                        .text('Down');
                 }
                 function createAvailabilityChart(dataPoints) {
                     var xAxisMin = d3.min(dataPoints, function (d) {
@@ -186,7 +185,7 @@ var Charts;
                         .scale(availTimeScale)
                         .ticks(8)
                         .tickSize(13, 0)
-                        .orient("top");
+                        .orient('top');
                     function calcBarY(d) {
                         var offset;
                         if (isUp(d) || isUnknown(d)) {
@@ -209,42 +208,42 @@ var Charts;
                     }
                     function calcBarFill(d) {
                         if (isUp(d)) {
-                            return "#4AA544"; // green
+                            return '#4AA544'; // green
                         }
                         else if (isUnknown(d)) {
-                            return "#B5B5B5"; // gray
+                            return '#B5B5B5'; // gray
                         }
                         else {
-                            return "#E52527"; // red
+                            return '#E52527'; // red
                         }
                     }
-                    svg.selectAll("rect.availBars")
+                    svg.selectAll('rect.availBars')
                         .data(dataPoints)
-                        .enter().append("rect")
-                        .attr("class", "availBars")
-                        .attr("x", function (d) {
+                        .enter().append('rect')
+                        .attr('class', 'availBars')
+                        .attr('x', function (d) {
                         return availTimeScale(+d.start);
                     })
-                        .attr("y", function (d) {
+                        .attr('y', function (d) {
                         return calcBarY(d);
                     })
-                        .attr("height", function (d) {
+                        .attr('height', function (d) {
                         return calcBarHeight(d);
                     })
-                        .attr("width", function (d) {
+                        .attr('width', function (d) {
                         return availTimeScale(+d.end) - availTimeScale(+d.start);
                     })
-                        .attr("fill", function (d) {
+                        .attr('fill', function (d) {
                         return calcBarFill(d);
                     })
-                        .on("mouseover", function (d, i) {
+                        .on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                     // create x-axis
-                    svg.append("g")
-                        .attr("class", "x axis")
+                    svg.append('g')
+                        .attr('class', 'x axis')
                         .call(availXAxis);
                     var bottomYAxisLine = d3.svg.line()
                         .x(function (d) {
@@ -253,46 +252,46 @@ var Charts;
                         .y(function (d) {
                         return height - yScale(0) + 70;
                     });
-                    svg.append("path")
+                    svg.append('path')
                         .datum(dataPoints)
-                        .attr("class", "availYAxisLine")
-                        .attr("d", bottomYAxisLine);
+                        .attr('class', 'availYAxisLine')
+                        .attr('d', bottomYAxisLine);
                     createSideYAxisLabels();
                 }
                 function createXandYAxes() {
                     var xAxisGroup;
                     svg.selectAll('g.axis').remove();
                     // create x-axis
-                    xAxisGroup = svg.append("g")
-                        .attr("class", "x axis")
+                    xAxisGroup = svg.append('g')
+                        .attr('class', 'x axis')
                         .call(xAxis);
-                    //xAxisGroup.append("g")
-                    //  .attr("class", "x brush")
+                    //xAxisGroup.append('g')
+                    //  .attr('class', 'x brush')
                     //  .call(brush)
-                    //  .selectAll("rect")
-                    //  .attr("y", -6)
-                    //  .attr("height", 30);
+                    //  .selectAll('rect')
+                    //  .attr('y', -6)
+                    //  .attr('height', 30);
                     // create y-axis
-                    svg.append("g")
-                        .attr("class", "y axis")
+                    svg.append('g')
+                        .attr('class', 'y axis')
                         .call(yAxis);
                 }
                 function createXAxisBrush() {
                     brush = d3.svg.brush()
                         .x(timeScaleForBrush)
-                        .on("brushstart", brushStart)
-                        .on("brush", brushMove)
-                        .on("brushend", brushEnd);
-                    //brushGroup = svg.append("g")
-                    //    .attr("class", "brush")
+                        .on('brushstart', brushStart)
+                        .on('brush', brushMove)
+                        .on('brushend', brushEnd);
+                    //brushGroup = svg.append('g')
+                    //    .attr('class', 'brush')
                     //    .call(brush);
                     //
-                    //brushGroup.selectAll(".resize").append("path");
+                    //brushGroup.selectAll('.resize').append('path');
                     //
-                    //brushGroup.selectAll("rect")
-                    //    .attr("height", height);
+                    //brushGroup.selectAll('rect')
+                    //    .attr('height', height);
                     function brushStart() {
-                        svg.classed("selecting", true);
+                        svg.classed('selecting', true);
                     }
                     function brushMove() {
                         //useful for showing the daterange change dynamically while selecting
@@ -301,7 +300,7 @@ var Charts;
                     }
                     function brushEnd() {
                         var extent = brush.extent(), startTime = Math.round(extent[0].getTime()), endTime = Math.round(extent[1].getTime()), dragSelectionDelta = endTime - startTime >= 60000;
-                        svg.classed("selecting", !d3.event.target.empty());
+                        svg.classed('selecting', !d3.event.target.empty());
                         // ignore range selections less than 1 minute
                         if (dragSelectionDelta) {
                             scope.$emit('DateRangeChanged', extent);
@@ -322,7 +321,7 @@ var Charts;
                     scope.render(transformedDataPoints);
                 });
                 scope.render = function (dataPoints) {
-                    console.debug("Starting Avail Chart Directive Render");
+                    console.debug('Starting Avail Chart Directive Render');
                     console.group('Render Avail Chart');
                     if (dataPoints) {
                         console.time('availChartRender');
@@ -343,7 +342,7 @@ var Charts;
     Charts.AvailabilityChartDirective = AvailabilityChartDirective;
 })(Charts || (Charts = {}));
 
-/// <reference path="../../vendor/vendor.d.ts" />
+/// <reference path='../../vendor/vendor.d.ts' />
 var Charts;
 (function (Charts) {
     'use strict';
@@ -385,20 +384,19 @@ var Charts;
                     return timeScale(d.timestamp) + (calcBarWidth() / 2);
                 }
                 function getChartWidth() {
-                    //return angular.element("#" + chartContext.chartHandle).width();
+                    //return angular.element('#' + chartContext.chartHandle).width();
                     return 760;
                 }
                 function useSmallCharts() {
                     return getChartWidth() <= smallChartThresholdInPixels;
                 }
                 function initialization() {
-                    ///$log.debug("Charts: Initialization");
                     // destroy any previous charts
                     if (chart) {
                         chartParent.selectAll('*').remove();
                     }
                     chartParent = d3.select(element[0]);
-                    chart = chartParent.append("svg")
+                    chart = chartParent.append('svg')
                         .attr('viewBox', '0 0 760 250').attr('preserveAspectRatio', 'xMinYMin meet');
                     createSvgDefs(chart);
                     tip = d3.tip()
@@ -407,17 +405,17 @@ var Charts;
                         .html(function (d, i) {
                         return buildHover(d, i);
                     });
-                    svg = chart.append("g")
-                        .attr("width", width + margin.left + margin.right)
-                        .attr("height", innerChartHeight)
-                        .attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
+                    svg = chart.append('g')
+                        .attr('width', width + margin.left + margin.right)
+                        .attr('height', innerChartHeight)
+                        .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
                     svg.call(tip);
                 }
                 function setupFilteredData(dataPoints) {
                     var alertPeak, highPeak;
                     function determineMultiMetricMinMax() {
                         var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
-                        angular.forEach(multiChartOverlayData, function (series) {
+                        multiChartOverlayData.forEach(function (series) {
                             currentMax = d3.max(series.map(function (d) {
                                 return !d.empty ? d.avg : 0;
                             }));
@@ -483,7 +481,7 @@ var Charts;
                             .tickSubdivide(1)
                             .ticks(5)
                             .tickSize(4, 4, 0)
-                            .orient("left");
+                            .orient('left');
                         timeScale = d3.time.scale()
                             .range([0, width])
                             .domain(d3.extent(chartData, function (d) {
@@ -506,17 +504,17 @@ var Charts;
                         xAxis = d3.svg.axis()
                             .scale(timeScale)
                             .ticks(xTicks)
-                            .tickFormat(d3.time.format("%H:%M"))
+                            .tickFormat(d3.time.format('%H:%M'))
                             .tickSubdivide(xTickSubDivide)
                             .tickSize(4, 4, 0)
-                            .orient("bottom");
+                            .orient('bottom');
                     }
                 }
                 function setupFilteredMultiData(multiDataPoints) {
                     var alertPeak, highPeak, highbound, lowbound;
                     function determineMultiDataMinMax() {
                         var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
-                        angular.forEach(multiDataPoints, function (series) {
+                        multiDataPoints.forEach(function (series) {
                             currentMax = d3.max(series.values.map(function (d) {
                                 return !d.empty ? d.avg : 0;
                             }));
@@ -546,7 +544,7 @@ var Charts;
                 }
                 function determineMultiScale(multiDataPoints) {
                     var xTicks = 9, xTickSubDivide = 5, firstDataArray;
-                    if (multiDataPoints && multiDataPoints[0].values) {
+                    if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
                         firstDataArray = multiDataPoints[0].values;
                         var lowHigh = setupFilteredMultiData(multiDataPoints);
                         lowBound = lowHigh[0];
@@ -560,7 +558,7 @@ var Charts;
                             .tickSubdivide(1)
                             .ticks(5)
                             .tickSize(4, 4, 0)
-                            .orient("left");
+                            .orient('left');
                         timeScale = d3.time.scale()
                             .range([0, width])
                             .domain(d3.extent(firstDataArray, function (d) {
@@ -569,10 +567,10 @@ var Charts;
                         xAxis = d3.svg.axis()
                             .scale(timeScale)
                             .ticks(xTicks)
-                            .tickFormat(d3.time.format("%H:%M"))
+                            .tickFormat(d3.time.format('%H:%M'))
                             .tickSubdivide(xTickSubDivide)
                             .tickSize(4, 4, 0)
-                            .orient("bottom");
+                            .orient('bottom');
                     }
                 }
                 function loadStandAloneMetricsForTimeRange(url, metricId, startTimestamp, endTimestamp, buckets) {
@@ -596,13 +594,13 @@ var Charts;
                     if (url && metricType && metricId) {
                         /// sample url:
                         /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?buckets=120&end=1436831797533&start=1436828197533' -H 'Hawkular-Tenant: 28026b36-8fe4-4332-84c8-524e173a68bf'     -H 'Accept: application/json'
-                        $http.get(url + "/" + metricType + "s/" + metricId + "/data", requestConfig).success(function (response) {
+                        $http.get(url + '/' + metricType + 's/' + metricId + '/data', requestConfig).success(function (response) {
                             processedNewData = formatBucketedChartOutput(response);
-                            ///console.info("DataPoints from standalone URL: ");
+                            ///console.info('DataPoints from standalone URL: ');
                             ///console.table(processedNewData);
                             scope.render(processedNewData, processedPreviousRangeData);
                         }).error(function (reason, status) {
-                            $log.error('Error Loading Chart Data:' + status + ", " + reason);
+                            $log.error('Error Loading Chart Data:' + status + ', ' + reason);
                         });
                     }
                 }
@@ -637,87 +635,76 @@ var Charts;
                     }
                     if (isEmptyDataBar(d)) {
                         // nodata
-                        hover = "<div class='chartHover'><small class='chartHoverLabel'>" + noDataLabel + "</small>" +
-                            "<div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>" +
-                            "<hr/>" +
-                            "<div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div></div>";
+                        hover = "<div class='chartHover'><small class='chartHoverLabel'>' + noDataLabel + '</small>' +\n                '<div><small><span class='chartHoverLabel'>' + durationLabel + '</span><span>: </span><span class='chartHoverValue'>' + barDuration + '</span></small> </div>' +\n                '<hr/>' +\n                '<div><small><span class='chartHoverLabel'>' + timestampLabel + '</span><span>: </span><span class='chartHoverValue'>' + formattedDateTime + '</span></small></div></div>";
                     }
                     else {
                         if (isRawMetric(d)) {
                             // raw single value from raw table
-                            hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>" +
-                                "<div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>" +
-                                "<hr/>" +
-                                "<div><small><span class='chartHoverLabel'>" + singleValueLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.value).format('0,0.0') + "</span></small> </div></div> ";
+                            hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>' + timestampLabel + '</span><span>: </span><span class='chartHoverValue'>' + formattedDateTime + '</span></small></div>' +\n                  '<div><small><span class='chartHoverLabel'>' + durationLabel + '</span><span>: </span><span class='chartHoverValue'>' + barDuration + '</span></small> </div>' +\n                  '<hr/>' +\n                  '<div><small><span class='chartHoverLabel'>' + singleValueLabel + '</span><span>: </span><span class='chartHoverValue'>' + numeral(d.value).format('0,0.0') + '</span></small> </div></div> ";
                         }
                         else {
                             // aggregate with min/avg/max
-                            hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>" +
-                                "<div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>" +
-                                "<hr/>" +
-                                "<div><small><span class='chartHoverLabel'>" + maxLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.max).format('0,0.0') + "</span></small> </div> " +
-                                "<div><small><span class='chartHoverLabel'>" + avgLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.avg).format('0,0.0') + "</span></small> </div> " +
-                                "<div><small><span class='chartHoverLabel'>" + minLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.min).format('0,0.0') + "</span></small> </div></div> ";
+                            hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>' + timestampLabel + '</span><span>: </span><span class='chartHoverValue'>' + formattedDateTime + '</span></small></div>' +\n                  '<div><small><span class='chartHoverLabel'>' + durationLabel + '</span><span>: </span><span class='chartHoverValue'>' + barDuration + '</span></small> </div>' +\n                  '<hr/>' +\n                  '<div><small><span class='chartHoverLabel'>' + maxLabel + '</span><span>: </span><span class='chartHoverValue'>' + numeral(d.max).format('0,0.0') + '</span></small> </div> ' +\n                  '<div><small><span class='chartHoverLabel'>' + avgLabel + '</span><span>: </span><span class='chartHoverValue'>' + numeral(d.avg).format('0,0.0') + '</span></small> </div> ' +\n                  '<div><small><span class='chartHoverLabel'>' + minLabel + '</span><span>: </span><span class='chartHoverValue'>' + numeral(d.min).format('0,0.0') + '</span></small> </div></div> ";
                         }
                     }
                     return hover;
                 }
                 function createHeader(titleName) {
-                    var title = chart.append("g").append("rect")
-                        .attr("class", "title")
-                        .attr("x", 30)
-                        .attr("y", margin.top)
-                        .attr("height", titleHeight)
-                        .attr("width", width + 30 + margin.left)
-                        .attr("fill", "none");
-                    chart.append("text")
-                        .attr("class", "titleName")
-                        .attr("x", 40)
-                        .attr("y", 37)
+                    var title = chart.append('g').append('rect')
+                        .attr('class', 'title')
+                        .attr('x', 30)
+                        .attr('y', margin.top)
+                        .attr('height', titleHeight)
+                        .attr('width', width + 30 + margin.left)
+                        .attr('fill', 'none');
+                    chart.append('text')
+                        .attr('class', 'titleName')
+                        .attr('x', 40)
+                        .attr('y', 37)
                         .text(titleName);
                     return title;
                 }
                 function createSvgDefs(chart) {
-                    var defs = chart.append("defs");
-                    defs.append("pattern")
-                        .attr("id", "noDataStripes")
-                        .attr("patternUnits", "userSpaceOnUse")
-                        .attr("x", "0")
-                        .attr("y", "0")
-                        .attr("width", "6")
-                        .attr("height", "3")
-                        .append("path")
-                        .attr("d", "M 0 0 6 0")
-                        .attr("style", "stroke:#CCCCCC; fill:none;");
-                    defs.append("pattern")
-                        .attr("id", "unknownStripes")
-                        .attr("patternUnits", "userSpaceOnUse")
-                        .attr("x", "0")
-                        .attr("y", "0")
-                        .attr("width", "6")
-                        .attr("height", "3")
-                        .attr("style", "stroke:#2E9EC2; fill:none;")
-                        .append("path").attr("d", "M 0 0 6 0");
-                    defs.append("pattern")
-                        .attr("id", "downStripes")
-                        .attr("patternUnits", "userSpaceOnUse")
-                        .attr("x", "0")
-                        .attr("y", "0")
-                        .attr("width", "6")
-                        .attr("height", "3")
-                        .attr("style", "stroke:#ff8a9a; fill:none;")
-                        .append("path").attr("d", "M 0 0 6 0");
+                    var defs = chart.append('defs');
+                    defs.append('pattern')
+                        .attr('id', 'noDataStripes')
+                        .attr('patternUnits', 'userSpaceOnUse')
+                        .attr('x', '0')
+                        .attr('y', '0')
+                        .attr('width', '6')
+                        .attr('height', '3')
+                        .append('path')
+                        .attr('d', 'M 0 0 6 0')
+                        .attr('style', 'stroke:#CCCCCC; fill:none;');
+                    defs.append('pattern')
+                        .attr('id', 'unknownStripes')
+                        .attr('patternUnits', 'userSpaceOnUse')
+                        .attr('x', '0')
+                        .attr('y', '0')
+                        .attr('width', '6')
+                        .attr('height', '3')
+                        .attr('style', 'stroke:#2E9EC2; fill:none;')
+                        .append('path').attr('d', 'M 0 0 6 0');
+                    defs.append('pattern')
+                        .attr('id', 'downStripes')
+                        .attr('patternUnits', 'userSpaceOnUse')
+                        .attr('x', '0')
+                        .attr('y', '0')
+                        .attr('width', '6')
+                        .attr('height', '3')
+                        .attr('style', 'stroke:#ff8a9a; fill:none;')
+                        .append('path').attr('d', 'M 0 0 6 0');
                 }
                 function createStackedBars(lowBound, highBound) {
                     // The gray bars at the bottom leading up
-                    svg.selectAll("rect.leaderBar")
+                    svg.selectAll('rect.leaderBar')
                         .data(chartData)
-                        .enter().append("rect")
-                        .attr("class", "leaderBar")
-                        .attr("x", function (d) {
+                        .enter().append('rect')
+                        .attr('class', 'leaderBar')
+                        .attr('x', function (d) {
                         return timeScale(d.timestamp);
                     })
-                        .attr("y", function (d) {
+                        .attr('y', function (d) {
                         if (!isEmptyDataBar(d)) {
                             return yScale(d.min);
                         }
@@ -725,7 +712,7 @@ var Charts;
                             return 0;
                         }
                     })
-                        .attr("height", function (d) {
+                        .attr('height', function (d) {
                         if (isEmptyDataBar(d)) {
                             return height - yScale(highBound);
                         }
@@ -733,34 +720,34 @@ var Charts;
                             return height - yScale(d.min);
                         }
                     })
-                        .attr("width", function () {
+                        .attr('width', function () {
                         return calcBarWidth();
                     })
-                        .attr("opacity", ".6")
-                        .attr("fill", function (d) {
+                        .attr('opacity', '.6')
+                        .attr('fill', function (d) {
                         if (isEmptyDataBar(d)) {
-                            return "url(#noDataStripes)";
+                            return 'url(#noDataStripes)';
                         }
                         else {
-                            return "#d3d3d6";
+                            return '#d3d3d6';
                         }
-                    }).on("mouseover", function (d, i) {
+                    }).on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                     // upper portion representing avg to high
-                    svg.selectAll("rect.high")
+                    svg.selectAll('rect.high')
                         .data(chartData)
-                        .enter().append("rect")
-                        .attr("class", "high")
-                        .attr("x", function (d) {
+                        .enter().append('rect')
+                        .attr('class', 'high')
+                        .attr('x', function (d) {
                         return timeScale(d.timestamp);
                     })
-                        .attr("y", function (d) {
+                        .attr('y', function (d) {
                         return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
                     })
-                        .attr("height", function (d) {
+                        .attr('height', function (d) {
                         if (isEmptyDataBar(d)) {
                             return 0;
                         }
@@ -768,30 +755,30 @@ var Charts;
                             return yScale(d.avg) - yScale(d.max);
                         }
                     })
-                        .attr("width", function () {
+                        .attr('width', function () {
                         return calcBarWidth();
                     })
-                        .attr("data-rhq-value", function (d) {
+                        .attr('data-rhq-value', function (d) {
                         return d.max;
                     })
-                        .attr("opacity", 0.9)
-                        .on("mouseover", function (d, i) {
+                        .attr('opacity', 0.9)
+                        .on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                     // lower portion representing avg to low
-                    svg.selectAll("rect.low")
+                    svg.selectAll('rect.low')
                         .data(chartData)
-                        .enter().append("rect")
-                        .attr("class", "low")
-                        .attr("x", function (d) {
+                        .enter().append('rect')
+                        .attr('class', 'low')
+                        .attr('x', function (d) {
                         return timeScale(d.timestamp);
                     })
-                        .attr("y", function (d) {
+                        .attr('y', function (d) {
                         return isNaN(d.avg) ? height : yScale(d.avg);
                     })
-                        .attr("height", function (d) {
+                        .attr('height', function (d) {
                         if (isEmptyDataBar(d)) {
                             return 0;
                         }
@@ -799,30 +786,30 @@ var Charts;
                             return yScale(d.min) - yScale(d.avg);
                         }
                     })
-                        .attr("width", function () {
+                        .attr('width', function () {
                         return calcBarWidth();
                     })
-                        .attr("opacity", 0.9)
-                        .attr("data-rhq-value", function (d) {
+                        .attr('opacity', 0.9)
+                        .attr('data-rhq-value', function (d) {
                         return d.min;
                     })
-                        .on("mouseover", function (d, i) {
+                        .on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
-                    // if high == low put a "cap" on the bar to show raw value, non-aggregated bar
-                    svg.selectAll("rect.singleValue")
+                    // if high == low put a 'cap' on the bar to show raw value, non-aggregated bar
+                    svg.selectAll('rect.singleValue')
                         .data(chartData)
-                        .enter().append("rect")
-                        .attr("class", "singleValue")
-                        .attr("x", function (d) {
+                        .enter().append('rect')
+                        .attr('class', 'singleValue')
+                        .attr('x', function (d) {
                         return timeScale(d.timestamp);
                     })
-                        .attr("y", function (d) {
+                        .attr('y', function (d) {
                         return isNaN(d.value) ? height : yScale(d.value) - 2;
                     })
-                        .attr("height", function (d) {
+                        .attr('height', function (d) {
                         if (isEmptyDataBar(d)) {
                             return 0;
                         }
@@ -835,39 +822,39 @@ var Charts;
                             }
                         }
                     })
-                        .attr("width", function () {
+                        .attr('width', function () {
                         return calcBarWidth();
                     })
-                        .attr("opacity", 0.9)
-                        .attr("data-rhq-value", function (d) {
+                        .attr('opacity', 0.9)
+                        .attr('data-rhq-value', function (d) {
                         return d.value;
                     })
-                        .attr("fill", function (d) {
+                        .attr('fill', function (d) {
                         if (d.min === d.max) {
-                            return "#50505a";
+                            return '#50505a';
                         }
                         else {
-                            return "#70c4e2";
+                            return '#70c4e2';
                         }
-                    }).on("mouseover", function (d, i) {
+                    }).on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                 }
                 function createCandleStickChart() {
                     // upper portion representing avg to high
-                    svg.selectAll("rect.candlestick.up")
+                    svg.selectAll('rect.candlestick.up')
                         .data(chartData)
-                        .enter().append("rect")
-                        .attr("class", "candleStickUp")
-                        .attr("x", function (d) {
+                        .enter().append('rect')
+                        .attr('class', 'candleStickUp')
+                        .attr('x', function (d) {
                         return timeScale(d.timestamp);
                     })
-                        .attr("y", function (d) {
+                        .attr('y', function (d) {
                         return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
                     })
-                        .attr("height", function (d) {
+                        .attr('height', function (d) {
                         if (isEmptyDataBar(d)) {
                             return 0;
                         }
@@ -875,29 +862,29 @@ var Charts;
                             return yScale(d.avg) - yScale(d.max);
                         }
                     })
-                        .attr("width", function () {
+                        .attr('width', function () {
                         return calcBarWidth();
                     })
-                        .style("fill", function (d, i) {
+                        .style('fill', function (d, i) {
                         return fillCandleChart(d, i);
                     })
-                        .on("mouseover", function (d, i) {
+                        .on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                     // lower portion representing avg to low
-                    svg.selectAll("rect.candlestick.down")
+                    svg.selectAll('rect.candlestick.down')
                         .data(chartData)
-                        .enter().append("rect")
-                        .attr("class", "candleStickDown")
-                        .attr("x", function (d) {
+                        .enter().append('rect')
+                        .attr('class', 'candleStickDown')
+                        .attr('x', function (d) {
                         return timeScale(d.timestamp);
                     })
-                        .attr("y", function (d) {
+                        .attr('y', function (d) {
                         return isNaN(d.avg) ? height : yScale(d.avg);
                     })
-                        .attr("height", function (d) {
+                        .attr('height', function (d) {
                         if (isEmptyDataBar(d)) {
                             return 0;
                         }
@@ -905,46 +892,46 @@ var Charts;
                             return yScale(d.min) - yScale(d.avg);
                         }
                     })
-                        .attr("width", function () {
+                        .attr('width', function () {
                         return calcBarWidth();
                     })
-                        .attr("data-rhq-value", function (d) {
+                        .attr('data-rhq-value', function (d) {
                         return d.min;
                     })
-                        .style("fill", function (d, i) {
+                        .style('fill', function (d, i) {
                         return fillCandleChart(d, i);
                     })
-                        .on("mouseover", function (d, i) {
+                        .on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                     function fillCandleChart(d, i) {
                         if (i > 0 && chartData[i].avg > chartData[i - 1].avg) {
-                            return "green";
+                            return 'green';
                         }
                         else if (i === 0) {
-                            return "none";
+                            return 'none';
                         }
                         else {
-                            return "#ff0705";
+                            return '#ff0705';
                         }
                     }
                 }
                 function createHistogramChart() {
-                    var strokeOpacity = "0.6";
+                    var strokeOpacity = '0.6';
                     // upper portion representing avg to high
-                    svg.selectAll("rect.histogram")
+                    svg.selectAll('rect.histogram')
                         .data(chartData)
-                        .enter().append("rect")
-                        .attr("class", "histogram")
-                        .attr("x", function (d) {
+                        .enter().append('rect')
+                        .attr('class', 'histogram')
+                        .attr('x', function (d) {
                         return timeScale(d.timestamp);
                     })
-                        .attr("width", function () {
+                        .attr('width', function () {
                         return calcBarWidth();
                     })
-                        .attr("y", function (d) {
+                        .attr('y', function (d) {
                         if (!isEmptyDataBar(d)) {
                             return yScale(d.avg);
                         }
@@ -952,7 +939,7 @@ var Charts;
                             return 0;
                         }
                     })
-                        .attr("height", function (d) {
+                        .attr('height', function (d) {
                         if (isEmptyDataBar(d)) {
                             return height - yScale(highBound);
                         }
@@ -960,7 +947,7 @@ var Charts;
                             return height - yScale(d.avg);
                         }
                     })
-                        .attr("fill", function (d, i) {
+                        .attr('fill', function (d, i) {
                         if (isEmptyDataBar(d)) {
                             return 'url(#noDataStripes)';
                         }
@@ -968,10 +955,10 @@ var Charts;
                             return '#C0C0C0';
                         }
                     })
-                        .attr("stroke", function (d) {
+                        .attr('stroke', function (d) {
                         return '#777';
                     })
-                        .attr("stroke-width", function (d) {
+                        .attr('stroke-width', function (d) {
                         if (isEmptyDataBar(d)) {
                             return '0';
                         }
@@ -979,105 +966,105 @@ var Charts;
                             return '0';
                         }
                     })
-                        .attr("data-rhq-value", function (d) {
+                        .attr('data-rhq-value', function (d) {
                         return d.avg;
-                    }).on("mouseover", function (d, i) {
+                    }).on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                     if (hideHighLowValues === false) {
-                        svg.selectAll(".histogram.top.stem")
+                        svg.selectAll('.histogram.top.stem')
                             .data(chartData)
-                            .enter().append("line")
-                            .attr("class", "histogramTopStem")
-                            .attr("x1", function (d) {
+                            .enter().append('line')
+                            .attr('class', 'histogramTopStem')
+                            .attr('x1', function (d) {
                             return xMidPointStartPosition(d);
                         })
-                            .attr("x2", function (d) {
+                            .attr('x2', function (d) {
                             return xMidPointStartPosition(d);
                         })
-                            .attr("y1", function (d) {
+                            .attr('y1', function (d) {
                             return yScale(d.max);
                         })
-                            .attr("y2", function (d) {
+                            .attr('y2', function (d) {
                             return yScale(d.avg);
                         })
-                            .attr("stroke", function (d) {
-                            return "red";
+                            .attr('stroke', function (d) {
+                            return 'red';
                         })
-                            .attr("stroke-opacity", function (d) {
+                            .attr('stroke-opacity', function (d) {
                             return strokeOpacity;
                         });
-                        svg.selectAll(".histogram.bottom.stem")
+                        svg.selectAll('.histogram.bottom.stem')
                             .data(chartData)
-                            .enter().append("line")
-                            .attr("class", "histogramBottomStem")
-                            .attr("x1", function (d) {
+                            .enter().append('line')
+                            .attr('class', 'histogramBottomStem')
+                            .attr('x1', function (d) {
                             return xMidPointStartPosition(d);
                         })
-                            .attr("x2", function (d) {
+                            .attr('x2', function (d) {
                             return xMidPointStartPosition(d);
                         })
-                            .attr("y1", function (d) {
+                            .attr('y1', function (d) {
                             return yScale(d.avg);
                         })
-                            .attr("y2", function (d) {
+                            .attr('y2', function (d) {
                             return yScale(d.min);
                         })
-                            .attr("stroke", function (d) {
-                            return "red";
-                        }).attr("stroke-opacity", function (d) {
+                            .attr('stroke', function (d) {
+                            return 'red';
+                        }).attr('stroke-opacity', function (d) {
                             return strokeOpacity;
                         });
-                        svg.selectAll(".histogram.top.cross")
+                        svg.selectAll('.histogram.top.cross')
                             .data(chartData)
-                            .enter().append("line")
-                            .attr("class", "histogramTopCross")
-                            .attr("x1", function (d) {
+                            .enter().append('line')
+                            .attr('class', 'histogramTopCross')
+                            .attr('x1', function (d) {
                             return xMidPointStartPosition(d) - 3;
                         })
-                            .attr("x2", function (d) {
+                            .attr('x2', function (d) {
                             return xMidPointStartPosition(d) + 3;
                         })
-                            .attr("y1", function (d) {
+                            .attr('y1', function (d) {
                             return yScale(d.max);
                         })
-                            .attr("y2", function (d) {
+                            .attr('y2', function (d) {
                             return yScale(d.max);
                         })
-                            .attr("stroke", function (d) {
-                            return "red";
+                            .attr('stroke', function (d) {
+                            return 'red';
                         })
-                            .attr("stroke-width", function (d) {
-                            return "0.5";
+                            .attr('stroke-width', function (d) {
+                            return '0.5';
                         })
-                            .attr("stroke-opacity", function (d) {
+                            .attr('stroke-opacity', function (d) {
                             return strokeOpacity;
                         });
-                        svg.selectAll(".histogram.bottom.cross")
+                        svg.selectAll('.histogram.bottom.cross')
                             .data(chartData)
-                            .enter().append("line")
-                            .attr("class", "histogramBottomCross")
-                            .attr("x1", function (d) {
+                            .enter().append('line')
+                            .attr('class', 'histogramBottomCross')
+                            .attr('x1', function (d) {
                             return xMidPointStartPosition(d) - 3;
                         })
-                            .attr("x2", function (d) {
+                            .attr('x2', function (d) {
                             return xMidPointStartPosition(d) + 3;
                         })
-                            .attr("y1", function (d) {
+                            .attr('y1', function (d) {
                             return yScale(d.min);
                         })
-                            .attr("y2", function (d) {
+                            .attr('y2', function (d) {
                             return yScale(d.min);
                         })
-                            .attr("stroke", function (d) {
-                            return "red";
+                            .attr('stroke', function (d) {
+                            return 'red';
                         })
-                            .attr("stroke-width", function (d) {
-                            return "0.5";
+                            .attr('stroke-width', function (d) {
+                            return '0.5';
                         })
-                            .attr("stroke-opacity", function (d) {
+                            .attr('stroke-opacity', function (d) {
                             return strokeOpacity;
                         });
                     }
@@ -1095,10 +1082,10 @@ var Charts;
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     });
                     // Bar avg line
-                    svg.append("path")
+                    svg.append('path')
                         .datum(chartData)
-                        .attr("class", "avgLine")
-                        .attr("d", chartLine);
+                        .attr('class', 'avgLine')
+                        .attr('d', chartLine);
                 }
                 function createHawkularMetricChart() {
                     var metricChartLine = d3.svg.line()
@@ -1112,35 +1099,35 @@ var Charts;
                         .y(function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     });
-                    svg.append("path")
+                    svg.append('path')
                         .datum(chartData)
-                        .attr("class", "metricLine")
-                        .attr("d", metricChartLine);
+                        .attr('class', 'metricLine')
+                        .attr('d', metricChartLine);
                 }
                 function createMultiLineChart(multiDataPoints) {
                     var colorScale = d3.scale.category10(), g = 0;
                     if (multiDataPoints) {
-                        angular.forEach(multiDataPoints, function (singleChartData) {
-                            //$log.debug("Processing data for: "+singleChartData.key);
-                            //console.dir(singleChartData.values);
-                            svg.append("path")
-                                .datum(singleChartData.values)
-                                .attr("class", "multiLine")
-                                .attr("fill", "none")
-                                .attr("stroke", function () {
-                                if (singleChartData.color) {
-                                    return singleChartData.color;
-                                }
-                                else {
-                                    return colorScale(g);
-                                }
-                            })
-                                .attr("d", createLine("linear"));
-                            g++;
+                        multiDataPoints.forEach(function (singleChartData) {
+                            if (singleChartData && singleChartData.values) {
+                                svg.append('path')
+                                    .datum(singleChartData.values)
+                                    .attr('class', 'multiLine')
+                                    .attr('fill', 'none')
+                                    .attr('stroke', function () {
+                                    if (singleChartData.color) {
+                                        return singleChartData.color;
+                                    }
+                                    else {
+                                        return colorScale(g);
+                                    }
+                                })
+                                    .attr('d', createLine('linear'));
+                                g++;
+                            }
                         });
                     }
                     else {
-                        $log.warn("No multi-data set for multiline chart");
+                        $log.warn('No multi-data set for multiline chart');
                     }
                 }
                 function createAreaChart() {
@@ -1185,193 +1172,193 @@ var Charts;
                         return height;
                     });
                     if (hideHighLowValues === false) {
-                        svg.append("path")
+                        svg.append('path')
                             .datum(chartData)
-                            .attr("class", "highArea")
-                            .attr("d", highArea);
-                        svg.append("path")
+                            .attr('class', 'highArea')
+                            .attr('d', highArea);
+                        svg.append('path')
                             .datum(chartData)
-                            .attr("class", "lowArea")
-                            .attr("d", lowArea);
+                            .attr('class', 'lowArea')
+                            .attr('d', lowArea);
                     }
-                    svg.append("path")
+                    svg.append('path')
                         .datum(chartData)
-                        .attr("class", "avgArea")
-                        .attr("d", avgArea);
+                        .attr('class', 'avgArea')
+                        .attr('d', avgArea);
                 }
                 function createScatterChart() {
                     if (hideHighLowValues === false) {
-                        svg.selectAll(".highDot")
+                        svg.selectAll('.highDot')
                             .data(chartData)
-                            .enter().append("circle")
-                            .attr("class", "highDot")
-                            .attr("r", 3)
-                            .attr("cx", function (d) {
+                            .enter().append('circle')
+                            .attr('class', 'highDot')
+                            .attr('r', 3)
+                            .attr('cx', function (d) {
                             return xMidPointStartPosition(d);
                         })
-                            .attr("cy", function (d) {
+                            .attr('cy', function (d) {
                             return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                         })
-                            .style("fill", function () {
-                            return "#ff1a13";
-                        }).on("mouseover", function (d, i) {
+                            .style('fill', function () {
+                            return '#ff1a13';
+                        }).on('mouseover', function (d, i) {
                             tip.show(d, i);
-                        }).on("mouseout", function () {
+                        }).on('mouseout', function () {
                             tip.hide();
                         });
-                        svg.selectAll(".lowDot")
+                        svg.selectAll('.lowDot')
                             .data(chartData)
-                            .enter().append("circle")
-                            .attr("class", "lowDot")
-                            .attr("r", 3)
-                            .attr("cx", function (d) {
+                            .enter().append('circle')
+                            .attr('class', 'lowDot')
+                            .attr('r', 3)
+                            .attr('cx', function (d) {
                             return xMidPointStartPosition(d);
                         })
-                            .attr("cy", function (d) {
+                            .attr('cy', function (d) {
                             return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
                         })
-                            .style("fill", function () {
-                            return "#70c4e2";
-                        }).on("mouseover", function (d, i) {
+                            .style('fill', function () {
+                            return '#70c4e2';
+                        }).on('mouseover', function (d, i) {
                             tip.show(d, i);
-                        }).on("mouseout", function () {
+                        }).on('mouseout', function () {
                             tip.hide();
                         });
                     }
-                    svg.selectAll(".avgDot")
+                    svg.selectAll('.avgDot')
                         .data(chartData)
-                        .enter().append("circle")
-                        .attr("class", "avgDot")
-                        .attr("r", 3)
-                        .attr("cx", function (d) {
+                        .enter().append('circle')
+                        .attr('class', 'avgDot')
+                        .attr('r', 3)
+                        .attr('cx', function (d) {
                         return xMidPointStartPosition(d);
                     })
-                        .attr("cy", function (d) {
+                        .attr('cy', function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     })
-                        .style("fill", function () {
-                        return "#FFF";
-                    }).on("mouseover", function (d, i) {
+                        .style('fill', function () {
+                        return '#FFF';
+                    }).on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                 }
                 function createScatterLineChart() {
-                    svg.selectAll(".scatterline.top.stem")
+                    svg.selectAll('.scatterline.top.stem')
                         .data(chartData)
-                        .enter().append("line")
-                        .attr("class", "scatterLineTopStem")
-                        .attr("x1", function (d) {
+                        .enter().append('line')
+                        .attr('class', 'scatterLineTopStem')
+                        .attr('x1', function (d) {
                         return xMidPointStartPosition(d);
                     })
-                        .attr("x2", function (d) {
+                        .attr('x2', function (d) {
                         return xMidPointStartPosition(d);
                     })
-                        .attr("y1", function (d) {
+                        .attr('y1', function (d) {
                         return yScale(d.max);
                     })
-                        .attr("y2", function (d) {
+                        .attr('y2', function (d) {
                         return yScale(d.avg);
                     })
-                        .attr("stroke", function (d) {
-                        return "#000";
+                        .attr('stroke', function (d) {
+                        return '#000';
                     });
-                    svg.selectAll(".scatterline.bottom.stem")
+                    svg.selectAll('.scatterline.bottom.stem')
                         .data(chartData)
-                        .enter().append("line")
-                        .attr("class", "scatterLineBottomStem")
-                        .attr("x1", function (d) {
+                        .enter().append('line')
+                        .attr('class', 'scatterLineBottomStem')
+                        .attr('x1', function (d) {
                         return xMidPointStartPosition(d);
                     })
-                        .attr("x2", function (d) {
+                        .attr('x2', function (d) {
                         return xMidPointStartPosition(d);
                     })
-                        .attr("y1", function (d) {
+                        .attr('y1', function (d) {
                         return yScale(d.avg);
                     })
-                        .attr("y2", function (d) {
+                        .attr('y2', function (d) {
                         return yScale(d.min);
                     })
-                        .attr("stroke", function (d) {
-                        return "#000";
+                        .attr('stroke', function (d) {
+                        return '#000';
                     });
-                    svg.selectAll(".scatterline.top.cross")
+                    svg.selectAll('.scatterline.top.cross')
                         .data(chartData)
-                        .enter().append("line")
-                        .attr("class", "scatterLineTopCross")
-                        .attr("x1", function (d) {
+                        .enter().append('line')
+                        .attr('class', 'scatterLineTopCross')
+                        .attr('x1', function (d) {
                         return xMidPointStartPosition(d) - 3;
                     })
-                        .attr("x2", function (d) {
+                        .attr('x2', function (d) {
                         return xMidPointStartPosition(d) + 3;
                     })
-                        .attr("y1", function (d) {
+                        .attr('y1', function (d) {
                         return yScale(d.max);
                     })
-                        .attr("y2", function (d) {
+                        .attr('y2', function (d) {
                         return yScale(d.max);
                     })
-                        .attr("stroke", function (d) {
-                        return "#000";
+                        .attr('stroke', function (d) {
+                        return '#000';
                     })
-                        .attr("stroke-width", function (d) {
-                        return "0.5";
+                        .attr('stroke-width', function (d) {
+                        return '0.5';
                     });
-                    svg.selectAll(".scatterline.bottom.cross")
+                    svg.selectAll('.scatterline.bottom.cross')
                         .data(chartData)
-                        .enter().append("line")
-                        .attr("class", "scatterLineBottomCross")
-                        .attr("x1", function (d) {
+                        .enter().append('line')
+                        .attr('class', 'scatterLineBottomCross')
+                        .attr('x1', function (d) {
                         return xMidPointStartPosition(d) - 3;
                     })
-                        .attr("x2", function (d) {
+                        .attr('x2', function (d) {
                         return xMidPointStartPosition(d) + 3;
                     })
-                        .attr("y1", function (d) {
+                        .attr('y1', function (d) {
                         return yScale(d.min);
                     })
-                        .attr("y2", function (d) {
+                        .attr('y2', function (d) {
                         return yScale(d.min);
                     })
-                        .attr("stroke", function (d) {
-                        return "#000";
+                        .attr('stroke', function (d) {
+                        return '#000';
                     })
-                        .attr("stroke-width", function (d) {
-                        return "0.5";
+                        .attr('stroke-width', function (d) {
+                        return '0.5';
                     });
-                    svg.selectAll(".scatterDot")
+                    svg.selectAll('.scatterDot')
                         .data(chartData)
-                        .enter().append("circle")
-                        .attr("class", "avgDot")
-                        .attr("r", 3)
-                        .attr("cx", function (d) {
+                        .enter().append('circle')
+                        .attr('class', 'avgDot')
+                        .attr('r', 3)
+                        .attr('cx', function (d) {
                         return xMidPointStartPosition(d);
                     })
-                        .attr("cy", function (d) {
+                        .attr('cy', function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     })
-                        .style("fill", function () {
-                        return "#70c4e2";
+                        .style('fill', function () {
+                        return '#70c4e2';
                     })
-                        .style("opacity", function () {
-                        return "1";
-                    }).on("mouseover", function (d, i) {
+                        .style('opacity', function () {
+                        return '1';
+                    }).on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                 }
                 function createYAxisGridLines() {
                     // create the y axis grid lines
                     if (yScale) {
-                        svg.append("g").classed("grid y_grid", true)
+                        svg.append('g').classed('grid y_grid', true)
                             .call(d3.svg.axis()
                             .scale(yScale)
-                            .orient("left")
+                            .orient('left')
                             .ticks(10)
                             .tickSize(-width, 0, 0)
-                            .tickFormat(""));
+                            .tickFormat(''));
                     }
                 }
                 function createXandYAxes() {
@@ -1379,25 +1366,25 @@ var Charts;
                     if (yAxis) {
                         svg.selectAll('g.axis').remove();
                         // create x-axis
-                        xAxisGroup = svg.append("g")
-                            .attr("class", "x axis")
-                            .attr("transform", "translate(0," + height + ")")
+                        xAxisGroup = svg.append('g')
+                            .attr('class', 'x axis')
+                            .attr('transform', 'translate(0,' + height + ')')
                             .call(xAxis);
-                        xAxisGroup.append("g")
-                            .attr("class", "x brush")
+                        xAxisGroup.append('g')
+                            .attr('class', 'x brush')
                             .call(brush)
-                            .selectAll("rect")
-                            .attr("y", -6)
-                            .attr("height", 30);
+                            .selectAll('rect')
+                            .attr('y', -6)
+                            .attr('height', 30);
                         // create y-axis
-                        svg.append("g")
-                            .attr("class", "y axis")
+                        svg.append('g')
+                            .attr('class', 'y axis')
                             .call(yAxis)
-                            .append("text")
-                            .attr("transform", "rotate(-90),translate( -70,-40)")
-                            .attr("y", -30)
-                            .style("text-anchor", "end")
-                            .text(attrs.yAxisUnits === "NONE" ? "" : attrs.yAxisUnits);
+                            .append('text')
+                            .attr('transform', 'rotate(-90),translate( -70,-40)')
+                            .attr('y', -30)
+                            .style('text-anchor', 'end')
+                            .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits);
                     }
                 }
                 function createCenteredLine(newInterpolation) {
@@ -1430,15 +1417,15 @@ var Charts;
                 }
                 function createAvgLines() {
                     if (chartType === 'bar' || chartType === 'scatterline') {
-                        svg.append("path")
+                        svg.append('path')
                             .datum(chartData)
-                            .attr("class", "barAvgLine")
-                            .attr("d", createCenteredLine("monotone"));
+                            .attr('class', 'barAvgLine')
+                            .attr('d', createCenteredLine('monotone'));
                     }
                 }
                 function createAlertLineDef(alertValue) {
                     var line = d3.svg.line()
-                        .interpolate("monotone")
+                        .interpolate('monotone')
                         .x(function (d) {
                         return timeScale(d.timestamp);
                     })
@@ -1448,10 +1435,10 @@ var Charts;
                     return line;
                 }
                 function createAlertLine(alertValue) {
-                    svg.append("path")
+                    svg.append('path')
                         .datum(chartData)
-                        .attr("class", "alertLine")
-                        .attr("d", createAlertLineDef(alertValue));
+                        .attr('class', 'alertLine')
+                        .attr('d', createAlertLineDef(alertValue));
                 }
                 function extractAlertRanges(chartData, threshold) {
                     var alertBoundAreaItem;
@@ -1502,41 +1489,41 @@ var Charts;
                     return alertBoundAreaItems;
                 }
                 function createAlertBoundsArea(alertBounds) {
-                    svg.selectAll("rect.alert")
+                    svg.selectAll('rect.alert')
                         .data(alertBounds)
-                        .enter().append("rect")
-                        .attr("class", "alertBounds")
-                        .attr("x", function (d) {
+                        .enter().append('rect')
+                        .attr('class', 'alertBounds')
+                        .attr('x', function (d) {
                         return timeScale(d.startTimestamp);
                     })
-                        .attr("y", function (d) {
+                        .attr('y', function (d) {
                         return yScale(highBound);
                     })
-                        .attr("height", function (d) {
+                        .attr('height', function (d) {
                         ///@todo: make the height adjustable
                         return 185;
                         //return yScale(0) - height;
                     })
-                        .attr("width", function (d) {
+                        .attr('width', function (d) {
                         return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
                     });
                 }
                 function createXAxisBrush() {
                     brush = d3.svg.brush()
                         .x(timeScaleForBrush)
-                        .on("brushstart", brushStart)
-                        .on("brush", brushMove)
-                        .on("brushend", brushEnd);
-                    //brushGroup = svg.append("g")
-                    //    .attr("class", "brush")
+                        .on('brushstart', brushStart)
+                        .on('brush', brushMove)
+                        .on('brushend', brushEnd);
+                    //brushGroup = svg.append('g')
+                    //    .attr('class', 'brush')
                     //    .call(brush);
                     //
-                    //brushGroup.selectAll(".resize").append("path");
+                    //brushGroup.selectAll('.resize').append('path');
                     //
-                    //brushGroup.selectAll("rect")
-                    //    .attr("height", height);
+                    //brushGroup.selectAll('rect')
+                    //    .attr('height', height);
                     function brushStart() {
-                        svg.classed("selecting", true);
+                        svg.classed('selecting', true);
                     }
                     function brushMove() {
                         //useful for showing the daterange change dynamically while selecting
@@ -1545,7 +1532,7 @@ var Charts;
                     }
                     function brushEnd() {
                         var extent = brush.extent(), startTime = Math.round(extent[0].getTime()), endTime = Math.round(extent[1].getTime()), dragSelectionDelta = endTime - startTime >= 60000;
-                        svg.classed("selecting", !d3.event.target.empty());
+                        svg.classed('selecting', !d3.event.target.empty());
                         // ignore range selections less than 1 minute
                         if (dragSelectionDelta) {
                             scope.$emit('DateRangeChanged', extent);
@@ -1554,75 +1541,75 @@ var Charts;
                 }
                 function createPreviousRangeOverlay(prevRangeData) {
                     if (prevRangeData) {
-                        $log.debug("Running PreviousRangeOverlay");
-                        svg.append("path")
+                        $log.debug('Running PreviousRangeOverlay');
+                        svg.append('path')
                             .datum(prevRangeData)
-                            .attr("class", "prevRangeAvgLine")
-                            .style("stroke-dasharray", ("9,3"))
-                            .attr("d", createCenteredLine("linear"));
+                            .attr('class', 'prevRangeAvgLine')
+                            .style('stroke-dasharray', ('9,3'))
+                            .attr('d', createCenteredLine('linear'));
                     }
                 }
                 function createMultiMetricOverlay() {
                     var colorScale = d3.scale.category20();
                     if (multiChartOverlayData) {
-                        $log.warn("Running MultiChartOverlay for %i metrics", multiChartOverlayData.length);
-                        angular.forEach(multiChartOverlayData, function (singleChartData) {
-                            svg.append("path")
+                        $log.warn('Running MultiChartOverlay for %i metrics', multiChartOverlayData.length);
+                        multiChartOverlayData.forEach(function (singleChartData) {
+                            svg.append('path')
                                 .datum(singleChartData)
-                                .attr("class", "multiLine")
-                                .attr("fill", function (d, i) {
+                                .attr('class', 'multiLine')
+                                .attr('fill', function (d, i) {
                                 return colorScale(i);
                             })
-                                .attr("stroke", function (d, i) {
+                                .attr('stroke', function (d, i) {
                                 return colorScale(i);
                             })
-                                .attr("stroke-width", "1")
-                                .attr("stroke-opacity", ".8")
-                                .attr("d", createCenteredLine("linear"));
+                                .attr('stroke-width', '1')
+                                .attr('stroke-opacity', '.8')
+                                .attr('d', createCenteredLine('linear'));
                         });
                     }
                 }
                 function annotateChart(annotationData) {
                     if (annotationData) {
-                        svg.selectAll(".annotationDot")
+                        svg.selectAll('.annotationDot')
                             .data(annotationData)
-                            .enter().append("circle")
-                            .attr("class", "annotationDot")
-                            .attr("r", 5)
-                            .attr("cx", function (d) {
+                            .enter().append('circle')
+                            .attr('class', 'annotationDot')
+                            .attr('r', 5)
+                            .attr('cx', function (d) {
                             return timeScale(d.timestamp);
                         })
-                            .attr("cy", function () {
+                            .attr('cy', function () {
                             return height - yScale(highBound);
                         })
-                            .style("fill", function (d) {
+                            .style('fill', function (d) {
                             if (d.severity === '1') {
-                                return "red";
+                                return 'red';
                             }
                             else if (d.severity === '2') {
-                                return "yellow";
+                                return 'yellow';
                             }
                             else {
-                                return "white";
+                                return 'white';
                             }
                         });
                     }
                 }
                 function createDataPoints(dataPoints) {
                     var radius = 1;
-                    svg.selectAll(".dataPointDot")
+                    svg.selectAll('.dataPointDot')
                         .data(dataPoints)
-                        .enter().append("circle")
-                        .attr("class", "dataPointDot")
-                        .attr("r", radius)
-                        .attr("cx", function (d) {
+                        .enter().append('circle')
+                        .attr('class', 'dataPointDot')
+                        .attr('r', radius)
+                        .attr('cx', function (d) {
                         return timeScale(d.timestamp);
                     })
-                        .attr("cy", function (d) {
+                        .attr('cy', function (d) {
                         return d.avg ? yScale(d.avg) : -9999999;
-                    }).on("mouseover", function (d, i) {
+                    }).on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on("mouseout", function () {
+                    }).on('mouseout', function () {
                         tip.hide();
                     });
                 }
@@ -1642,7 +1629,7 @@ var Charts;
                 }, true);
                 scope.$watch('previousRangeData', function (newPreviousRangeValues) {
                     if (newPreviousRangeValues) {
-                        $log.debug("Previous Range data changed");
+                        $log.debug('Previous Range data changed');
                         processedPreviousRangeData = angular.fromJson(newPreviousRangeValues);
                         scope.render(processedNewData, processedPreviousRangeData);
                     }
