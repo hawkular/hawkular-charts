@@ -367,7 +367,7 @@ module Charts {
               xTickSubDivide = 5,
               firstDataArray;
 
-            if (multiDataPoints) {
+            if (multiDataPoints && multiDataPoints[0].values) {
 
               firstDataArray = multiDataPoints[0].values;
 
