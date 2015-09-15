@@ -3,10 +3,10 @@
 module Charts {
   'use strict';
 
-  declare var angular:ng.IAngularStatic;
+  declare let angular:ng.IAngularStatic;
 
-  declare var d3:any;
-  declare var console:any;
+  declare let d3:any;
+  declare let console:any;
 
   /**
    * This is the input data format.
@@ -53,7 +53,7 @@ module Charts {
    * @description A d3 based charting directive for charting availability.
    *
    */
-var hawkularCharts =  angular.module('hawkular.charts')
+  let hawkularCharts = angular.module('hawkular.charts')
     .directive('availabilityChart', () => {
       return new Charts.AvailabilityChartDirective();
     });
@@ -78,7 +78,7 @@ var hawkularCharts =  angular.module('hawkular.charts')
     public link = (scope, element, attrs) => {
 
       // data specific vars
-      var dataPoints:IAvailDataPoint[] = [],
+      let dataPoints:IAvailDataPoint[] = [],
         startTimestamp:number = +attrs.startTimestamp,
         endTimestamp:number = +attrs.endTimestamp,
         transformedDataPoints:ITransformedAvailDataPoint[],
@@ -86,7 +86,7 @@ var hawkularCharts =  angular.module('hawkular.charts')
         noDataLabel = attrs.noDataLabel || 'No Data';
 
       // chart specific vars
-      var margin = {top: 10, right: 5, bottom: 5, left: 90},
+      let margin = {top: 10, right: 5, bottom: 5, left: 90},
         width = 750 - margin.left - margin.right,
         adjustedChartHeight = chartHeight - 50,
         height = adjustedChartHeight - margin.top - margin.bottom,
@@ -110,9 +110,9 @@ var hawkularCharts =  angular.module('hawkular.charts')
         return 760;
       }
 
-      function buildAvailHover(d:ITransformedAvailDataPoint ) {
+      function buildAvailHover(d:ITransformedAvailDataPoint) {
 
-        return  "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>" + d.value.toUpperCase() + "</span></small></div>" +
+        return "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>" + d.value.toUpperCase() + "</span></small></div>" +
           "<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>" + d.duration + "</span></small> </div>";
 
 
@@ -145,9 +145,9 @@ var hawkularCharts =  angular.module('hawkular.charts')
 
 
       function determineAvailScale(dataPoints:ITransformedAvailDataPoint[]) {
-        var adjustedTimeRange:number[] = [];
+        let adjustedTimeRange:number[] = [];
 
-        var oneHourAgo = +moment().subtract('hours', 1);
+        let oneHourAgo = +moment().subtract('hours', 1);
 
         if (dataPoints) {
 
@@ -200,13 +200,13 @@ var hawkularCharts =  angular.module('hawkular.charts')
       }
 
       function formatTransformedDataPoints(inAvailData:IAvailDataPoint[]):ITransformedAvailDataPoint[] {
-        var outputData:ITransformedAvailDataPoint[] = [];
-        var itemCount = inAvailData.length;
+        let outputData:ITransformedAvailDataPoint[] = [];
+        let itemCount = inAvailData.length;
         if (inAvailData && itemCount > 0 && inAvailData[0].timestamp) {
-          var now = new Date().getTime();
+          let now = new Date().getTime();
 
           if (itemCount === 1) {
-            var availItem = inAvailData[0];
+            let availItem = inAvailData[0];
 
             // we only have one item with start time. Assume unknown for the time before (last 1h) TODO adjust to time picker
             outputData.push(new TransformedAvailDataPoint(now - 60 * 60 * 1000, availItem.timestamp, 'unknown'));
@@ -215,8 +215,8 @@ var hawkularCharts =  angular.module('hawkular.charts')
           }
           else {
 
-            var backwardsEndTime:number;
-            var i:number;
+            let backwardsEndTime:number;
+            let i:number;
 
             backwardsEndTime = now;
             for (i = inAvailData.length; i > 0; i--) {
@@ -255,14 +255,14 @@ var hawkularCharts =  angular.module('hawkular.charts')
 
 
       function createAvailabilityChart(dataPoints:ITransformedAvailDataPoint[]) {
-        var xAxisMin = d3.min(dataPoints, (d:ITransformedAvailDataPoint) => {
+        let xAxisMin = d3.min(dataPoints, (d:ITransformedAvailDataPoint) => {
             return +d.start;
           }),
           xAxisMax = d3.max(dataPoints, (d:ITransformedAvailDataPoint) => {
             return +d.end;
           });
 
-          var availTimeScale = d3.time.scale()
+        let availTimeScale = d3.time.scale()
             .range([0, width])
             .domain([xAxisMin, xAxisMax]),
 
@@ -279,7 +279,7 @@ var hawkularCharts =  angular.module('hawkular.charts')
 
 
         function calcBarY(d:ITransformedAvailDataPoint) {
-          var offset;
+          let offset;
 
           if (isUp(d) || isUnknown(d)) {
             offset = 0;
@@ -291,7 +291,7 @@ var hawkularCharts =  angular.module('hawkular.charts')
         }
 
         function calcBarHeight(d:ITransformedAvailDataPoint) {
-          var height;
+          let height;
 
           if (isUnknown(d)) {
             height = 15;
@@ -344,7 +344,7 @@ var hawkularCharts =  angular.module('hawkular.charts')
           .call(availXAxis);
 
 
-        var bottomYAxisLine = d3.svg.line()
+        let bottomYAxisLine = d3.svg.line()
           .x((d:ITransformedAvailDataPoint) => {
             return timeScale(d.start);
           })
@@ -362,7 +362,7 @@ var hawkularCharts =  angular.module('hawkular.charts')
 
 
       function createXandYAxes() {
-        var xAxisGroup;
+        let xAxisGroup;
 
         svg.selectAll('g.axis').remove();
 
@@ -409,12 +409,12 @@ var hawkularCharts =  angular.module('hawkular.charts')
 
         function brushMove() {
           //useful for showing the daterange change dynamically while selecting
-          var extent = brush.extent();
+          let extent = brush.extent();
           //scope.$emit('DateRangeMove', extent);
         }
 
         function brushEnd() {
-          var extent = brush.extent(),
+          let extent = brush.extent(),
             startTime = Math.round(extent[0].getTime()),
             endTime = Math.round(extent[1].getTime()),
             dragSelectionDelta = endTime - startTime >= 60000;
@@ -431,16 +431,15 @@ var hawkularCharts =  angular.module('hawkular.charts')
         console.debug('Avail Chart Data Changed');
         if (newData) {
           transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
-          ///console.dir(transformedDataPoints);
           scope.render(transformedDataPoints);
         }
       });
 
-      scope.$watchGroup(['startTimestamp','endTimestamp'], (newTimestamp) => {
+      scope.$watchGroup(['startTimestamp', 'endTimestamp'], (newTimestamp) => {
         console.debug('Avail Chart Start/End Timestamp Changed');
-          startTimestamp = newTimestamp[0] || startTimestamp;
-          endTimestamp = newTimestamp[1] || endTimestamp;
-          scope.render(transformedDataPoints);
+        startTimestamp = newTimestamp[0] || startTimestamp;
+        endTimestamp = newTimestamp[1] || endTimestamp;
+        scope.render(transformedDataPoints);
       });
 
       scope.render = (dataPoints:ITransformedAvailDataPoint[]) => {
@@ -449,7 +448,6 @@ var hawkularCharts =  angular.module('hawkular.charts')
         if (dataPoints) {
           console.time('availChartRender');
           ///NOTE: layering order is important!
-          ///console.dir(dataPoints);
           oneTimeChartSetup();
           determineAvailScale(dataPoints);
           createXAxisBrush();

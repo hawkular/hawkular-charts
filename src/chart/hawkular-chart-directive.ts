@@ -3,11 +3,11 @@
 module Charts {
   'use strict';
 
-  declare var d3:any;
-  declare var numeral:any;
-  declare var console:any;
+  declare let d3:any;
+  declare let numeral:any;
+  declare let console:any;
 
-  var debug: boolean = false;
+  let debug: boolean = false;
 
   export interface IContextChartDataPoint {
     timestamp: number;
@@ -57,12 +57,12 @@ module Charts {
       function ($rootScope:ng.IRootScopeService, $http:ng.IHttpService, $interval:ng.IIntervalService, $log:ng.ILogService):ng.IDirective {
 
         /// only for the stand alone charts
-        var BASE_URL = '/hawkular/metrics';
+        let BASE_URL = '/hawkular/metrics';
 
         function link(scope, element, attrs) {
 
           // data specific vars
-          var dataPoints:IChartDataPoint[] = [],
+          let dataPoints:IChartDataPoint[] = [],
             multiDataPoints:IMultiDataPoint[],
             dataUrl = attrs.metricUrl,
             metricId = attrs.metricId || '',
@@ -101,7 +101,7 @@ module Charts {
             buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
 
           // chart specific vars
-          var margin = {top: 10, right: 5, bottom: 5, left: 90},
+          let margin = {top: 10, right: 5, bottom: 5, left: 90},
             contextMargin = {top: 150, right: 5, bottom: 5, left: 90},
             xAxisContextMargin = {top: 190, right: 5, bottom: 5, left: 90},
             width = 750 - margin.left - margin.right,
@@ -143,7 +143,7 @@ module Charts {
           annotationData = attrs.annotationData;
           contextData = attrs.contextData;
 
-          var startIntervalPromise;
+          let startIntervalPromise;
 
           function xMidPointStartPosition(d) {
             return timeScale(d.timestamp) + (calcBarWidth() / 2);
@@ -190,11 +190,11 @@ module Charts {
 
 
           function setupFilteredData(dataPoints:IChartDataPoint[]):void {
-            var alertPeak:number,
+            let alertPeak:number,
               highPeak:number;
 
             function determineMultiMetricMinMax() {
-              var currentMax:number,
+              let currentMax:number,
                 currentMin:number,
                 seriesMax:number,
                 seriesMin:number,
@@ -219,7 +219,7 @@ module Charts {
 
 
             if (multiChartOverlayData) {
-              var minMax = determineMultiMetricMinMax();
+              let minMax = determineMultiMetricMinMax();
               peak = minMax[1];
               min = minMax[0];
             }
@@ -245,7 +245,7 @@ module Charts {
           }
 
           function determineScale(dataPoints) {
-            var xTicks, xTickSubDivide, numberOfBarsForSmallGraph = 20;
+            let xTicks, xTickSubDivide, numberOfBarsForSmallGraph = 20;
 
             if (dataPoints.length > 0) {
 
@@ -315,13 +315,13 @@ module Charts {
 
 
           function setupFilteredMultiData(multiDataPoints:IMultiDataPoint[]):any {
-            var alertPeak:number,
+            let alertPeak:number,
               highPeak:number,
               highbound:number,
               lowbound:number;
 
             function determineMultiDataMinMax() {
-              var currentMax:number,
+              let currentMax:number,
                 currentMin:number,
                 seriesMax:number,
                 seriesMin:number,
@@ -345,7 +345,7 @@ module Charts {
             }
 
 
-            var minMax = determineMultiDataMinMax();
+            let minMax = determineMultiDataMinMax();
             peak = minMax[1];
             min = minMax[0];
 
@@ -363,7 +363,7 @@ module Charts {
 
 
           function determineMultiScale(multiDataPoints) {
-            var xTicks = 9,
+            let xTicks = 9,
               xTickSubDivide = 5,
               firstDataArray;
 
@@ -371,7 +371,7 @@ module Charts {
 
               firstDataArray = multiDataPoints[0].values;
 
-              var lowHigh = setupFilteredMultiData(multiDataPoints);
+              let lowHigh = setupFilteredMultiData(multiDataPoints);
               lowBound = lowHigh[0];
               highBound = lowHigh[1]
 
@@ -412,8 +412,8 @@ module Charts {
             ///$log.debug('-- Date Range: ' + new Date(startTimestamp) + ' - ' + new Date(endTimestamp));
             ///$log.debug('-- TenantId: ' + metricTenantId);
 
-            var numBuckets = buckets || 60;
-            var requestConfig = {
+            let numBuckets = buckets || 60;
+            let requestConfig = {
               headers: {
                 'Hawkular-Tenant': metricTenantId
               },
@@ -451,7 +451,7 @@ module Charts {
             //  The schema is different for bucketed output
             if (response) {
               return response.map((point:IChartDataPoint) => {
-                var timestamp = point.start + (point.end - point.start) / 2;
+                let timestamp = point.start + (point.end - point.start) / 2;
                 return {
                   timestamp: timestamp,
                   date: new Date(timestamp),
@@ -476,7 +476,7 @@ module Charts {
 
 
           function buildHover(d, i) {
-            var hover,
+            let hover,
               prevTimestamp,
               currentTimestamp = d.timestamp,
               barDuration,
@@ -515,7 +515,7 @@ module Charts {
           }
 
           function createHeader(titleName) {
-            var title = chart.append("g").append("rect")
+            let title = chart.append("g").append("rect")
               .attr("class", "title")
               .attr("x", 30)
               .attr("y", margin.top)
@@ -535,7 +535,7 @@ module Charts {
 
           function createSvgDefs(chart) {
 
-            var defs = chart.append("defs");
+            let defs = chart.append("defs");
 
             defs.append("pattern")
               .attr("id", "noDataStripes")
@@ -809,7 +809,7 @@ module Charts {
 
 
           function createHistogramChart() {
-            var strokeOpacity = "0.6";
+            let strokeOpacity = "0.6";
 
             // upper portion representing avg to high
             svg.selectAll("rect.histogram")
@@ -970,7 +970,7 @@ module Charts {
 
 
           function createHawkularLineChart() {
-            var chartLine = d3.svg.line()
+            let chartLine = d3.svg.line()
               .interpolate(interpolation)
               .defined((d) => {
                 return !d.empty;
@@ -994,7 +994,7 @@ module Charts {
 
           function createHawkularMetricChart() {
 
-            var metricChartLine = d3.svg.line()
+            let metricChartLine = d3.svg.line()
               .interpolate(interpolation)
               .defined((d) => {
                 return !d.empty;
@@ -1014,7 +1014,7 @@ module Charts {
           }
 
           function createMultiLineChart(multiDataPoints:IMultiDataPoint[]) {
-            var colorScale = d3.scale.category10(),
+            let colorScale = d3.scale.category10(),
               g = 0;
 
             if (multiDataPoints) {
@@ -1043,7 +1043,7 @@ module Charts {
           }
 
           function createAreaChart() {
-            var highArea = d3.svg.area()
+            let highArea = d3.svg.area()
                 .interpolate(interpolation)
                 .defined((d) => {
                   return !d.empty;
@@ -1302,7 +1302,7 @@ module Charts {
           }
 
           function createXandYAxes() {
-            var xAxisGroup;
+            let xAxisGroup;
 
             if (yAxis) {
 
@@ -1336,7 +1336,7 @@ module Charts {
           }
 
           function createCenteredLine(newInterpolation) {
-            var interpolate = newInterpolation || 'monotone',
+            let interpolate = newInterpolation || 'monotone',
               line = d3.svg.line()
                 .interpolate(interpolate)
                 .defined((d) => {
@@ -1353,7 +1353,7 @@ module Charts {
           }
 
           function createLine(newInterpolation) {
-            var interpolate = newInterpolation || 'monotone',
+            let interpolate = newInterpolation || 'monotone',
               line = d3.svg.line()
                 .interpolate(interpolate)
                 .defined((d) => {
@@ -1379,7 +1379,7 @@ module Charts {
           }
 
           function createAlertLineDef(alertValue:number) {
-            var line = d3.svg.line()
+            let line = d3.svg.line()
               .interpolate("monotone")
               .x((d) => {
                 return timeScale(d.timestamp);
@@ -1400,15 +1400,15 @@ module Charts {
 
 
           function extractAlertRanges(chartData:IChartDataPoint[], threshold:AlertThreshold):AlertBound[] {
-            var alertBoundAreaItem:AlertBound;
-            var alertBoundAreaItems:AlertBound[];
-            var startPoints:number[];
-            var firstChartPoint:IChartDataPoint = chartData[0];
-            var lastChartPoint:IChartDataPoint = chartData[chartData.length - 1];
+            let alertBoundAreaItem:AlertBound;
+            let alertBoundAreaItems:AlertBound[];
+            let startPoints:number[];
+            let firstChartPoint:IChartDataPoint = chartData[0];
+            let lastChartPoint:IChartDataPoint = chartData[chartData.length - 1];
 
             function findStartPoints(chartData:IChartDataPoint[], threshold:AlertThreshold) {
-              var startPoints = [];
-              var prevItem:IChartDataPoint;
+              let startPoints = [];
+              let prevItem:IChartDataPoint;
 
               chartData.forEach((chartItem:IChartDataPoint, i:number) => {
                 if (i === 0 && chartItem.avg > threshold) {
@@ -1426,16 +1426,16 @@ module Charts {
             }
 
             function findEndPointsForStartPointIndex(startPoints:number[], threshold:AlertThreshold):AlertBound[] {
-              var alertBoundAreaItems:AlertBound[] = [];
-              var currentItem:IChartDataPoint;
-              var nextItem:IChartDataPoint;
-              var startItem:IChartDataPoint;
+              let alertBoundAreaItems:AlertBound[] = [];
+              let currentItem:IChartDataPoint;
+              let nextItem:IChartDataPoint;
+              let startItem:IChartDataPoint;
 
               startPoints.forEach((startPointIndex:number) => {
                 startItem = chartData[startPointIndex];
 
 
-                for (var j = startPointIndex; j < chartData.length - 1; j++) {
+                for (let j = startPointIndex; j < chartData.length - 1; j++) {
                   currentItem = chartData[j];
                   nextItem = chartData[j + 1];
 
@@ -1507,12 +1507,12 @@ module Charts {
 
             function brushMove() {
               //useful for showing the daterange change dynamically while selecting
-              var extent = brush.extent();
+              let extent = brush.extent();
               scope.$emit('DateRangeMove', extent);
             }
 
             function brushEnd() {
-              var extent = brush.extent(),
+              let extent = brush.extent(),
                 startTime = Math.round(extent[0].getTime()),
                 endTime = Math.round(extent[1].getTime()),
                 dragSelectionDelta = endTime - startTime >= 60000;
@@ -1539,7 +1539,7 @@ module Charts {
           }
 
           function createMultiMetricOverlay() {
-            var colorScale = d3.scale.category20();
+            let colorScale = d3.scale.category20();
 
             if (multiChartOverlayData) {
               $log.warn("Running MultiChartOverlay for %i metrics", multiChartOverlayData.length);
@@ -1590,7 +1590,7 @@ module Charts {
           }
 
           function createDataPoints(dataPoints:IChartDataPoint[]) {
-            var radius = 1;
+            let radius = 1;
             svg.selectAll(".dataPointDot")
               .data(dataPoints)
               .enter().append("circle")
