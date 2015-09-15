@@ -1,6 +1,6 @@
 /// <reference path="../../vendor/vendor.d.ts" />
 
-module Charts {
+namespace Charts {
   'use strict';
 
   declare let d3:any;

@@ -33,7 +33,7 @@ var Charts;
      * @description A d3 based charting directive for charting availability.
      *
      */
-    var hawkularCharts = angular.module('hawkular.charts')
+    var _module = angular.module('hawkular.charts')
         .directive('availabilityChart', function () {
         return new Charts.AvailabilityChartDirective();
     });
@@ -61,8 +61,7 @@ var Charts;
                     return 760;
                 }
                 function buildAvailHover(d) {
-                    return "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>" + d.value.toUpperCase() + "</span></small></div>" +
-                        "<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>" + d.duration + "</span></small> </div>";
+                    return "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>\" + d.value.toUpperCase() + \"</span></small></div>\" +\n          \"<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>\" + d.duration + \"</span></small> </div>";
                 }
                 function oneTimeChartSetup() {
                     ///console.log("Availability OneTimeChartSetup");
@@ -152,6 +151,7 @@ var Charts;
                     return outputData;
                 }
                 function createSideYAxisLabels() {
+                    ///@Todo: move out to stylesheet
                     svg.append("text")
                         .attr("class", "availUpLabel")
                         .attr("x", -10)
