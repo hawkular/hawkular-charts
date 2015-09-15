@@ -1,4 +1,4 @@
-/// <reference path="../../vendor/vendor.d.ts" />
+/// <reference path='../../vendor/vendor.d.ts' />
 
 namespace Charts {
   'use strict';
@@ -106,26 +106,25 @@ namespace Charts {
         svg;
 
       function getChartWidth():number {
-        ///return angular.element("#" + chartContext.chartHandle).width();
+        ///return angular.element('#' + chartContext.chartHandle).width();
         return 760;
       }
 
       function buildAvailHover(d:ITransformedAvailDataPoint) {
 
-        return `<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>" + d.value.toUpperCase() + "</span></small></div>" +
-          "<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>" + d.duration + "</span></small> </div>`;
+        return `<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>' + d.value.toUpperCase() + '</span></small></div>' +
+          '<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>' + d.duration + '</span></small> </div>`;
 
 
       }
 
       function oneTimeChartSetup():void {
-        ///console.log("Availability OneTimeChartSetup");
         // destroy any previous charts
         if (chart) {
           chartParent.selectAll('*').remove();
         }
         chartParent = d3.select(element[0]);
-        chart = chartParent.append("svg")
+        chart = chartParent.append('svg')
           .attr('viewBox', '0 0 760 150').attr('preserveAspectRatio', 'xMinYMin meet');
 
         tip = d3.tip()
@@ -135,10 +134,10 @@ namespace Charts {
             return buildAvailHover(d);
           });
 
-        svg = chart.append("g")
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", innerChartHeight)
-          .attr("transform", "translate(" + margin.left + "," + (adjustedChartHeight2) + ")");
+        svg = chart.append('g')
+          .attr('width', width + margin.left + margin.right)
+          .attr('height', innerChartHeight)
+          .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
 
         svg.call(tip);
       }
@@ -157,7 +156,7 @@ namespace Charts {
               return d.start;
             });
 
-            // Provide "now" as end // TODO adjust to date range picker
+            // Provide 'now' as end // TODO adjust to date range picker
             adjustedTimeRange[1] = +moment();
           } else {
             adjustedTimeRange = [+moment(), oneHourAgo]; // default to 1 hour same as graph
@@ -172,7 +171,7 @@ namespace Charts {
             .scale(yScale)
             .ticks(0)
             .tickSize(0, 0)
-            .orient("left");
+            .orient('left');
 
           timeScale = d3.time.scale()
             .range([0, width])
@@ -181,7 +180,7 @@ namespace Charts {
           xAxis = d3.svg.axis()
             .scale(timeScale)
             .tickSize(-70, 0)
-            .orient("top");
+            .orient('top');
 
         }
       }
@@ -231,25 +230,25 @@ namespace Charts {
 
       function createSideYAxisLabels() {
         ///@Todo: move out to stylesheet
-        svg.append("text")
-          .attr("class", "availUpLabel")
-          .attr("x", -10)
-          .attr("y", 25)
-          .style("font-family", "Arial, Verdana, sans-serif;")
-          .style("font-size", "12px")
-          .attr("fill", "#999")
-          .style("text-anchor", "end")
-          .text("Up");
+        svg.append('text')
+          .attr('class', 'availUpLabel')
+          .attr('x', -10)
+          .attr('y', 25)
+          .style('font-family', 'Arial, Verdana, sans-serif;')
+          .style('font-size', '12px')
+          .attr('fill', '#999')
+          .style('text-anchor', 'end')
+          .text('Up');
 
-        svg.append("text")
-          .attr("class", "availDownLabel")
-          .attr("x", -10)
-          .attr("y", 55)
-          .style("font-family", "Arial, Verdana, sans-serif;")
-          .style("font-size", "12px")
-          .attr("fill", "#999")
-          .style("text-anchor", "end")
-          .text("Down");
+        svg.append('text')
+          .attr('class', 'availDownLabel')
+          .attr('x', -10)
+          .attr('y', 55)
+          .style('font-family', 'Arial, Verdana, sans-serif;')
+          .style('font-size', '12px')
+          .attr('fill', '#999')
+          .style('text-anchor', 'end')
+          .text('Down');
 
       }
 
@@ -275,7 +274,7 @@ namespace Charts {
             .scale(availTimeScale)
             .ticks(8)
             .tickSize(13, 0)
-            .orient("top");
+            .orient('top');
 
 
         function calcBarY(d:ITransformedAvailDataPoint) {
@@ -304,43 +303,43 @@ namespace Charts {
 
         function calcBarFill(d:ITransformedAvailDataPoint) {
           if (isUp(d)) {
-            return "#4AA544"; // green
+            return '#4AA544'; // green
           } else if (isUnknown(d)) {
-            return "#B5B5B5"; // gray
+            return '#B5B5B5'; // gray
           } else {
-            return "#E52527"; // red
+            return '#E52527'; // red
           }
         }
 
-        svg.selectAll("rect.availBars")
+        svg.selectAll('rect.availBars')
           .data(dataPoints)
-          .enter().append("rect")
-          .attr("class", "availBars")
-          .attr("x", (d:ITransformedAvailDataPoint) => {
+          .enter().append('rect')
+          .attr('class', 'availBars')
+          .attr('x', (d:ITransformedAvailDataPoint) => {
             return availTimeScale(+d.start);
           })
-          .attr("y", (d:ITransformedAvailDataPoint)  => {
+          .attr('y', (d:ITransformedAvailDataPoint)  => {
             return calcBarY(d);
           })
-          .attr("height", (d) => {
+          .attr('height', (d) => {
             return calcBarHeight(d);
           })
-          .attr("width", (d:ITransformedAvailDataPoint) => {
+          .attr('width', (d:ITransformedAvailDataPoint) => {
             return availTimeScale(+d.end) - availTimeScale(+d.start);
           })
-          .attr("fill", (d:ITransformedAvailDataPoint) => {
+          .attr('fill', (d:ITransformedAvailDataPoint) => {
             return calcBarFill(d);
           })
-          .on("mouseover", (d, i) => {
+          .on('mouseover', (d, i) => {
             tip.show(d, i);
-          }).on("mouseout", () => {
+          }).on('mouseout', () => {
             tip.hide();
           });
 
 
         // create x-axis
-        svg.append("g")
-          .attr("class", "x axis")
+        svg.append('g')
+          .attr('class', 'x axis')
           .call(availXAxis);
 
 
@@ -352,10 +351,10 @@ namespace Charts {
             return height - yScale(0) + 70;
           });
 
-        svg.append("path")
+        svg.append('path')
           .datum(dataPoints)
-          .attr("class", "availYAxisLine")
-          .attr("d", bottomYAxisLine);
+          .attr('class', 'availYAxisLine')
+          .attr('d', bottomYAxisLine);
 
         createSideYAxisLabels();
       }
@@ -368,20 +367,20 @@ namespace Charts {
 
 
         // create x-axis
-        xAxisGroup = svg.append("g")
-          .attr("class", "x axis")
+        xAxisGroup = svg.append('g')
+          .attr('class', 'x axis')
           .call(xAxis);
 
-        //xAxisGroup.append("g")
-        //  .attr("class", "x brush")
+        //xAxisGroup.append('g')
+        //  .attr('class', 'x brush')
         //  .call(brush)
-        //  .selectAll("rect")
-        //  .attr("y", -6)
-        //  .attr("height", 30);
+        //  .selectAll('rect')
+        //  .attr('y', -6)
+        //  .attr('height', 30);
 
         // create y-axis
-        svg.append("g")
-          .attr("class", "y axis")
+        svg.append('g')
+          .attr('class', 'y axis')
           .call(yAxis);
       }
 
@@ -390,21 +389,21 @@ namespace Charts {
 
         brush = d3.svg.brush()
           .x(timeScaleForBrush)
-          .on("brushstart", brushStart)
-          .on("brush", brushMove)
-          .on("brushend", brushEnd);
+          .on('brushstart', brushStart)
+          .on('brush', brushMove)
+          .on('brushend', brushEnd);
 
-        //brushGroup = svg.append("g")
-        //    .attr("class", "brush")
+        //brushGroup = svg.append('g')
+        //    .attr('class', 'brush')
         //    .call(brush);
         //
-        //brushGroup.selectAll(".resize").append("path");
+        //brushGroup.selectAll('.resize').append('path');
         //
-        //brushGroup.selectAll("rect")
-        //    .attr("height", height);
+        //brushGroup.selectAll('rect')
+        //    .attr('height', height);
 
         function brushStart() {
-          svg.classed("selecting", true);
+          svg.classed('selecting', true);
         }
 
         function brushMove() {
@@ -419,7 +418,7 @@ namespace Charts {
             endTime = Math.round(extent[1].getTime()),
             dragSelectionDelta = endTime - startTime >= 60000;
 
-          svg.classed("selecting", !d3.event.target.empty());
+          svg.classed('selecting', !d3.event.target.empty());
           // ignore range selections less than 1 minute
           if (dragSelectionDelta) {
             scope.$emit('DateRangeChanged', extent);
@@ -443,7 +442,7 @@ namespace Charts {
       });
 
       scope.render = (dataPoints:ITransformedAvailDataPoint[]) => {
-        console.debug("Starting Avail Chart Directive Render");
+        console.debug('Starting Avail Chart Directive Render');
         console.group('Render Avail Chart');
         if (dataPoints) {
           console.time('availChartRender');
