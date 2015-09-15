@@ -312,7 +312,6 @@ var Charts;
                     console.debug('Avail Chart Data Changed');
                     if (newData) {
                         transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
-                        ///console.dir(transformedDataPoints);
                         scope.render(transformedDataPoints);
                     }
                 });
@@ -328,7 +327,6 @@ var Charts;
                     if (dataPoints) {
                         console.time('availChartRender');
                         ///NOTE: layering order is important!
-                        ///console.dir(dataPoints);
                         oneTimeChartSetup();
                         determineAvailScale(dataPoints);
                         createXAxisBrush();
