@@ -1411,13 +1411,16 @@ module Charts {
               var prevItem:IChartDataPoint;
 
               chartData.forEach((chartItem:IChartDataPoint, i:number) => {
-                if (i >= 1) {
-                  prevItem = chartData[i - 1];
-                }
-
-                if (prevItem && prevItem.avg <= threshold && chartItem.avg > threshold) {
+                if (i === 0 && chartItem.avg > threshold) {
                   startPoints.push(i);
                 }
+                else {
+                  prevItem = chartData[i - 1];
+                  if (chartItem.avg > threshold && prevItem && (!prevItem.avg || prevItem.avg <= threshold)) {
+                    startPoints.push(prevItem.avg ? (i-1) : i);
+                  }
+                }
+
               });
               return startPoints;
             }
@@ -1431,25 +1434,21 @@ module Charts {
               startPoints.forEach((startPointIndex:number) => {
                 startItem = chartData[startPointIndex];
 
+
                 for (var j = startPointIndex; j < chartData.length - 1; j++) {
                   currentItem = chartData[j];
                   nextItem = chartData[j + 1];
 
-                  if (currentItem.avg > threshold && nextItem.avg <= threshold) {
-                    if (startItem.timestamp === currentItem.timestamp) {
-                      /// case for when there is only one point above the threshold
-                      alertBoundAreaItems.push(new AlertBound(startItem.timestamp, nextItem.timestamp, threshold))
-                    } else {
-                      alertBoundAreaItems.push(new AlertBound(startItem.timestamp, currentItem.timestamp, threshold))
-                    }
+                  if ((currentItem.avg > threshold && nextItem.avg <= threshold) || (currentItem.avg > threshold && !nextItem.avg)) {
+                    alertBoundAreaItems.push(new AlertBound(startItem.timestamp, nextItem.avg ? nextItem.timestamp : currentItem.timestamp, threshold));
                     break;
                   }
                 }
               });
 
-              /// means the whole data is above threshold, use last data point
-              if (startPoints.length === 1 && alertBoundAreaItems.length === 0) {
-                alertBoundAreaItems.push(new AlertBound(chartData[startPoints[0]].timestamp, chartData[chartData.length - 1].timestamp, threshold));
+              /// means the last piece data is all above threshold, use last data point
+              if (alertBoundAreaItems.length === (startPoints.length - 1)) {
+                alertBoundAreaItems.push(new AlertBound(chartData[startPoints[startPoints.length - 1]].timestamp, chartData[chartData.length - 1].timestamp, threshold));
               }
 
               return alertBoundAreaItems
@@ -1457,35 +1456,7 @@ module Charts {
 
             startPoints = findStartPoints(chartData, threshold);
 
-            /// handle the case where first chart point is above threshold
-            if (firstChartPoint.avg > threshold) {
-              startPoints.push(0);
-            }
-
             alertBoundAreaItems = findEndPointsForStartPointIndex(startPoints, threshold);
-
-            /// handle the case where last chart point is above threshold
-            if (lastChartPoint.avg > threshold) {
-              for (var k = chartData.length - 1; k >= 1; k--) {
-                var currentItem = chartData[k];
-                var nextItem = chartData[k - 1];
-
-                if (currentItem.avg > threshold && nextItem.avg <= threshold) {
-                  alertBoundAreaItems.push(new AlertBound(nextItem.timestamp, lastChartPoint.timestamp, threshold));
-                  break;
-                }
-              }
-            }
-
-
-            /// Handle special case where all items are above threshold
-            var allItemsAboveThreshold = chartData.every((chartItem:IChartDataPoint) => {
-              return chartItem.avg > threshold
-            });
-            if (allItemsAboveThreshold) {
-              alertBoundAreaItem = new AlertBound(chartData[0].timestamp, chartData[chartData.length - 1].timestamp, threshold);
-              alertBoundAreaItems.push(alertBoundAreaItem);
-            }
 
             return alertBoundAreaItems;
 
