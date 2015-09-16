@@ -488,25 +488,25 @@ namespace Charts {
 
             if (isEmptyDataBar(d)) {
               // nodata
-              hover = `<div class='chartHover'><small class='chartHoverLabel'>' + noDataLabel + '</small>' +
-                '<div><small><span class='chartHoverLabel'>' + durationLabel + '</span><span>: </span><span class='chartHoverValue'>' + barDuration + '</span></small> </div>' +
-                '<hr/>' +
-                '<div><small><span class='chartHoverLabel'>' + timestampLabel + '</span><span>: </span><span class='chartHoverValue'>' + formattedDateTime + '</span></small></div></div>`;
+              hover = `<div class='chartHover'><small class='chartHoverLabel'>${noDataLabel}</small>
+                <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
+                <hr/>
+                <div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div></div>`;
             } else {
               if (isRawMetric(d)) {
                 // raw single value from raw table
-                hover = `<div class='chartHover'><div><small><span class='chartHoverLabel'>' + timestampLabel + '</span><span>: </span><span class='chartHoverValue'>' + formattedDateTime + '</span></small></div>' +
-                  '<div><small><span class='chartHoverLabel'>' + durationLabel + '</span><span>: </span><span class='chartHoverValue'>' + barDuration + '</span></small> </div>' +
-                  '<hr/>' +
-                  '<div><small><span class='chartHoverLabel'>' + singleValueLabel + '</span><span>: </span><span class='chartHoverValue'>' + numeral(d.value).format('0,0.0') + '</span></small> </div></div> `;
+                hover = `<div class='chartHover'><div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
+                  <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
+                  <hr/>
+                  <div><small><span class='chartHoverLabel'>${singleValueLabel}</span><span>: </span><span class='chartHoverValue'>${numeral(d.value).format('0,0.0')}</span></small> </div></div> `;
               } else {
                 // aggregate with min/avg/max
-                hover = `<div class='chartHover'><div><small><span class='chartHoverLabel'>' + timestampLabel + '</span><span>: </span><span class='chartHoverValue'>' + formattedDateTime + '</span></small></div>' +
-                  '<div><small><span class='chartHoverLabel'>' + durationLabel + '</span><span>: </span><span class='chartHoverValue'>' + barDuration + '</span></small> </div>' +
-                  '<hr/>' +
-                  '<div><small><span class='chartHoverLabel'>' + maxLabel + '</span><span>: </span><span class='chartHoverValue'>' + numeral(d.max).format('0,0.0') + '</span></small> </div> ' +
-                  '<div><small><span class='chartHoverLabel'>' + avgLabel + '</span><span>: </span><span class='chartHoverValue'>' + numeral(d.avg).format('0,0.0') + '</span></small> </div> ' +
-                  '<div><small><span class='chartHoverLabel'>' + minLabel + '</span><span>: </span><span class='chartHoverValue'>' + numeral(d.min).format('0,0.0') + '</span></small> </div></div> `;
+                hover = `<div class='chartHover'><div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
+                  <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
+                  <hr/>
+                  <div><small><span class='chartHoverLabel'>${maxLabel}</span><span>: </span><span class='chartHoverValue'>${numeral(d.max).format('0,0.0')}</span></small> </div>
+                  <div><small><span class='chartHoverLabel'>${avgLabel}</span><span>: </span><span class='chartHoverValue'>${numeral(d.avg).format('0,0.0')}</span></small> </div>
+                  <div><small><span class='chartHoverLabel'>${minLabel}</span><span>: </span><span class='chartHoverValue'>${numeral(d.min).format('0,0.0')}</span></small> </div></div> `;
               }
             }
             return hover;

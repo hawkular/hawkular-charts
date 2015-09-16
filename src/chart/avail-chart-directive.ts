@@ -111,11 +111,8 @@ namespace Charts {
       }
 
       function buildAvailHover(d:ITransformedAvailDataPoint) {
-
-        return `<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>' + d.value.toUpperCase() + '</span></small></div>' +
-          '<div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>' + d.duration + '</span></small> </div>`;
-
-
+        return `<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>${d.value.toUpperCase()}</span></small></div>
+          <div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>${d.duration}</span></small> </div>`;
       }
 
       function oneTimeChartSetup():void {
