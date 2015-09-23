@@ -136,6 +136,18 @@ namespace Charts {
           .attr('height', innerChartHeight)
           .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
 
+        svg.append('defs')
+          .append('pattern')
+            .attr('id', 'diagonal-stripes')
+            .attr('patternUnits', 'userSpaceOnUse')
+            .attr('patternTransform', 'scale(0.7)')
+            .attr('width', 4)
+            .attr('height', 4)
+          .append('path')
+            .attr('d', 'M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2')
+            .attr('stroke', '#B6B6B6')
+            .attr('stroke-width', 1.2);
+
         svg.call(tip);
       }
 
@@ -143,25 +155,16 @@ namespace Charts {
       function determineAvailScale(dataPoints:ITransformedAvailDataPoint[]) {
         let adjustedTimeRange:number[] = [];
 
-        let oneHourAgo = +moment().subtract('hours', 1);
+        startTimestamp = +attrs.startTimestamp || d3.min(dataPoints, (d:ITransformedAvailDataPoint) => { return d.start; }) || +moment().subtract(1, 'hour');
 
         if (dataPoints) {
 
-          // Data points only have the start
-          if (dataPoints.length > 1) {
-            adjustedTimeRange[0] = d3.min(dataPoints, (d:ITransformedAvailDataPoint) => {
-              return d.start;
-            });
-
-            // Provide 'now' as end // TODO adjust to date range picker
-            adjustedTimeRange[1] = +moment();
-          } else {
-            adjustedTimeRange = [+moment(), oneHourAgo]; // default to 1 hour same as graph
-          }
+          adjustedTimeRange[0] = startTimestamp;
+          adjustedTimeRange[1] = +moment(); // TODO: Fix wehn we support end != now
 
           yScale = d3.scale.linear()
             .clamp(true)
-            .rangeRound([innerChartHeight, 0])
+            .rangeRound([70, 0])
             .domain([0, 175]);
 
           yAxis = d3.svg.axis()
@@ -177,8 +180,17 @@ namespace Charts {
           xAxis = d3.svg.axis()
             .scale(timeScale)
             .tickSize(-70, 0)
-            .orient('top');
-
+            .orient('top')
+            .tickFormat(d3.time.format.multi([
+              [".%L", function(d) { return d.getMilliseconds(); }],
+              [":%S", function(d) { return d.getSeconds(); }],
+              ["%H:%M", function(d) { return d.getMinutes() }],
+              ["%H:%M", function(d) { return d.getHours(); }],
+              ["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
+              ["%b %d", function(d) { return d.getDate() != 1; }],
+              ["%B", function(d) { return d.getMonth(); }],
+              ["%Y", function() { return true; }]
+          ]));
         }
       }
 
@@ -216,8 +228,14 @@ namespace Charts {
 
             backwardsEndTime = now;
             for (i = inAvailData.length; i > 0; i--) {
-              outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp, backwardsEndTime, inAvailData[i - 1].value));
-              backwardsEndTime = inAvailData[i - 1].timestamp;
+              if(startTimestamp >= inAvailData[i - 1].timestamp) {
+                outputData.push(new TransformedAvailDataPoint(startTimestamp, backwardsEndTime, inAvailData[i - 1].value));
+                break;
+              }
+              else {
+                outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp, backwardsEndTime, inAvailData[i - 1].value));
+                backwardsEndTime = inAvailData[i - 1].timestamp;
+              }
             }
           }
         }
@@ -260,7 +278,7 @@ namespace Charts {
 
         let availTimeScale = d3.time.scale()
             .range([0, width])
-            .domain([xAxisMin, xAxisMax]),
+            .domain([startTimestamp, xAxisMax]),
 
           yScale = d3.scale.linear()
             .clamp(true)
@@ -273,38 +291,25 @@ namespace Charts {
             .tickSize(13, 0)
             .orient('top');
 
-
+        // For each datapoint calculate the Y offset for the bar
+        // Up or Unknown: offset 0, Down: offset 35
         function calcBarY(d:ITransformedAvailDataPoint) {
-          let offset;
-
-          if (isUp(d) || isUnknown(d)) {
-            offset = 0;
-          } else {
-            offset = 35;
-          }
-          return height - yScale(0) + offset;
-
+          return height - yScale(0) + ((isUp(d) || isUnknown(d)) ? 0 : 35);
         }
 
+        // For each datapoint calculate the Y removed height for the bar
+        // Unknown: full height 15, Up or Down: half height, 50
         function calcBarHeight(d:ITransformedAvailDataPoint) {
-          let height;
-
-          if (isUnknown(d)) {
-            height = 15;
-          } else {
-            height = 50;
-          }
-          return yScale(0) - height;
-
+          return yScale(0) - (isUnknown(d) ? 15 : 50);
         }
 
         function calcBarFill(d:ITransformedAvailDataPoint) {
           if (isUp(d)) {
-            return '#4AA544'; // green
+            return '#54A24E'; // green
           } else if (isUnknown(d)) {
-            return '#B5B5B5'; // gray
+            return 'url(#diagonal-stripes)'; // gray
           } else {
-            return '#E52527'; // red
+            return '#D85054'; // red
           }
         }
 
@@ -333,25 +338,12 @@ namespace Charts {
             tip.hide();
           });
 
-
-        // create x-axis
-        svg.append('g')
-          .attr('class', 'x axis')
-          .call(availXAxis);
-
-
-        let bottomYAxisLine = d3.svg.line()
-          .x((d:ITransformedAvailDataPoint) => {
-            return timeScale(d.start);
-          })
-          .y((d:ITransformedAvailDataPoint) => {
-            return height - yScale(0) + 70;
-          });
-
-        svg.append('path')
-          .datum(dataPoints)
-          .attr('class', 'availYAxisLine')
-          .attr('d', bottomYAxisLine);
+        // The bottom line of the availability chart
+        svg.append('line')
+          .attr("x1", 0).attr("y1", 70)
+          .attr("x2", 655).attr("y2", 70)
+          .attr("stroke-width", 0.5)
+          .attr("stroke", "#D0D0D0");
 
         createSideYAxisLabels();
       }
@@ -447,8 +439,8 @@ namespace Charts {
           oneTimeChartSetup();
           determineAvailScale(dataPoints);
           createXAxisBrush();
-          createAvailabilityChart(dataPoints);
           createXandYAxes();
+          createAvailabilityChart(dataPoints);
 
           console.timeEnd('availChartRender');
         }
