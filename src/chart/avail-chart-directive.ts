@@ -228,6 +228,10 @@ namespace Charts {
 
             backwardsEndTime = now;
             for (i = inAvailData.length; i > 0; i--) {
+              // if we have data starting in the future... discard it
+              if(inAvailData[i - 1].timestamp > +moment()) {
+                continue;
+              }
               if(startTimestamp >= inAvailData[i - 1].timestamp) {
                 outputData.push(new TransformedAvailDataPoint(startTimestamp, backwardsEndTime, inAvailData[i - 1].value));
                 break;
