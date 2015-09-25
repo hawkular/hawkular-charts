@@ -24,7 +24,7 @@ The quickest way to start using the charts is to fire up a http server and start
 Then start playing around the the examples (each has data in the example):
 
 * http://rawgit.com/hawkular/hawkular-charts/master/metrics-chart-sample.html.js[metrics-chart-sample.html.js]
-* http://rawgit.com/hawkular/hawkular-charts/master/multi-chart-sample.html.js[multi-chart-sample.html.js[]
+* http://rawgit.com/hawkular/hawkular-charts/master/multi-chart-sample.html.js[multi-chart-sample.html.js]
 * http://rawgit.com/hawkular/hawkular-charts/master/avail-test.html.js[avail-test.html.js]
 
 These controls are currently being used in the Hawkular Console to view various metrics charts displayed there.
@@ -78,9 +78,7 @@ _Sample code for this chart:_
 
 [source,javascript]
 ----
-<availability-chart
-    data="vm.availabilityDataPoints"
-    chart-type="availability">
+<availability-chart data="vm.availabilityDataPoints">
 </availability-chart>
 ----
 The availability chart makes it easy to visualize the availability types:
