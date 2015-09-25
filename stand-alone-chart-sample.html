@@ -48,8 +48,8 @@
       // the values here are just to link the input widgets
       // this can just be an empty controller
       this.tenantId = '28026b36-8fe4-4332-84c8-524e173a68bf';
-      this.metricId = 'MI~R~%5BLocal~%2F%5D~MT~WildFly%20Memory%20Metrics~Heap%20Used';
-      this.metricUrl = 'http://localhost:8080/hawkular/metrics/gauges/';
+      this.metricId = 'MI~R~%5B<FEED-ID>~Local~~%5D~MT~WildFly%20Memory%20Metrics~Heap%20Used';
+      this.metricUrl = 'http://localhost:8080/hawkular/metrics';
       this.timeRangeInSeconds = 7200;
       this.refreshIntervalInSeconds = 30;
 
@@ -80,6 +80,7 @@
   </li>
   <li>Launch http web server of your choice (example: 'python -m SimpleHTTPServer 8000 .')</li>
   <li>View page at: http://localhost:8000/stand-alone-chart-sample.html</li>
+  <li>Update the &lt;FEED-ID&gt; at "Metric Id" with the value of the Feed Id or remove if feedless</li>
 </ol>
 <p>Explanation: Examining the source code, there is an app and a controller required to render the angular directive.
   The StandAloneController is just a dummy controller required to render directives(tags). It doesn't
@@ -99,34 +100,34 @@
       <label for="tenantId">Tenant Id:</label>
       <input id="tenantId"
              type="text"
-             value="{{standalone.tenantId}}"
+             ng-model="standalone.tenantId"
              size="60">
     </div>
     <div>
       <label for="metricId">Metric Id:</label>
       <input id="metricId"
              type="text"
-             value="{{standalone.metricId}}"
+             ng-model="standalone.metricId"
              size="120"><span class="description">(URI encoded)</span>
     </div>
     <div>
       <label for="metricUrl">Metric Url:</label>
       <input id="metricUrl"
              type="url"
-             value="{{standalone.metricUrl}}"
+             ng-model="standalone.metricUrl"
              size="120">
     </div>
     <div>
       <label for="timeRange">Time Range (in seconds):</label>
       <input id="timeRange"
              type="number"
-             value="{{standalone.timeRangeInSeconds}}">
+             ng-model="standalone.timeRangeInSeconds">
     </div>
     <div>
       <label for="refreshInterval">Refresh Interval (in seconds):</label>
       <input id="refreshInterval"
              type="number"
-             value="{{standalone.refreshIntervalInSeconds}}">
+             ng-model="standalone.refreshIntervalInSeconds">
     </div>
   </div>
 
