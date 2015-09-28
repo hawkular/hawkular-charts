@@ -202,11 +202,11 @@ namespace Charts {
 
               multiChartOverlayData.forEach((series) => {
                 currentMax = d3.max(series.map((d) => {
-                  return !d.empty ? d.avg : 0;
+                  return !d.empty ? (d.avg || d.value) : 0;
                 }));
                 maxList.push(currentMax);
                 currentMin = d3.min(series.map((d) => {
-                  return !d.empty ? d.avg : Number.MAX_VALUE;
+                  return !d.empty ? (d.avg || d.value) : Number.MAX_VALUE;
                 }));
                 minList.push(currentMin);
 
@@ -225,11 +225,11 @@ namespace Charts {
 
             if (dataPoints) {
               peak = d3.max(dataPoints.map((d) => {
-                return !d.empty ? d.max : 0;
+                return !d.empty ? (d.avg || d.value) : 0;
               }));
 
               min = d3.min(dataPoints.map((d)  => {
-                return !d.empty ? d.min : undefined;
+                return !d.empty ? (d.avg || d.value) : undefined;
               }));
             }
 
@@ -450,7 +450,7 @@ namespace Charts {
             //  The schema is different for bucketed output
             if (response) {
               return response.map((point:IChartDataPoint) => {
-                let timestamp = point.start + (point.end - point.start) / 2;
+                let timestamp = point.timestamp || (point.start + (point.end - point.start) / 2);
                 return {
                   timestamp: timestamp,
                   date: new Date(timestamp),
