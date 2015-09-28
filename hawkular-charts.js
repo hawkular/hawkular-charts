@@ -420,11 +420,11 @@ var Charts;
                         var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
                         multiChartOverlayData.forEach(function (series) {
                             currentMax = d3.max(series.map(function (d) {
-                                return !d.empty ? d.avg : 0;
+                                return !d.empty ? (d.avg || d.value) : 0;
                             }));
                             maxList.push(currentMax);
                             currentMin = d3.min(series.map(function (d) {
-                                return !d.empty ? d.avg : Number.MAX_VALUE;
+                                return !d.empty ? (d.avg || d.value) : Number.MAX_VALUE;
                             }));
                             minList.push(currentMin);
                         });
@@ -439,10 +439,10 @@ var Charts;
                     }
                     if (dataPoints) {
                         peak = d3.max(dataPoints.map(function (d) {
-                            return !d.empty ? d.max : 0;
+                            return !d.empty ? (d.avg || d.value) : 0;
                         }));
                         min = d3.min(dataPoints.map(function (d) {
-                            return !d.empty ? d.min : undefined;
+                            return !d.empty ? (d.avg || d.value) : undefined;
                         }));
                     }
                     lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
@@ -611,7 +611,7 @@ var Charts;
                     //  The schema is different for bucketed output
                     if (response) {
                         return response.map(function (point) {
-                            var timestamp = point.start + (point.end - point.start) / 2;
+                            var timestamp = point.timestamp || (point.start + (point.end - point.start) / 2);
                             return {
                                 timestamp: timestamp,
                                 date: new Date(timestamp),
