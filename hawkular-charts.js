@@ -595,9 +595,10 @@ var Charts;
                         $log.log('Start date was after end date');
                     }
                     if (url && metricType && metricId) {
+                        var metricTypeAndData = metricType.split('-');
                         /// sample url:
                         /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?buckets=120&end=1436831797533&start=1436828197533' -H 'Hawkular-Tenant: 28026b36-8fe4-4332-84c8-524e173a68bf'     -H 'Accept: application/json'
-                        $http.get(url + '/' + metricType + 's/' + metricId + '/data', requestConfig).success(function (response) {
+                        $http.get(url + '/' + metricTypeAndData[0] + 's/' + metricId + '/' + (metricTypeAndData[1] || 'data'), requestConfig).success(function (response) {
                             processedNewData = formatBucketedChartOutput(response);
                             ///console.info('DataPoints from standalone URL: ');
                             ///console.table(processedNewData);
@@ -615,10 +616,10 @@ var Charts;
                             return {
                                 timestamp: timestamp,
                                 date: new Date(timestamp),
-                                value: !angular.isNumber(point.value) ? 0 : point.value,
-                                avg: (point.empty) ? 0 : point.avg,
-                                min: !angular.isNumber(point.min) ? 0 : point.min,
-                                max: !angular.isNumber(point.max) ? 0 : point.max,
+                                value: !angular.isNumber(point.value) ? undefined : point.value,
+                                avg: (point.empty) ? undefined : point.avg,
+                                min: !angular.isNumber(point.min) ? undefined : point.min,
+                                max: !angular.isNumber(point.max) ? undefined : point.max,
                                 empty: point.empty
                             };
                         });
@@ -628,7 +629,7 @@ var Charts;
                     return d.empty;
                 }
                 function isRawMetric(d) {
-                    return d.value;
+                    return typeof d.avg === 'undefined';
                 }
                 function buildHover(d, i) {
                     var hover, prevTimestamp, currentTimestamp = d.timestamp, barDuration, formattedDateTime = moment(d.timestamp).format(buttonBarDateTimeFormat);
@@ -1674,12 +1675,13 @@ var Charts;
                     loadStandAloneMetricsForTimeRange(dataUrl, metricId, startTimestamp, endTimestamp, 60);
                 }
                 /// standalone charts attributes
-                scope.$watchGroup(['metricUrl', 'metricId', 'metricTenantId', 'timeRangeInSeconds'], function (standAloneParams) {
+                scope.$watchGroup(['metricUrl', 'metricId', 'metricType', 'metricTenantId', 'timeRangeInSeconds'], function (standAloneParams) {
                     ///$log.debug('standalone params has changed');
                     dataUrl = standAloneParams[0] || dataUrl;
                     metricId = standAloneParams[1] || metricId;
-                    metricTenantId = standAloneParams[2] || metricTenantId;
-                    timeRangeInSeconds = standAloneParams[3] || timeRangeInSeconds;
+                    metricType = standAloneParams[2] || metricId;
+                    metricTenantId = standAloneParams[3] || metricTenantId;
+                    timeRangeInSeconds = standAloneParams[4] || timeRangeInSeconds;
                     loadStandAloneMetricsTimeRangeFromNow();
                 });
                 scope.$watch('refreshIntervalInSeconds', function (newRefreshInterval) {

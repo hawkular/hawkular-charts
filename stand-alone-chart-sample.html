@@ -118,6 +118,14 @@
              size="120">
     </div>
     <div>
+      <label for="metricType">Metric Type</label>
+      <select id="metricType" ng-model="standalone.metricType" ng-init="standalone.metricType = 'gauge'">
+        <option value="gauge" selected="">Gauge</option>
+        <option value="counter">Counter</option>
+        <option value="counter-rate">Counter (Rate)</option>
+      </select>
+    </div>
+    <div>
       <label for="timeRange">Time Range (in seconds):</label>
       <input id="timeRange"
              type="number"
@@ -139,6 +147,7 @@
     <hawkular-chart chart-type="hawkularmetric"
                     metric-id="{{standalone.metricId}}"
                     metric-url="{{standalone.metricUrl}}"
+                    metric-type="{{standalone.metricType}}"
                     metric-tenant-id="{{standalone.tenantId}}"
                     time-range-in-seconds="{{standalone.timeRangeInSeconds}}"
                     refresh-interval-in-seconds="{{standalone.refreshIntervalInSeconds}}"
