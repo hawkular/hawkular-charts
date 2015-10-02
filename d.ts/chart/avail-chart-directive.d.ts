@@ -1,7 +1,7 @@
 /// <reference path="../../vendor/vendor.d.ts" />
 declare namespace Charts {
     /**
-     * This is the input data format.
+     * This is the input data format, directly from Metrics.
      */
     interface IAvailDataPoint {
         timestamp: number;

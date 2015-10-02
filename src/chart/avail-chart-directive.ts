@@ -9,7 +9,7 @@ namespace Charts {
   declare let console:any;
 
   /**
-   * This is the input data format.
+   * This is the input data format, directly from Metrics.
    */
   export interface IAvailDataPoint {
     timestamp:number;

@@ -9,42 +9,74 @@ namespace Charts {
 
   let debug:boolean = false;
 
-  export interface IContextChartDataPoint {
-    timestamp: number;
-    start?: number;
-    end?: number;
-    value?: any; /// Only for Raw data (no buckets or aggregates)
-    avg: number; /// most of the time this is the useful value
+  // Type values and ID types
+  export type AlertThreshold = number;
+  export type TimeInMillis = number;
+  export type UrlType = number;
+  export type MetricId = string;
+  export type MetricValue = number;
+
+  /**
+   * Metrics Response from Hawkular Metrics
+   */
+  export interface IMetricsResponseDataPoint {
+    start: TimeInMillis;
+    end: TimeInMillis;
+    value?: MetricValue; /// Only for Raw data (no buckets or aggregates)
+    avg?: MetricValue; /// when using buckets or aggregates
+    min?: MetricValue; /// when using buckets or aggregates
+    max?: MetricValue; /// when using buckets or aggregates
+    median?: MetricValue; /// when using buckets or aggregates
+    percentile95th?: MetricValue; /// when using buckets or aggregates
+    empty: boolean;
+  }
+
+  export interface IBaseChartDataPoint {
+    timestamp: TimeInMillis;
+    start?: TimeInMillis;
+    end?: TimeInMillis;
+    value?: MetricValue; /// Only for Raw data (no buckets or aggregates)
+    avg: MetricValue; /// most of the time this is the useful value for aggregates
     empty: boolean; /// will show up in the chart as blank - set this when you have NaN
   }
 
-  export type AlertThreshold = number;
-  export type TimeInMillis = number;
+  /**
+   * Representation of data ready to be consumed by charts.
+   */
+  export interface IChartDataPoint extends IBaseChartDataPoint {
+    date?: Date;
+    min: MetricValue;
+    max: MetricValue;
+    percentile95th: MetricValue;
+    median: MetricValue;
+  }
 
+  /**
+   * Defines an individual alert bounds  to be visually highlighted in a chart
+   * that an alert was above/below a threshold.
+   */
   class AlertBound {
     public startDate:Date;
     public endDate:Date;
 
-    constructor(public startTimestamp, public endTimestamp:number, public alertValue:number) {
+    constructor(public startTimestamp:TimeInMillis,
+                public endTimestamp:TimeInMillis,
+                public alertValue:number) {
       this.startDate = new Date(startTimestamp);
       this.endDate = new Date(endTimestamp);
     }
 
   }
 
+  /**
+   * Data structure for a Multi-Metric chart. Composed of IChartDataDataPoint[].
+   */
   export interface IMultiDataPoint {
     key: string;
     color?: string; /// #fffeee
     values: IChartDataPoint[];
   }
 
-  export interface IChartDataPoint extends IContextChartDataPoint {
-    date: Date;
-    min: number;
-    max: number;
-    percentile95th: number;
-    median: number;
-  }
 
   /**
    * @ngdoc directive
@@ -54,10 +86,13 @@ namespace Charts {
    */
   angular.module('hawkular.charts')
     .directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log',
-      function ($rootScope:ng.IRootScopeService, $http:ng.IHttpService, $interval:ng.IIntervalService, $log:ng.ILogService):ng.IDirective {
+      function ($rootScope:ng.IRootScopeService,
+                $http:ng.IHttpService,
+                $interval:ng.IIntervalService,
+                $log:ng.ILogService):ng.IDirective {
 
         /// only for the stand alone charts
-        let BASE_URL = '/hawkular/metrics';
+        const BASE_URL = '/hawkular/metrics';
 
         function link(scope, element, attrs) {
 
@@ -72,8 +107,8 @@ namespace Charts {
             refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600,
             alertValue = +attrs.alertValue,
             interpolation = attrs.interpolation || 'monotone',
-            endTimestamp = Date.now(),
-            startTimestamp = endTimestamp - timeRangeInSeconds,
+            endTimestamp:TimeInMillis = Date.now(),
+            startTimestamp:TimeInMillis = endTimestamp - timeRangeInSeconds,
             previousRangeDataPoints = [],
             annotationData = [],
             contextData = [],
@@ -243,7 +278,7 @@ namespace Charts {
             }
           }
 
-          function determineScale(dataPoints) {
+          function determineScale(dataPoints:IChartDataPoint[]) {
             let xTicks, xTickSubDivide, numberOfBarsForSmallGraph = 20;
 
             if (dataPoints.length > 0) {
@@ -344,7 +379,7 @@ namespace Charts {
             }
 
 
-            let minMax = determineMultiDataMinMax();
+            const minMax = determineMultiDataMinMax();
             peak = minMax[1];
             min = minMax[0];
 
@@ -361,10 +396,11 @@ namespace Charts {
           }
 
 
-          function determineMultiScale(multiDataPoints) {
-            let xTicks = 9,
-              xTickSubDivide = 5,
-              firstDataArray;
+          function determineMultiScale(multiDataPoints:IMultiDataPoint[]) {
+            const xTicks = 9,
+              xTickSubDivide = 5;
+
+            let firstDataArray;
 
             if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
 
@@ -406,20 +442,32 @@ namespace Charts {
           }
 
 
-          function loadStandAloneMetricsForTimeRange(url, metricId, startTimestamp, endTimestamp, buckets) {
+          /**
+           * Load metrics data directly from a running Hawkular-Metrics server
+           * @param url
+           * @param metricId
+           * @param startTimestamp
+           * @param endTimestamp
+           * @param buckets
+           */
+          function loadStandAloneMetricsForTimeRange(url:UrlType,
+                                                     metricId:MetricId,
+                                                     startTimestamp:TimeInMillis,
+                                                     endTimestamp:TimeInMillis,
+                                                     buckets = 60) {
             ///$log.debug('-- Retrieving metrics data for urlData: ' + metricId);
             ///$log.debug('-- Date Range: ' + new Date(startTimestamp) + ' - ' + new Date(endTimestamp));
             ///$log.debug('-- TenantId: ' + metricTenantId);
 
-            let numBuckets = buckets || 60;
-            let requestConfig = {
+            //let numBuckets = buckets || 60;
+            let requestConfig:ng.IRequestConfig = <any> {
               headers: {
                 'Hawkular-Tenant': metricTenantId
               },
               params: {
                 start: startTimestamp,
                 end: endTimestamp,
-                buckets: numBuckets
+                buckets: buckets
               }
             };
 
@@ -432,26 +480,33 @@ namespace Charts {
 
               let metricTypeAndData = metricType.split('-');
               /// sample url:
-              /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?buckets=120&end=1436831797533&start=1436828197533' -H 'Hawkular-Tenant: 28026b36-8fe4-4332-84c8-524e173a68bf'     -H 'Accept: application/json'
-              $http.get(url + '/' + metricTypeAndData[0] + 's/' + metricId + '/' + (metricTypeAndData[1] || 'data'), requestConfig).success((response) => {
+              /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?
+              // buckets=120&end=1436831797533&start=1436828197533'
+              $http.get(url + '/' + metricTypeAndData[0] + 's/' + metricId + '/' + (metricTypeAndData[1] || 'data'),
+                requestConfig).success((response) => {
 
-                processedNewData = formatBucketedChartOutput(response);
-                ///console.info('DataPoints from standalone URL: ');
-                ///console.table(processedNewData);
-                scope.render(processedNewData, processedPreviousRangeData);
+                  processedNewData = formatBucketedChartOutput(response);
+                  ///console.info('DataPoints from standalone URL: ');
+                  ///console.table(processedNewData);
+                  scope.render(processedNewData, processedPreviousRangeData);
 
-              }).error((reason, status) => {
-                $log.error('Error Loading Chart Data:' + status + ', ' + reason);
-              });
+                }).error((reason, status) => {
+                  $log.error('Error Loading Chart Data:' + status + ', ' + reason);
+                });
             }
 
           }
 
-          function formatBucketedChartOutput(response) {
+          /**
+           * Transform the raw http response from Metrics to one usable in charts
+           * @param response
+           * @returns transformed response to IChartDataPoint[], ready to be charted
+           */
+          function formatBucketedChartOutput(response):IChartDataPoint[] {
             //  The schema is different for bucketed output
             if (response) {
               return response.map((point:IChartDataPoint) => {
-                let timestamp = point.timestamp || (point.start + (point.end - point.start) / 2);
+                let timestamp:TimeInMillis = point.timestamp || (point.start + (point.end - point.start) / 2);
                 return {
                   timestamp: timestamp,
                   date: new Date(timestamp),
@@ -466,16 +521,26 @@ namespace Charts {
           }
 
 
-          function isEmptyDataBar(d) {
+          /**
+           * An empty value overrides any other values.
+           * @param d
+           * @returns {boolean|any|function(): JQueryCallback|function(): JQuery|function(): void|function(): boolean}
+           */
+          function isEmptyDataBar(d:IChartDataPoint):boolean {
             return d.empty;
           }
 
-          function isRawMetric(d) {
+          /**
+           * Raw metrics have a 'value' set instead of avg/min/max of aggregates
+           * @param d
+           * @returns {boolean}
+           */
+          function isRawMetric(d:IChartDataPoint):boolean {
             return typeof d.avg === 'undefined';
           }
 
 
-          function buildHover(d, i) {
+          function buildHover(d:IChartDataPoint, i:number) {
             let hover,
               prevTimestamp,
               currentTimestamp = d.timestamp,
@@ -514,7 +579,7 @@ namespace Charts {
 
           }
 
-          function createHeader(titleName) {
+          function createHeader(titleName:string) {
             let title = chart.append('g').append('rect')
               .attr('class', 'title')
               .attr('x', 30)
@@ -571,7 +636,7 @@ namespace Charts {
           }
 
 
-          function createStackedBars(lowBound, highBound) {
+          function createStackedBars(lowBound:number, highBound:number) {
 
             // The gray bars at the bottom leading up
             svg.selectAll('rect.leaderBar')
@@ -857,7 +922,7 @@ namespace Charts {
                   return '0';
                 }
               })
-              .attr('data-rhq-value', (d) => {
+              .attr('data-hawkular-value', (d) => {
                 return d.avg;
               }).on('mouseover', (d, i) => {
                 tip.show(d, i);
@@ -1118,17 +1183,17 @@ namespace Charts {
                 .enter().append('circle')
                 .attr('class', 'highDot')
                 .attr('r', 3)
-                .attr('cx', function (d) {
+                .attr('cx', (d) => {
                   return xMidPointStartPosition(d);
                 })
-                .attr('cy', function (d) {
+                .attr('cy', (d) => {
                   return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                 })
-                .style('fill', function () {
+                .style('fill', () => {
                   return '#ff1a13';
-                }).on('mouseover', function (d, i) {
+                }).on('mouseover', (d, i) => {
                   tip.show(d, i);
-                }).on('mouseout', function () {
+                }).on('mouseout', () => {
                   tip.hide();
                 });
 
@@ -1138,17 +1203,17 @@ namespace Charts {
                 .enter().append('circle')
                 .attr('class', 'lowDot')
                 .attr('r', 3)
-                .attr('cx', function (d) {
+                .attr('cx', (d) => {
                   return xMidPointStartPosition(d);
                 })
-                .attr('cy', function (d) {
+                .attr('cy', (d) => {
                   return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
                 })
-                .style('fill', function () {
+                .style('fill', () => {
                   return '#70c4e2';
-                }).on('mouseover', function (d, i) {
+                }).on('mouseover', (d, i) => {
                   tip.show(d, i);
-                }).on('mouseout', function () {
+                }).on('mouseout', () => {
                   tip.hide();
                 });
             }
@@ -1158,41 +1223,40 @@ namespace Charts {
               .enter().append('circle')
               .attr('class', 'avgDot')
               .attr('r', 3)
-              .attr('cx', function (d) {
+              .attr('cx', (d) => {
                 return xMidPointStartPosition(d);
               })
-              .attr('cy', function (d) {
+              .attr('cy', (d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               })
-              .style('fill', function () {
+              .style('fill', () => {
                 return '#FFF';
-              }).on('mouseover', function (d, i) {
+              }).on('mouseover', (d, i) => {
                 tip.show(d, i);
-              }).on('mouseout', function () {
+              }).on('mouseout', () => {
                 tip.hide();
               });
           }
 
           function createScatterLineChart() {
 
-
             svg.selectAll('.scatterline.top.stem')
               .data(chartData)
               .enter().append('line')
               .attr('class', 'scatterLineTopStem')
-              .attr('x1', function (d) {
+              .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
               })
-              .attr('x2', function (d) {
+              .attr('x2', (d) => {
                 return xMidPointStartPosition(d);
               })
-              .attr('y1', function (d) {
+              .attr('y1', (d) => {
                 return yScale(d.max);
               })
-              .attr('y2', function (d) {
+              .attr('y2', (d) => {
                 return yScale(d.avg);
               })
-              .attr('stroke', function (d) {
+              .attr('stroke', (d) => {
                 return '#000';
               });
 
@@ -1200,19 +1264,19 @@ namespace Charts {
               .data(chartData)
               .enter().append('line')
               .attr('class', 'scatterLineBottomStem')
-              .attr('x1', function (d) {
+              .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
               })
-              .attr('x2', function (d) {
+              .attr('x2', (d) => {
                 return xMidPointStartPosition(d);
               })
-              .attr('y1', function (d) {
+              .attr('y1', (d) => {
                 return yScale(d.avg);
               })
-              .attr('y2', function (d) {
+              .attr('y2', (d) => {
                 return yScale(d.min);
               })
-              .attr('stroke', function (d) {
+              .attr('stroke', (d) => {
                 return '#000';
               });
 
@@ -1220,22 +1284,22 @@ namespace Charts {
               .data(chartData)
               .enter().append('line')
               .attr('class', 'scatterLineTopCross')
-              .attr('x1', function (d) {
+              .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
               })
-              .attr('x2', function (d) {
+              .attr('x2', (d) => {
                 return xMidPointStartPosition(d) + 3;
               })
-              .attr('y1', function (d) {
+              .attr('y1', (d) => {
                 return yScale(d.max);
               })
-              .attr('y2', function (d) {
+              .attr('y2', (d) => {
                 return yScale(d.max);
               })
-              .attr('stroke', function (d) {
+              .attr('stroke', (d) => {
                 return '#000';
               })
-              .attr('stroke-width', function (d) {
+              .attr('stroke-width', (d) => {
                 return '0.5';
               });
 
@@ -1243,22 +1307,22 @@ namespace Charts {
               .data(chartData)
               .enter().append('line')
               .attr('class', 'scatterLineBottomCross')
-              .attr('x1', function (d) {
+              .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
               })
-              .attr('x2', function (d) {
+              .attr('x2', (d) => {
                 return xMidPointStartPosition(d) + 3;
               })
-              .attr('y1', function (d) {
+              .attr('y1', (d) => {
                 return yScale(d.min);
               })
-              .attr('y2', function (d) {
+              .attr('y2', (d) => {
                 return yScale(d.min);
               })
-              .attr('stroke', function (d) {
+              .attr('stroke', (d) => {
                 return '#000';
               })
-              .attr('stroke-width', function (d) {
+              .attr('stroke-width', (d) => {
                 return '0.5';
               });
 
@@ -1267,20 +1331,20 @@ namespace Charts {
               .enter().append('circle')
               .attr('class', 'avgDot')
               .attr('r', 3)
-              .attr('cx', function (d) {
+              .attr('cx', (d) => {
                 return xMidPointStartPosition(d);
               })
-              .attr('cy', function (d) {
+              .attr('cy', (d) => {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               })
-              .style('fill', function () {
+              .style('fill', () => {
                 return '#70c4e2';
               })
-              .style('opacity', function () {
+              .style('opacity', () => {
                 return '1';
-              }).on('mouseover', function (d, i) {
+              }).on('mouseover', (d, i) => {
                 tip.show(d, i);
-              }).on('mouseout', function () {
+              }).on('mouseout', () => {
                 tip.hide();
               });
 
@@ -1440,8 +1504,10 @@ namespace Charts {
                   currentItem = chartData[j];
                   nextItem = chartData[j + 1];
 
-                  if ((currentItem.avg > threshold && nextItem.avg <= threshold) || (currentItem.avg > threshold && !nextItem.avg)) {
-                    alertBoundAreaItems.push(new AlertBound(startItem.timestamp, nextItem.avg ? nextItem.timestamp : currentItem.timestamp, threshold));
+                  if ((currentItem.avg > threshold && nextItem.avg <= threshold)
+                    || (currentItem.avg > threshold && !nextItem.avg)) {
+                    alertBoundAreaItems.push(new AlertBound(startItem.timestamp,
+                      nextItem.avg ? nextItem.timestamp : currentItem.timestamp, threshold));
                     break;
                   }
                 }
@@ -1449,7 +1515,8 @@ namespace Charts {
 
               /// means the last piece data is all above threshold, use last data point
               if (alertBoundAreaItems.length === (startPoints.length - 1)) {
-                alertBoundAreaItems.push(new AlertBound(chartData[startPoints[startPoints.length - 1]].timestamp, chartData[chartData.length - 1].timestamp, threshold));
+                alertBoundAreaItems.push(new AlertBound(chartData[startPoints[startPoints.length - 1]].timestamp,
+                  chartData[chartData.length - 1].timestamp, threshold));
               }
 
               return alertBoundAreaItems
@@ -1468,18 +1535,18 @@ namespace Charts {
               .data(alertBounds)
               .enter().append('rect')
               .attr('class', 'alertBounds')
-              .attr('x', (d) => {
+              .attr('x', (d:AlertBound) => {
                 return timeScale(d.startTimestamp);
               })
-              .attr('y', (d) => {
+              .attr('y', () => {
                 return yScale(highBound);
               })
-              .attr('height', (d) => {
+              .attr('height', (d:AlertBound) => {
                 ///@todo: make the height adjustable
                 return 185;
                 //return yScale(0) - height;
               })
-              .attr('width', (d) => {
+              .attr('width', (d:AlertBound) => {
                 return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
               });
 
@@ -1660,14 +1727,15 @@ namespace Charts {
             scope.render(processedNewData, processedPreviousRangeData);
           });
 
-          scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'], (chartAttrs) => {
-            alertValue = chartAttrs[0] || alertValue;
-            chartType = chartAttrs[1] || chartType;
-            hideHighLowValues = chartAttrs[2] || hideHighLowValues;
-            useZeroMinValue = chartAttrs[3] || useZeroMinValue;
-            showAvgLine = chartAttrs[4] || showAvgLine;
-            scope.render(processedNewData, processedPreviousRangeData);
-          });
+          scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'],
+            (chartAttrs) => {
+              alertValue = chartAttrs[0] || alertValue;
+              chartType = chartAttrs[1] || chartType;
+              hideHighLowValues = chartAttrs[2] || hideHighLowValues;
+              useZeroMinValue = chartAttrs[3] || useZeroMinValue;
+              showAvgLine = chartAttrs[4] || showAvgLine;
+              scope.render(processedNewData, processedPreviousRangeData);
+            });
 
 
           function loadStandAloneMetricsTimeRangeFromNow() {
@@ -1677,15 +1745,16 @@ namespace Charts {
           }
 
           /// standalone charts attributes
-          scope.$watchGroup(['metricUrl', 'metricId', 'metricType', 'metricTenantId', 'timeRangeInSeconds'], (standAloneParams) => {
-            ///$log.debug('standalone params has changed');
-            dataUrl = standAloneParams[0] || dataUrl;
-            metricId = standAloneParams[1] || metricId;
-            metricType = standAloneParams[2] || metricId;
-            metricTenantId = standAloneParams[3] || metricTenantId;
-            timeRangeInSeconds = standAloneParams[4] || timeRangeInSeconds;
-            loadStandAloneMetricsTimeRangeFromNow();
-          });
+          scope.$watchGroup(['metricUrl', 'metricId', 'metricType', 'metricTenantId', 'timeRangeInSeconds'],
+            (standAloneParams) => {
+              ///$log.debug('standalone params has changed');
+              dataUrl = standAloneParams[0] || dataUrl;
+              metricId = standAloneParams[1] || metricId;
+              metricType = standAloneParams[2] || metricId;
+              metricTenantId = standAloneParams[3] || metricTenantId;
+              timeRangeInSeconds = standAloneParams[4] || timeRangeInSeconds;
+              loadStandAloneMetricsTimeRangeFromNow();
+            });
 
           scope.$watch('refreshIntervalInSeconds', (newRefreshInterval) => {
             if (newRefreshInterval) {

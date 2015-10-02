@@ -350,6 +350,10 @@ var Charts;
 (function (Charts) {
     'use strict';
     var debug = false;
+    /**
+     * Defines an individual alert bounds  to be visually highlighted in a chart
+     * that an alert was above/below a threshold.
+     */
     var AlertBound = (function () {
         function AlertBound(startTimestamp, endTimestamp, alertValue) {
             this.startTimestamp = startTimestamp;
@@ -546,7 +550,8 @@ var Charts;
                     return [lowBound, highBound];
                 }
                 function determineMultiScale(multiDataPoints) {
-                    var xTicks = 9, xTickSubDivide = 5, firstDataArray;
+                    var xTicks = 9, xTickSubDivide = 5;
+                    var firstDataArray;
                     if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
                         firstDataArray = multiDataPoints[0].values;
                         var lowHigh = setupFilteredMultiData(multiDataPoints);
@@ -576,11 +581,20 @@ var Charts;
                             .orient('bottom');
                     }
                 }
+                /**
+                 * Load metrics data directly from a running Hawkular-Metrics server
+                 * @param url
+                 * @param metricId
+                 * @param startTimestamp
+                 * @param endTimestamp
+                 * @param buckets
+                 */
                 function loadStandAloneMetricsForTimeRange(url, metricId, startTimestamp, endTimestamp, buckets) {
                     ///$log.debug('-- Retrieving metrics data for urlData: ' + metricId);
                     ///$log.debug('-- Date Range: ' + new Date(startTimestamp) + ' - ' + new Date(endTimestamp));
                     ///$log.debug('-- TenantId: ' + metricTenantId);
-                    var numBuckets = buckets || 60;
+                    if (buckets === void 0) { buckets = 60; }
+                    //let numBuckets = buckets || 60;
                     var requestConfig = {
                         headers: {
                             'Hawkular-Tenant': metricTenantId
@@ -588,7 +602,7 @@ var Charts;
                         params: {
                             start: startTimestamp,
                             end: endTimestamp,
-                            buckets: numBuckets
+                            buckets: buckets
                         }
                     };
                     if (startTimestamp >= endTimestamp) {
@@ -597,7 +611,8 @@ var Charts;
                     if (url && metricType && metricId) {
                         var metricTypeAndData = metricType.split('-');
                         /// sample url:
-                        /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?buckets=120&end=1436831797533&start=1436828197533' -H 'Hawkular-Tenant: 28026b36-8fe4-4332-84c8-524e173a68bf'     -H 'Accept: application/json'
+                        /// http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/data?
+                        // buckets=120&end=1436831797533&start=1436828197533'
                         $http.get(url + '/' + metricTypeAndData[0] + 's/' + metricId + '/' + (metricTypeAndData[1] || 'data'), requestConfig).success(function (response) {
                             processedNewData = formatBucketedChartOutput(response);
                             ///console.info('DataPoints from standalone URL: ');
@@ -608,6 +623,11 @@ var Charts;
                         });
                     }
                 }
+                /**
+                 * Transform the raw http response from Metrics to one usable in charts
+                 * @param response
+                 * @returns transformed response to IChartDataPoint[], ready to be charted
+                 */
                 function formatBucketedChartOutput(response) {
                     //  The schema is different for bucketed output
                     if (response) {
@@ -625,9 +645,19 @@ var Charts;
                         });
                     }
                 }
+                /**
+                 * An empty value overrides any other values.
+                 * @param d
+                 * @returns {boolean|any|function(): JQueryCallback|function(): JQuery|function(): void|function(): boolean}
+                 */
                 function isEmptyDataBar(d) {
                     return d.empty;
                 }
+                /**
+                 * Raw metrics have a 'value' set instead of avg/min/max of aggregates
+                 * @param d
+                 * @returns {boolean}
+                 */
                 function isRawMetric(d) {
                     return typeof d.avg === 'undefined';
                 }
@@ -970,7 +1000,7 @@ var Charts;
                             return '0';
                         }
                     })
-                        .attr('data-rhq-value', function (d) {
+                        .attr('data-hawkular-value', function (d) {
                         return d.avg;
                     }).on('mouseover', function (d, i) {
                         tip.show(d, i);
@@ -1476,7 +1506,8 @@ var Charts;
                             for (var j = startPointIndex; j < chartData.length - 1; j++) {
                                 currentItem = chartData[j];
                                 nextItem = chartData[j + 1];
-                                if ((currentItem.avg > threshold && nextItem.avg <= threshold) || (currentItem.avg > threshold && !nextItem.avg)) {
+                                if ((currentItem.avg > threshold && nextItem.avg <= threshold)
+                                    || (currentItem.avg > threshold && !nextItem.avg)) {
                                     alertBoundAreaItems.push(new AlertBound(startItem.timestamp, nextItem.avg ? nextItem.timestamp : currentItem.timestamp, threshold));
                                     break;
                                 }
@@ -1500,7 +1531,7 @@ var Charts;
                         .attr('x', function (d) {
                         return timeScale(d.startTimestamp);
                     })
-                        .attr('y', function (d) {
+                        .attr('y', function () {
                         return yScale(highBound);
                     })
                         .attr('height', function (d) {
