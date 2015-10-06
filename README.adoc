@@ -142,6 +142,8 @@ The stand alone version of the tag allows for linking to hawkular-metrics server
 <hawkular-chart
         chart-type="bar"
         metric-id="server2.cpu.user"
+        metric-type="gauge"
+        metric-tenant-id="myTenant"
         metric-url="http://127.0.0.1:8080/hawkular/metrics"
         time-range-in-seconds="86400002"
         refresh-interval-in-seconds="30"
