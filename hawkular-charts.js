@@ -876,82 +876,6 @@ var Charts;
                         tip.hide();
                     });
                 }
-                function createCandleStickChart() {
-                    // upper portion representing avg to high
-                    svg.selectAll('rect.candlestick.up')
-                        .data(chartData)
-                        .enter().append('rect')
-                        .attr('class', 'candleStickUp')
-                        .attr('x', function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .attr('y', function (d) {
-                        return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
-                    })
-                        .attr('height', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return 0;
-                        }
-                        else {
-                            return yScale(d.avg) - yScale(d.max);
-                        }
-                    })
-                        .attr('width', function () {
-                        return calcBarWidth();
-                    })
-                        .style('fill', function (d, i) {
-                        return fillCandleChart(d, i);
-                    })
-                        .on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                    // lower portion representing avg to low
-                    svg.selectAll('rect.candlestick.down')
-                        .data(chartData)
-                        .enter().append('rect')
-                        .attr('class', 'candleStickDown')
-                        .attr('x', function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .attr('y', function (d) {
-                        return isNaN(d.avg) ? height : yScale(d.avg);
-                    })
-                        .attr('height', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return 0;
-                        }
-                        else {
-                            return yScale(d.min) - yScale(d.avg);
-                        }
-                    })
-                        .attr('width', function () {
-                        return calcBarWidth();
-                    })
-                        .attr('data-rhq-value', function (d) {
-                        return d.min;
-                    })
-                        .style('fill', function (d, i) {
-                        return fillCandleChart(d, i);
-                    })
-                        .on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                    function fillCandleChart(d, i) {
-                        if (i > 0 && chartData[i].avg > chartData[i - 1].avg) {
-                            return 'green';
-                        }
-                        else if (i === 0) {
-                            return 'none';
-                        }
-                        else {
-                            return '#ff0705';
-                        }
-                    }
-                }
                 function createHistogramChart() {
                     var strokeOpacity = '0.6';
                     // upper portion representing avg to high
@@ -1755,9 +1679,6 @@ var Charts;
                             break;
                         case 'scatterline':
                             createScatterLineChart();
-                            break;
-                        case 'candlestick':
-                            createCandleStickChart();
                             break;
                         default:
                             $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability] chart type: ' + chartType);

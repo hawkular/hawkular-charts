@@ -16,114 +16,121 @@
  */
 
 var gulp = require('gulp'),
-    wiredep = require('wiredep').stream,
-    eventStream = require('event-stream'),
-    gulpLoadPlugins = require('gulp-load-plugins'),
-    map = require('vinyl-map'),
-    fs = require('fs'),
-    path = require('path'),
-    s = require('underscore.string'),
-    size = require('gulp-size'),
-    //stripDebug = require('gulp-strip-debug'),
-    ts = require('gulp-typescript'),
-    merge = require('merge2'),
-    tslint = require('gulp-tslint');
+  wiredep = require('wiredep').stream,
+  eventStream = require('event-stream'),
+  gulpLoadPlugins = require('gulp-load-plugins'),
+  map = require('vinyl-map'),
+  fs = require('fs'),
+  path = require('path'),
+  filesize = require('gulp-filesize'),
+  rename = require('gulp-rename'),
+  s = require('underscore.string'),
+  size = require('gulp-size'),
+//stripDebug = require('gulp-strip-debug'),
+  ts = require('gulp-typescript'),
+  merge = require('merge2'),
+  uglify = require('gulp-uglify'),
+  gutil = require('gulp-util'),
+  tslint = require('gulp-tslint');
 
 var plugins = gulpLoadPlugins({});
 var pkg = require('./package.json');
 
 var config = {
-    main: '.',
-    ts: ['src/**/*.ts'],
-    dist: './dist/',
-    js: pkg.name + '.js',
-    tsProject: plugins.typescript.createProject({
-        target: 'ES5',
-        module: 'commonjs',
-        declarationFiles: true,
-        noExternalResolve: false
-    })
+  main: '.',
+  ts: ['src/**/*.ts'],
+  dist: './dist/',
+  js: pkg.name + '.js',
+  tsProject: plugins.typescript.createProject({
+    target: 'ES5',
+    module: 'commonjs',
+    declarationFiles: true,
+    noExternalResolve: false
+  })
 };
 
 var normalSizeOptions = {
-    showFiles: true
-}, gZippedSizeOptions  = {
-    showFiles: true,
-    gzip: true
+  showFiles: true
+}, gZippedSizeOptions = {
+  showFiles: true,
+  gzip: true
 };
 
 gulp.task('bower', function () {
-    gulp.src('multi-chart-sample.html')
-        .pipe(wiredep({}))
-        .pipe(gulp.dest('.'));
+  gulp.src('multi-chart-sample.html')
+    .pipe(wiredep({}))
+    .pipe(gulp.dest('.'));
 });
 
 /** Adjust the reference path of any typescript-built plugin this project depends on */
-gulp.task('path-adjust', function() {
-    gulp.src('libs/**/includes.d.ts')
-        .pipe(map(function(buf, filename) {
-            var textContent = buf.toString();
-            var newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
-             console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
-            return newTextContent;
-        }))
-        .pipe(gulp.dest('libs'));
+gulp.task('path-adjust', function () {
+  gulp.src('libs/**/includes.d.ts')
+    .pipe(map(function (buf, filename) {
+      var textContent = buf.toString();
+      var newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
+      console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
+      return newTextContent;
+    }))
+    .pipe(gulp.dest('libs'));
 });
 
 gulp.task('clean-defs', function () {
-    return gulp.src('defs.d.ts', {read: false})
-        .pipe(plugins.clean());
+  return gulp.src('defs.d.ts', {read: false})
+    .pipe(plugins.clean());
 });
 
 gulp.task('tsc', ['clean-defs'], function () {
-    var cwd = process.cwd();
-    var tsResult = gulp.src(config.ts)
-        .pipe(plugins.typescript(config.tsProject))
-        .on('error', plugins.notify.onError({
-            message: '<%= error.message %>',
-            title: 'Typescript compilation error'
-        }));
+  var cwd = process.cwd();
+  var tsResult = gulp.src(config.ts)
+    .pipe(plugins.typescript(config.tsProject))
+    .on('error', plugins.notify.onError({
+      message: '<%= error.message %>',
+      title: 'Typescript compilation error'
+    }));
 
-    return eventStream.merge(
-        tsResult.js
-            .pipe(plugins.concat(config.js))
-            //.pipe(stripDebug())
-            .pipe(gulp.dest('.')),
-        tsResult.dts
-            .pipe(gulp.dest('d.ts')))
-        .pipe(map(function (buf, filename) {
-            if (!s.endsWith(filename, 'd.ts')) {
-                return buf;
-            }
-            var relative = path.relative(cwd, filename);
-            fs.appendFileSync('defs.d.ts', '/// <reference path="' + relative + '"/>\n');
-            return buf;
-        }));
+  return eventStream.merge(
+    tsResult.js
+      .pipe(plugins.concat(config.js))
+      //.pipe(stripDebug())
+      .pipe(gulp.dest('.'))
+      .pipe(uglify())
+      .pipe(rename('hawkular-charts.min.js'))
+      .pipe(gulp.dest('.')),
+
+    tsResult.dts
+      .pipe(gulp.dest('d.ts')))
+    .pipe(map(function (buf, filename) {
+      if (!s.endsWith(filename, 'd.ts')) {
+        return buf;
+      }
+      var relative = path.relative(cwd, filename);
+      fs.appendFileSync('defs.d.ts', '/// <reference path="' + relative + '"/>\n');
+      return buf;
+    }));
 });
 
 
 gulp.task('tslint', function () {
-    gulp.src(config.ts)
-        .pipe(tslint())
-        .pipe(tslint.report('verbose'));
+  gulp.src(config.ts)
+    .pipe(tslint())
+    .pipe(tslint.report('verbose'));
 });
-
 
 
 gulp.task('concat', function () {
-    var gZipSize = size(gZippedSizeOptions);
-    return gulp.src([config.js])
-        .pipe(plugins.concat(config.js))
-        .pipe(size(normalSizeOptions))
-        .pipe(gZipSize);
+  var gZipSize = size(gZippedSizeOptions);
+  return gulp.src([config.js])
+    .pipe(plugins.concat(config.js))
+    .pipe(size(normalSizeOptions))
+    .pipe(gZipSize);
 });
 
 gulp.task('clean', ['concat'], function () {
-    return gulp.src([config.js], {read: false})
-        .pipe(plugins.clean());
+  return gulp.src([config.js], {read: false})
+    .pipe(plugins.clean());
 });
 
-gulp.task('watch', function() {
+gulp.task('watch', function () {
   gulp.watch(config.ts, ['build']);
 });
 
