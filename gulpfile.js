@@ -22,12 +22,15 @@ var gulp = require('gulp'),
   map = require('vinyl-map'),
   fs = require('fs'),
   path = require('path'),
+  filesize = require('gulp-filesize'),
+  rename = require('gulp-rename'),
   s = require('underscore.string'),
   size = require('gulp-size'),
 //stripDebug = require('gulp-strip-debug'),
   ts = require('gulp-typescript'),
   merge = require('merge2'),
   uglify = require('gulp-uglify'),
+  gutil = require('gulp-util'),
   tslint = require('gulp-tslint');
 
 var plugins = gulpLoadPlugins({});
@@ -89,7 +92,11 @@ gulp.task('tsc', ['clean-defs'], function () {
     tsResult.js
       .pipe(plugins.concat(config.js))
       //.pipe(stripDebug())
+      .pipe(gulp.dest('.'))
+      .pipe(uglify())
+      .pipe(rename('hawkular-charts.min.js'))
       .pipe(gulp.dest('.')),
+
     tsResult.dts
       .pipe(gulp.dest('d.ts')))
     .pipe(map(function (buf, filename) {
