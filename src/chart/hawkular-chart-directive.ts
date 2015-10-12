@@ -791,86 +791,6 @@ namespace Charts {
               });
           }
 
-          function createCandleStickChart() {
-
-            // upper portion representing avg to high
-            svg.selectAll('rect.candlestick.up')
-              .data(chartData)
-              .enter().append('rect')
-              .attr('class', 'candleStickUp')
-              .attr('x', (d) => {
-                return timeScale(d.timestamp);
-              })
-              .attr('y', (d) => {
-                return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
-              })
-              .attr('height', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return 0;
-                }
-                else {
-                  return yScale(d.avg) - yScale(d.max);
-                }
-              })
-              .attr('width', () => {
-                return calcBarWidth();
-              })
-              .style('fill', (d, i) => {
-                return fillCandleChart(d, i);
-              })
-
-              .on('mouseover', (d, i) => {
-                tip.show(d, i);
-              }).on('mouseout', () => {
-                tip.hide();
-              });
-
-
-            // lower portion representing avg to low
-            svg.selectAll('rect.candlestick.down')
-              .data(chartData)
-              .enter().append('rect')
-              .attr('class', 'candleStickDown')
-              .attr('x', (d) => {
-                return timeScale(d.timestamp);
-              })
-              .attr('y', (d) => {
-                return isNaN(d.avg) ? height : yScale(d.avg);
-              })
-              .attr('height', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return 0;
-                }
-                else {
-                  return yScale(d.min) - yScale(d.avg);
-                }
-              })
-              .attr('width', () => {
-                return calcBarWidth();
-              })
-              .attr('data-rhq-value', (d) => {
-                return d.min;
-              })
-              .style('fill', (d, i) => {
-                return fillCandleChart(d, i);
-              })
-              .on('mouseover', (d, i) => {
-                tip.show(d, i);
-              }).on('mouseout', () => {
-                tip.hide();
-              });
-
-            function fillCandleChart(d, i) {
-              if (i > 0 && chartData[i].avg > chartData[i - 1].avg) {
-                return 'green';
-              } else if (i === 0) {
-                return 'none';
-              } else {
-                return '#ff0705';
-              }
-            }
-
-          }
 
 
           function createHistogramChart() {
@@ -1800,9 +1720,6 @@ namespace Charts {
                 break;
               case 'scatterline' :
                 createScatterLineChart();
-                break;
-              case 'candlestick' :
-                createCandleStickChart();
                 break;
               default:
                 $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability] chart type: ' + chartType);
