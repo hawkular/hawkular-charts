@@ -9,6 +9,9 @@ namespace Charts {
 
   let debug:boolean = false;
 
+  // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
+  const DEFAULT_Y_SCALE = 10;
+
   // Type values and ID types
   export type AlertThreshold = number;
   export type TimeInMillis = number;
@@ -276,6 +279,7 @@ namespace Charts {
             } else {
               highBound = peak + ((peak - min) * 0.2);
             }
+            highBound = !!!highBound && !!!lowBound ? DEFAULT_Y_SCALE : highBound;
           }
 
           function determineScale(dataPoints:IChartDataPoint[]) {
@@ -392,7 +396,7 @@ namespace Charts {
               highBound = peak + ((peak - min) * 0.2);
             }
 
-            return [lowBound, highBound];
+            return [lowBound, !!!highBound && !!!lowBound ? DEFAULT_Y_SCALE : highBound];
           }
 
 

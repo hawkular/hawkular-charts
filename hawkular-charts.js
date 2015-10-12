@@ -350,6 +350,8 @@ var Charts;
 (function (Charts) {
     'use strict';
     var debug = false;
+    // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
+    var DEFAULT_Y_SCALE = 10;
     /**
      * Defines an individual alert bounds  to be visually highlighted in a chart
      * that an alert was above/below a threshold.
@@ -458,6 +460,7 @@ var Charts;
                     else {
                         highBound = peak + ((peak - min) * 0.2);
                     }
+                    highBound = !!!highBound && !!!lowBound ? DEFAULT_Y_SCALE : highBound;
                 }
                 function determineScale(dataPoints) {
                     var xTicks, xTickSubDivide, numberOfBarsForSmallGraph = 20;
@@ -547,7 +550,7 @@ var Charts;
                     else {
                         highBound = peak + ((peak - min) * 0.2);
                     }
-                    return [lowBound, highBound];
+                    return [lowBound, !!!highBound && !!!lowBound ? DEFAULT_Y_SCALE : highBound];
                 }
                 function determineMultiScale(multiDataPoints) {
                     var xTicks = 9, xTickSubDivide = 5;
