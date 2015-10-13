@@ -4,7 +4,6 @@ namespace Charts {
   'use strict';
 
   declare let d3:any;
-  declare let numeral:any;
   declare let console:any;
 
   let debug:boolean = false;
@@ -558,25 +557,33 @@ namespace Charts {
 
             if (isEmptyDataBar(d)) {
               // nodata
-              hover = `<div class='chartHover'><small class='chartHoverLabel'>${noDataLabel}</small>
+              hover = `<div class='chartHover'>
+                <small class='chartHoverLabel'>${noDataLabel}</small>
                 <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
                 <hr/>
-                <div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div></div>`;
+                <div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
+                </div>`;
             } else {
               if (isRawMetric(d)) {
                 // raw single value from raw table
-                hover = `<div class='chartHover'><div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
-                  <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
+                hover = `<div class='chartHover'>
+                <div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
+                  <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small></div>
                   <hr/>
-                  <div><small><span class='chartHoverLabel'>${singleValueLabel}</span><span>: </span><span class='chartHoverValue'>${numeral(d.value).format('0,0.0')}</span></small> </div></div> `;
+                  <div><small><span class='chartHoverLabel'>${singleValueLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.value,2)}</span></small> </div>
+                  </div> `;
               } else {
                 // aggregate with min/avg/max
-                hover = `<div class='chartHover'><div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
+                hover = `<div class='chartHover'>
+                <small>
+                  <span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span>
+                </small>
                   <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
                   <hr/>
-                  <div><small><span class='chartHoverLabel'>${maxLabel}</span><span>: </span><span class='chartHoverValue'>${numeral(d.max).format('0,0.0')}</span></small> </div>
-                  <div><small><span class='chartHoverLabel'>${avgLabel}</span><span>: </span><span class='chartHoverValue'>${numeral(d.avg).format('0,0.0')}</span></small> </div>
-                  <div><small><span class='chartHoverLabel'>${minLabel}</span><span>: </span><span class='chartHoverValue'>${numeral(d.min).format('0,0.0')}</span></small> </div></div> `;
+                  <div><small><span class='chartHoverLabel'>${maxLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.max,2)}</span></small> </div>
+                  <div><small><span class='chartHoverLabel'>${avgLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.avg,2)}</span></small> </div>
+                  <div><small><span class='chartHoverLabel'>${minLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.min,2)}</span></small> </div>
+                  </div> `;
               }
             }
             return hover;
@@ -640,7 +647,7 @@ namespace Charts {
           }
 
 
-          function createStackedBars(lowBound:number, highBound:number) {
+          function createRhqStackedBars(lowBound:number, highBound:number) {
 
             // The gray bars at the bottom leading up
             svg.selectAll('rect.leaderBar')
@@ -794,7 +801,6 @@ namespace Charts {
                 tip.hide();
               });
           }
-
 
 
           function createHistogramChart() {
@@ -1702,7 +1708,7 @@ namespace Charts {
           function determineChartType(chartType:string) {
             switch (chartType) {
               case 'rhqbar' :
-                createStackedBars(lowBound, highBound);
+                createRhqStackedBars(lowBound, highBound);
                 break;
               case 'histogram' :
                 createHistogramChart();
@@ -1726,7 +1732,8 @@ namespace Charts {
                 createScatterLineChart();
                 break;
               default:
-                $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability] chart type: ' + chartType);
+                $log.warn('chart-type is not valid. Must be in' +
+                  ' [rhqbar,histogram,area,line,scatter,histogram,hawkularline,hawkularmetric] chart type: ' + chartType);
 
             }
           }

@@ -1,5 +1,13 @@
 /// <reference path="../../vendor/vendor.d.ts" />
 declare namespace Charts {
+    class AvailStatus {
+        value: string;
+        static UP: EventNames;
+        static DOWN: EventNames;
+        static UNKNOWN: EventNames;
+        constructor(value: string);
+        toString(): string;
+    }
     /**
      * This is the input data format, directly from Metrics.
      */
@@ -30,6 +38,7 @@ declare namespace Charts {
         constructor(start: number, end: number, value: string, startDate?: Date, endDate?: Date, duration?: string, message?: string);
     }
     class AvailabilityChartDirective {
+        private $rootScope;
         restrict: string;
         replace: boolean;
         scope: {
@@ -42,6 +51,9 @@ declare namespace Charts {
             noDataLabel: string;
             chartTitle: string;
         };
-        link: (scope: any, element: any, attrs: any) => void;
+        link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
+        transformedDataPoints: ITransformedAvailDataPoint[];
+        constructor($rootScope: ng.IRootScopeService);
+        static Factory(): ($rootScope: ng.IRootScopeService) => AvailabilityChartDirective;
     }
 }

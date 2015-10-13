@@ -4,7 +4,7 @@
   "authors": [
     "Red Hat"
   ],
-  "description": "WIP: Hawkular Metrics Angular Charting Directives.",
+  "description": "Hawkular Metrics Angular Charting Directives.",
   "keywords": [
     "angular directives",
     "time-series",
@@ -40,8 +40,7 @@
     "jquery": "^2.0.0",
     "d3": "3.5.5",
     "moment": ">2.9.0",
-    "d3-tip": "0.6.7",
-    "numeral": "1.5.3"
+    "d3-tip": "0.6.7"
   },
   "homepage": "https://github.com/hawkular/hawkular-charts",
   "moduleType": [
