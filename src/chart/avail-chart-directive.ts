@@ -87,7 +87,7 @@ namespace Charts {
 
     public transformedDataPoints:ITransformedAvailDataPoint[];
 
-    constructor(private $rootScope:ng.IRootScopeService) {
+    constructor($rootScope:ng.IRootScopeService) {
 
       this.link = (scope, element, attrs) => {
 
@@ -110,6 +110,7 @@ namespace Charts {
           timeScale,
           yAxis,
           xAxis,
+          xAxisGroup,
           brush,
           brushGroup,
           tip,
@@ -261,6 +262,7 @@ namespace Charts {
               return 1;
             return 0;
           }
+
           inAvailData.sort(sortByTimestamp);
 
 
@@ -270,8 +272,10 @@ namespace Charts {
             if (itemCount === 1) {
               let availItem = inAvailData[0];
 
-              // we only have one item with start time. Assume unknown for the time before (last 1h) TODO adjust to time picker
-              outputData.push(new TransformedAvailDataPoint(now - 60 * 60 * 1000, availItem.timestamp, AvailStatus.UNKNOWN.toString()));
+              // we only have one item with start time. Assume unknown for the time before (last 1h)
+              // @TODO adjust to time picker
+              outputData.push(new TransformedAvailDataPoint(now - 60 * 60 * 1000,
+                availItem.timestamp, AvailStatus.UNKNOWN.toString()));
               // and the determined value up until the end.
               outputData.push(new TransformedAvailDataPoint(availItem.timestamp, now, availItem.value));
             }
@@ -284,11 +288,13 @@ namespace Charts {
                 //  continue;
                 //}
                 if (startTimestamp >= inAvailData[i - 1].timestamp) {
-                  outputData.push(new TransformedAvailDataPoint(startTimestamp, backwardsEndTime, inAvailData[i - 1].value));
+                  outputData.push(new TransformedAvailDataPoint(startTimestamp,
+                    backwardsEndTime, inAvailData[i - 1].value));
                   break;
                 }
                 else {
-                  outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp, backwardsEndTime, inAvailData[i - 1].value));
+                  outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp,
+                    backwardsEndTime, inAvailData[i - 1].value));
                   backwardsEndTime = inAvailData[i - 1].timestamp;
                 }
               }
@@ -398,8 +404,10 @@ namespace Charts {
 
           // The bottom line of the availability chart
           svg.append('line')
-            .attr("x1", 0).attr("y1", 70)
-            .attr("x2", 655).attr("y2", 70)
+            .attr("x1", 0)
+            .attr("y1", 70)
+            .attr("x2", 655)
+            .attr("y2", 70)
             .attr("stroke-width", 0.5)
             .attr("stroke", "#D0D0D0");
 
@@ -408,22 +416,13 @@ namespace Charts {
 
 
         function createXandYAxes() {
-          let xAxisGroup;
 
           svg.selectAll('g.axis').remove();
-
 
           // create x-axis
           xAxisGroup = svg.append('g')
             .attr('class', 'x axis')
             .call(xAxis);
-
-          xAxisGroup.append('g')
-            .attr('class', 'x brush')
-            .call(brush)
-            .selectAll('rect')
-            .attr('y', -6)
-            .attr('height', 30);
 
           // create y-axis
           svg.append('g')
@@ -435,10 +434,16 @@ namespace Charts {
         function createXAxisBrush() {
 
           brush = d3.svg.brush()
-            .x(timeScaleForBrush)
+            .x(timeScale)
             .on('brushstart', brushStart)
-            .on('brush', brushMove)
             .on('brushend', brushEnd);
+
+          xAxisGroup.append('g')
+            .attr('class', 'x brush')
+            .call(brush)
+            .selectAll('rect')
+            .attr('y', 0)
+            .attr('height', 70);
 
           brushGroup = svg.append('g')
             .attr('class', 'brush')
@@ -447,35 +452,29 @@ namespace Charts {
           brushGroup.selectAll('.resize').append('path');
 
           brushGroup.selectAll('rect')
-            .attr('height', height);
+            .attr('height', 70);
 
           function brushStart() {
             svg.classed('selecting', true);
           }
 
-          function brushMove() {
-            //useful for showing the daterange change dynamically while selecting
-            let extent = brush.extent();
-            //scope.$emit('AvailDateRangeMove', extent);
-          }
 
           function brushEnd() {
             let extent = brush.extent(),
               startTime = Math.round(extent[0].getTime()),
               endTime = Math.round(extent[1].getTime()),
-              dragSelectionDelta = endTime - startTime >= 60000; // ignore < 1 minute
+              dragSelectionDelta = endTime - startTime;
 
-            svg.classed('selecting', !d3.event.target.empty());
-            // ignore range selections less than 1 minute
-            if (dragSelectionDelta) {
-              console.log('AvailTimeRangeChanged:' + extent)
-              scope.$emit(EventNames.AVAIL_CHART_TIMERANGE_CHANGED.toString(), extent);
+            //svg.classed('selecting', !d3.event.target.empty());
+            if (dragSelectionDelta >= 60000) {
+              console.log('AvailTimeRangeChanged:' + extent);
+              $rootScope.$broadcast(EventNames.AVAIL_CHART_TIMERANGE_CHANGED.toString(), extent);
             }
           }
         }
 
         scope.$watchCollection('data', (newData) => {
-          console.debug('Avail Chart Data Changed');
+          console.log('Avail Chart Data Changed');
           if (newData) {
             this.transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
             scope.render(this.transformedDataPoints);
@@ -483,24 +482,23 @@ namespace Charts {
         });
 
         scope.$watchGroup(['startTimestamp', 'endTimestamp'], (newTimestamp) => {
-          console.debug('Avail Chart Start/End Timestamp Changed');
+          console.log('Avail Chart Start/End Timestamp Changed');
           startTimestamp = newTimestamp[0] || startTimestamp;
           endTimestamp = newTimestamp[1] || endTimestamp;
           scope.render(this.transformedDataPoints);
         });
 
         scope.render = (transformedAvailDataPoint:ITransformedAvailDataPoint[]) => {
-          console.debug('Starting Avail Chart Directive Render');
+          console.log('Starting Avail Chart Directive Render');
           if (transformedAvailDataPoint && transformedAvailDataPoint.length > 0) {
             console.group('Render Avail Chart');
             console.time('availChartRender');
             ///NOTE: layering order is important!
             oneTimeChartSetup();
             determineAvailScale(transformedAvailDataPoint);
-            createXAxisBrush();
             createXandYAxes();
             createAvailabilityChart(transformedAvailDataPoint);
-
+            createXAxisBrush();
             console.timeEnd('availChartRender');
             console.groupEnd();
           }

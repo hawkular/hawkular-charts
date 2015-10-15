@@ -38,7 +38,6 @@ declare namespace Charts {
         constructor(start: number, end: number, value: string, startDate?: Date, endDate?: Date, duration?: string, message?: string);
     }
     class AvailabilityChartDirective {
-        private $rootScope;
         restrict: string;
         replace: boolean;
         scope: {

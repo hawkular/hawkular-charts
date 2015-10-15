@@ -49,8 +49,13 @@
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
 
-    app.controller('ChartController', function () {
+    app.controller('ChartController', function ($scope) {
+      // set the alert threshold to whatever
       this.alertThreshold = 2000;
+
+      $scope.$on('ChartTimeRangeChanged', function (event, data) {
+        console.info('Received ChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
+      });
 
       // A captured Hawkular Feed for sample data
       this.myData = [{
