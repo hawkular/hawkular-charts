@@ -47,8 +47,12 @@
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
 
-    app.controller('MultiChartController', function () {
+    app.controller('MultiChartController', function ($scope) {
       this.alertThreshold = 2000;
+
+      $scope.$on('ChartTimeRangeChanged', function (event, data) {
+        console.info('Received ChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
+      });
 
       // A captured Hawkular Feed for sample data
       var walmartData =

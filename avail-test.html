@@ -17,11 +17,15 @@
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
 
-    app.controller('AvailTestController', function () {
+    app.controller('AvailTestController', function ($scope) {
+      this.vm = $scope;
 
       console.log("Starting Avail Tester");
       var baseTime = moment().hour(13).minutes(0); // start a 13:00 today
 
+      $scope.$on('AvailChartTimeRangeChanged', function (event, data) {
+        console.info('Received AvailChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
+      });
 
       this.availAllChartData = [
         {'timestamp': +baseTime.add('minutes', 5), 'value': 'up'},
@@ -67,29 +71,17 @@
 <h3>Availability Test Screen</h3>
 
 <div>
-  <h5>Test Case 1: Multiple Points</h5>
+  <h5>Test Case: Multiple Points</h5>
 
   <p>Standard, multiple avail points.</p>
 
-  <div ng-controller="AvailTestController as avail">
-    <availability-chart data="avail.availAllChartData"
-                        start-timestamp="{{avail.startTime}}"
-                        end-timestamp="{{avail.endTime}}"
+  <div ng-controller="AvailTestController as vm">
+    <availability-chart data="vm.availAllChartData"
+                        start-timestamp="{{vm.startTime}}"
+                        end-timestamp="{{vm.endTime}}"
       />
   </div>
 </div>
-
-<!--<div>-->
-<!--<h5>Test Case 2: Single Avail Point</h5>-->
-
-<!--<p>This is a corner case that will go away. This doesnt sound like a valid use case but this is what the servers sends. A single avil point that-->
-<!--needs to be augmented by adding another point in order to plot.</p>-->
-
-<!--<div ng-controller="AvailTestController as avail">-->
-<!--<availability-chart data="avail.singleAvailData"/>-->
-<!--</div>-->
-<!--</div>-->
-
 
 </body>
 </html>

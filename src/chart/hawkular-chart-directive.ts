@@ -313,7 +313,6 @@ namespace Charts {
 
               yAxis = d3.svg.axis()
                 .scale(yScale)
-                .tickSubdivide(1)
                 .ticks(5)
                 .tickSize(4, 4, 0)
                 .orient('left');
@@ -343,7 +342,6 @@ namespace Charts {
                 .scale(timeScale)
                 .ticks(xTicks)
                 .tickFormat(d3.time.format('%H:%M'))
-                .tickSubdivide(xTickSubDivide)
                 .tickSize(4, 4, 0)
                 .orient('bottom');
 
@@ -570,7 +568,7 @@ namespace Charts {
                 <div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
                   <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small></div>
                   <hr/>
-                  <div><small><span class='chartHoverLabel'>${singleValueLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.value,2)}</span></small> </div>
+                  <div><small><span class='chartHoverLabel'>${singleValueLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.value, 2)}</span></small> </div>
                   </div> `;
               } else {
                 // aggregate with min/avg/max
@@ -580,9 +578,9 @@ namespace Charts {
                 </small>
                   <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
                   <hr/>
-                  <div><small><span class='chartHoverLabel'>${maxLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.max,2)}</span></small> </div>
-                  <div><small><span class='chartHoverLabel'>${avgLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.avg,2)}</span></small> </div>
-                  <div><small><span class='chartHoverLabel'>${minLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.min,2)}</span></small> </div>
+                  <div><small><span class='chartHoverLabel'>${maxLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.max, 2)}</span></small> </div>
+                  <div><small><span class='chartHoverLabel'>${avgLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.avg, 2)}</span></small> </div>
+                  <div><small><span class='chartHoverLabel'>${minLabel}</span><span>: </span><span class='chartHoverValue'>${d3.format(d.min, 2)}</span></small> </div>
                   </div> `;
               }
             }
@@ -1485,40 +1483,33 @@ namespace Charts {
           function createXAxisBrush() {
 
             brush = d3.svg.brush()
-              .x(timeScaleForBrush)
+              .x(timeScale)
               .on('brushstart', brushStart)
-              .on('brush', brushMove)
               .on('brushend', brushEnd);
 
-            //brushGroup = svg.append('g')
-            //    .attr('class', 'brush')
-            //    .call(brush);
-            //
-            //brushGroup.selectAll('.resize').append('path');
-            //
-            //brushGroup.selectAll('rect')
-            //    .attr('height', height);
+            brushGroup = svg.append('g')
+              .attr('class', 'brush')
+              .call(brush);
+
+            brushGroup.selectAll('.resize').append('path');
+
+            brushGroup.selectAll('rect')
+              .attr('height', height);
 
             function brushStart() {
               svg.classed('selecting', true);
-            }
-
-            function brushMove() {
-              //useful for showing the daterange change dynamically while selecting
-              let extent = brush.extent();
-              scope.$emit('DateRangeMove', extent);
             }
 
             function brushEnd() {
               let extent = brush.extent(),
                 startTime = Math.round(extent[0].getTime()),
                 endTime = Math.round(extent[1].getTime()),
-                dragSelectionDelta = endTime - startTime >= 60000;
+                dragSelectionDelta = endTime - startTime;
 
               svg.classed('selecting', !d3.event.target.empty());
               // ignore range selections less than 1 minute
-              if (dragSelectionDelta) {
-                scope.$emit('DateRangeChanged', extent);
+              if (dragSelectionDelta >= 60000) {
+                scope.$emit(EventNames.CHART_TIMERANGE_CHANGED, extent);
               }
             }
 
@@ -1540,7 +1531,7 @@ namespace Charts {
             let colorScale = d3.scale.category20();
 
             if (multiChartOverlayData) {
-              $log.warn('Running MultiChartOverlay for %i metrics', multiChartOverlayData.length);
+              $log.log('Running MultiChartOverlay for %i metrics', multiChartOverlayData.length);
 
               multiChartOverlayData.forEach((singleChartData) => {
 
@@ -1616,7 +1607,7 @@ namespace Charts {
 
           scope.$watch('multiData', (newMultiData) => {
             if (newMultiData) {
-              ///$log.debug('MultiData Chart Data Changed');
+              $log.log('MultiData Chart Data Changed');
               multiDataPoints = angular.fromJson(newMultiData);
               scope.render(processedNewData, processedPreviousRangeData);
             }
@@ -1625,7 +1616,7 @@ namespace Charts {
 
           scope.$watch('previousRangeData', (newPreviousRangeValues) => {
             if (newPreviousRangeValues) {
-              $log.debug('Previous Range data changed');
+              //$log.debug('Previous Range data changed');
               processedPreviousRangeData = angular.fromJson(newPreviousRangeValues);
               scope.render(processedNewData, processedPreviousRangeData);
             }
