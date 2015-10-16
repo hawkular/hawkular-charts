@@ -31,7 +31,6 @@
     }
   </style>
 
-
   <!-- build:js scripts/vendor.js -->
   <!-- bower:js -->
   <script src="libs/jquery/dist/jquery.js"></script>
@@ -50,15 +49,14 @@
     var app = angular.module('myApp', ['hawkular.charts']);
 
     app.controller('ChartController', function ($scope) {
+      //var self = this;
+
       // set the alert threshold to whatever
-      this.alertThreshold = 2000;
+      $scope.alertThreshold = 2000;
 
-      $scope.$on('ChartTimeRangeChanged', function (event, data) {
-        console.info('Received ChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
-      });
 
-      // A captured Hawkular Feed for sample data
-      this.myData = [{
+      // A captured Hawkular Feed for sample data -- simulates loading data
+      $scope.myData = [{
         "timestamp": 1434476761167,
         "date": "2015-06-16T17:46:01.167Z",
         "value": 0,
@@ -1245,6 +1243,34 @@
         "empty": false
       }];
 
+
+      // this is simply a d3 function to return the beginning and ending values
+      var myTimeRange = d3.extent($scope.myData, function (value) {
+        return value.timestamp;
+      });
+      // set our initial timerange based on the data bounds
+      $scope.startTimestamp = myTimeRange[0];
+      $scope.endTimestamp = myTimeRange[1];
+      console.info('Starting time range values: ' + new Date(myTimeRange[0]) + ' - ' + new Date(myTimeRange[1]));
+
+
+      $scope.refreshChartWithDateRange = function () {
+        console.info('RefreshChart');
+        // we already have the data, but perhaps the data is stale and you want to requery
+        // also, by just changing the data the charts will automatically update themselves
+        $scope.myData = $scope.myData.filter( function (value) {
+          return value.timestamp >= $scope.startTimestamp && value.timestamp <= $scope.endTimestamp;
+        });
+       $scope.$digest();
+
+      };
+
+      $scope.$on('ChartTimeRangeChanged', function (event, data) {
+        console.info('Received ChartTimeRangeChanged: ' + data[0] + ' - ' + data[1]);
+        $scope.startTimestamp = data[0];
+        $scope.endTimestamp = data[1];
+        $scope.refreshChartWithDateRange();
+      });
     });
 
   </script>
@@ -1262,11 +1288,15 @@
   the look of the graph.
 </p>
 
-<p>
+<p style="font-variant: all-small-caps;">
   Feel free to change the data set or configuration settings to play around with what your chart can look like.
 </p>
+<p style="font-style: italic">
+  Also, be sure to drag on the chart to select interesting areas to zoom in on. This example has all of charts
+  responding to the change in zoom area.
+</p>
 
-<div ng-controller="ChartController as vm">
+<div ng-controller="ChartController">
 
   <div class="metricIdHeader"><span class="metricIdLabel"> Chart Attributes:</span>
     <li> alert-value="2000"</li>
@@ -1275,7 +1305,7 @@
   </div>
   <div class="chartWrapper">
     <hawkular-chart
-      data="vm.myData"
+      data="myData"
       chart-type="hawkularmetric"
       alert-value="2000"
       show-data-points="true"
@@ -1290,9 +1320,9 @@
   </div>
   <div class="chartWrapper">
     <hawkular-chart
-      data="vm.myData"
+      data="myData"
       chart-type="hawkularmetric"
-      alert-value="{{vm.alertThreshold}}"
+      alert-value="{{alertThreshold}}"
       use-zero-min-value="true"
       y-axis-units="Response Time (ms)"
       chart-height="250">
@@ -1306,7 +1336,7 @@
   </div>
   <div class="chartWrapper">
     <hawkular-chart
-      data="vm.myData"
+      data="myData"
       chart-type="hawkularmetric"
       alert-value="6000"
       use-zero-min-value="true"
@@ -1321,7 +1351,7 @@
   </div>
   <div class="chartWrapper">
     <hawkular-chart
-      data="vm.myData"
+      data="myData"
       chart-type="hawkularmetric"
       alert-value="1000"
       use-zero-min-value="true"

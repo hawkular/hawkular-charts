@@ -467,7 +467,7 @@ namespace Charts {
 
             //svg.classed('selecting', !d3.event.target.empty());
             if (dragSelectionDelta >= 60000) {
-              console.log('AvailTimeRangeChanged:' + extent);
+              console.log('Drag: AvailTimeRangeChanged:' + extent);
               $rootScope.$broadcast(EventNames.AVAIL_CHART_TIMERANGE_CHANGED.toString(), extent);
             }
           }

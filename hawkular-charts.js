@@ -7,10 +7,62 @@
  */
 angular.module('hawkular.charts', []);
 
+///
+/// Copyright 2015 Red Hat, Inc. and/or its affiliates
+/// and other contributors as indicated by the @author tags.
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this file except in compliance with the License.
+/// You may obtain a copy of the License at
+///
+///    http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing, software
+/// distributed under the License is distributed on an "AS IS" BASIS,
+/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+/// See the License for the specific language governing permissions and
+/// limitations under the License.
+///
+var Charts;
+(function (Charts) {
+    'use strict';
+    /// NOTE: this pattern is used because enums cant be used with strings
+    var EventNames = (function () {
+        function EventNames(value) {
+            this.value = value;
+            // empty
+        }
+        EventNames.prototype.toString = function () {
+            return this.value;
+        };
+        EventNames.CHART_TIMERANGE_CHANGED = new EventNames('ChartTimeRangeChanged');
+        EventNames.AVAIL_CHART_TIMERANGE_CHANGED = new EventNames('AvailChartTimeRangeChanged');
+        EventNames.REFRESH_CHART = new EventNames('RefreshChart');
+        EventNames.REFRESH_AVAIL_CHART = new EventNames('RefreshAvailabilityChart');
+        return EventNames;
+    })();
+    Charts.EventNames = EventNames;
+})(Charts || (Charts = {}));
+
 /// <reference path='../../vendor/vendor.d.ts' />
 var Charts;
 (function (Charts) {
     'use strict';
+    var _module = angular.module('hawkular.charts');
+    var AvailStatus = (function () {
+        function AvailStatus(value) {
+            this.value = value;
+            // empty
+        }
+        AvailStatus.prototype.toString = function () {
+            return this.value;
+        };
+        AvailStatus.UP = new Charts.EventNames('up');
+        AvailStatus.DOWN = new Charts.EventNames('down');
+        AvailStatus.UNKNOWN = new Charts.EventNames('unknown');
+        return AvailStatus;
+    })();
+    Charts.AvailStatus = AvailStatus;
     var TransformedAvailDataPoint = (function () {
         function TransformedAvailDataPoint(start, end, value, startDate, endDate, duration, message) {
             this.start = start;
@@ -27,20 +79,12 @@ var Charts;
         return TransformedAvailDataPoint;
     })();
     Charts.TransformedAvailDataPoint = TransformedAvailDataPoint;
-    /**
-     * @ngdoc directive
-     * @name availability-chart
-     * @description A d3 based charting directive for charting availability.
-     *
-     */
-    var _module = angular.module('hawkular.charts')
-        .directive('availabilityChart', function () {
-        return new Charts.AvailabilityChartDirective();
-    });
     var AvailabilityChartDirective = (function () {
-        function AvailabilityChartDirective() {
+        function AvailabilityChartDirective($rootScope) {
+            var _this = this;
             this.restrict = 'E';
             this.replace = true;
+            // Can't use 1.4 directive controllers because we need to support 1.3+
             this.scope = {
                 data: '=',
                 startTimestamp: '@',
@@ -53,15 +97,15 @@ var Charts;
             };
             this.link = function (scope, element, attrs) {
                 // data specific vars
-                var dataPoints = [], startTimestamp = +attrs.startTimestamp, endTimestamp = +attrs.endTimestamp, transformedDataPoints, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
+                var startTimestamp = +attrs.startTimestamp, endTimestamp = +attrs.endTimestamp, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, brush, tip, timeScaleForBrush, chart, chartParent, svg;
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, xAxisGroup, brush, brushGroup, tip, timeScaleForBrush, chart, chartParent, svg;
                 function getChartWidth() {
                     ///return angular.element('#' + chartContext.chartHandle).width();
                     return 760;
                 }
                 function buildAvailHover(d) {
-                    return "<div class='chartHover'><div><small><span class='chartHoverLabel'>Status: </span><span>: </span><span class='chartHoverValue'>" + d.value.toUpperCase() + "</span></small></div>\n          <div><small><span class='chartHoverLabel'>Duration</span><span>: </span><span class='chartHoverValue'>" + d.duration + "</span></small> </div>";
+                    return "<div class='chartHover'>\n        <div>\n        <small>\n          <span class='chartHoverLabel'>Status: </span><span>: </span>\n          <span class='chartHoverValue'>" + d.value.toUpperCase() + "</span>\n        </small>\n        </div>\n          <div>\n          <small>\n            <span class='chartHoverLabel'>Duration</span><span>: </span>\n            <span class='chartHoverValue'>" + d.duration + "</span>\n          </small>\n          </div>\n        </div>";
                 }
                 function oneTimeChartSetup() {
                     // destroy any previous charts
@@ -94,12 +138,14 @@ var Charts;
                         .attr('stroke-width', 1.2);
                     svg.call(tip);
                 }
-                function determineAvailScale(dataPoints) {
+                function determineAvailScale(transformedAvailDataPoint) {
                     var adjustedTimeRange = [];
-                    startTimestamp = +attrs.startTimestamp || d3.min(dataPoints, function (d) { return d.start; }) || +moment().subtract(1, 'hour');
-                    if (dataPoints) {
+                    startTimestamp = +attrs.startTimestamp || d3.min(transformedAvailDataPoint, function (d) {
+                        return d.start;
+                    }) || +moment().subtract(1, 'hour');
+                    if (transformedAvailDataPoint && transformedAvailDataPoint.length > 0) {
                         adjustedTimeRange[0] = startTimestamp;
-                        adjustedTimeRange[1] = +moment(); // TODO: Fix wehn we support end != now
+                        adjustedTimeRange[1] = +moment(); // @TODO: Fix when we support end != now
                         yScale = d3.scale.linear()
                             .clamp(true)
                             .rangeRound([70, 0])
@@ -117,47 +163,70 @@ var Charts;
                             .tickSize(-70, 0)
                             .orient('top')
                             .tickFormat(d3.time.format.multi([
-                            [".%L", function (d) { return d.getMilliseconds(); }],
-                            [":%S", function (d) { return d.getSeconds(); }],
-                            ["%H:%M", function (d) { return d.getMinutes(); }],
-                            ["%H:%M", function (d) { return d.getHours(); }],
-                            ["%a %d", function (d) { return d.getDay() && d.getDate() != 1; }],
-                            ["%b %d", function (d) { return d.getDate() != 1; }],
-                            ["%B", function (d) { return d.getMonth(); }],
-                            ["%Y", function () { return true; }]
+                            [".%L", function (d) {
+                                    return d.getMilliseconds();
+                                }],
+                            [":%S", function (d) {
+                                    return d.getSeconds();
+                                }],
+                            ["%H:%M", function (d) {
+                                    return d.getMinutes();
+                                }],
+                            ["%H:%M", function (d) {
+                                    return d.getHours();
+                                }],
+                            ["%a %d", function (d) {
+                                    return d.getDay() && d.getDate() != 1;
+                                }],
+                            ["%b %d", function (d) {
+                                    return d.getDate() != 1;
+                                }],
+                            ["%B", function (d) {
+                                    return d.getMonth();
+                                }],
+                            ["%Y", function () {
+                                    return true;
+                                }]
                         ]));
                     }
                 }
                 function isUp(d) {
-                    return d.value === 'up';
+                    return d.value === AvailStatus.UP.toString();
                 }
                 function isDown(d) {
-                    return d.value === 'down';
+                    return d.value === AvailStatus.DOWN.toString();
                 }
                 function isUnknown(d) {
-                    return d.value === 'unknown';
+                    return d.value === AvailStatus.UNKNOWN.toString();
                 }
                 function formatTransformedDataPoints(inAvailData) {
                     var outputData = [];
                     var itemCount = inAvailData.length;
+                    function sortByTimestamp(a, b) {
+                        if (a.timestamp < b.timestamp)
+                            return -1;
+                        if (a.timestamp > b.timestamp)
+                            return 1;
+                        return 0;
+                    }
+                    inAvailData.sort(sortByTimestamp);
                     if (inAvailData && itemCount > 0 && inAvailData[0].timestamp) {
                         var now = new Date().getTime();
                         if (itemCount === 1) {
                             var availItem = inAvailData[0];
-                            // we only have one item with start time. Assume unknown for the time before (last 1h) TODO adjust to time picker
-                            outputData.push(new TransformedAvailDataPoint(now - 60 * 60 * 1000, availItem.timestamp, 'unknown'));
+                            // we only have one item with start time. Assume unknown for the time before (last 1h)
+                            // @TODO adjust to time picker
+                            outputData.push(new TransformedAvailDataPoint(now - 60 * 60 * 1000, availItem.timestamp, AvailStatus.UNKNOWN.toString()));
                             // and the determined value up until the end.
                             outputData.push(new TransformedAvailDataPoint(availItem.timestamp, now, availItem.value));
                         }
                         else {
-                            var backwardsEndTime;
-                            var i;
-                            backwardsEndTime = now;
-                            for (i = inAvailData.length; i > 0; i--) {
+                            var backwardsEndTime = now;
+                            for (var i = inAvailData.length; i > 0; i--) {
                                 // if we have data starting in the future... discard it
-                                if (inAvailData[i - 1].timestamp > +moment()) {
-                                    continue;
-                                }
+                                //if (inAvailData[i - 1].timestamp > +moment()) {
+                                //  continue;
+                                //}
                                 if (startTimestamp >= inAvailData[i - 1].timestamp) {
                                     outputData.push(new TransformedAvailDataPoint(startTimestamp, backwardsEndTime, inAvailData[i - 1].value));
                                     break;
@@ -192,10 +261,10 @@ var Charts;
                         .style('text-anchor', 'end')
                         .text('Down');
                 }
-                function createAvailabilityChart(dataPoints) {
-                    var xAxisMin = d3.min(dataPoints, function (d) {
+                function createAvailabilityChart(transformedAvailDataPoint) {
+                    var xAxisMin = d3.min(transformedAvailDataPoint, function (d) {
                         return +d.start;
-                    }), xAxisMax = d3.max(dataPoints, function (d) {
+                    }), xAxisMax = d3.max(transformedAvailDataPoint, function (d) {
                         return +d.end;
                     });
                     var availTimeScale = d3.time.scale()
@@ -223,14 +292,14 @@ var Charts;
                             return '#54A24E'; // green
                         }
                         else if (isUnknown(d)) {
-                            return 'url(#diagonal-stripes)'; // gray
+                            return 'url(#diagonal-stripes)'; // gray stripes
                         }
                         else {
                             return '#D85054'; // red
                         }
                     }
                     svg.selectAll('rect.availBars')
-                        .data(dataPoints)
+                        .data(transformedAvailDataPoint)
                         .enter().append('rect')
                         .attr('class', 'availBars')
                         .attr('x', function (d) {
@@ -248,6 +317,9 @@ var Charts;
                         .attr('fill', function (d) {
                         return calcBarFill(d);
                     })
+                        .attr('opacity', function () {
+                        return 0.85;
+                    })
                         .on('mouseover', function (d, i) {
                         tip.show(d, i);
                     }).on('mouseout', function () {
@@ -255,25 +327,20 @@ var Charts;
                     });
                     // The bottom line of the availability chart
                     svg.append('line')
-                        .attr("x1", 0).attr("y1", 70)
-                        .attr("x2", 655).attr("y2", 70)
+                        .attr("x1", 0)
+                        .attr("y1", 70)
+                        .attr("x2", 655)
+                        .attr("y2", 70)
                         .attr("stroke-width", 0.5)
                         .attr("stroke", "#D0D0D0");
                     createSideYAxisLabels();
                 }
                 function createXandYAxes() {
-                    var xAxisGroup;
                     svg.selectAll('g.axis').remove();
                     // create x-axis
                     xAxisGroup = svg.append('g')
                         .attr('class', 'x axis')
                         .call(xAxis);
-                    //xAxisGroup.append('g')
-                    //  .attr('class', 'x brush')
-                    //  .call(brush)
-                    //  .selectAll('rect')
-                    //  .attr('y', -6)
-                    //  .attr('height', 30);
                     // create y-axis
                     svg.append('g')
                         .attr('class', 'y axis')
@@ -281,68 +348,74 @@ var Charts;
                 }
                 function createXAxisBrush() {
                     brush = d3.svg.brush()
-                        .x(timeScaleForBrush)
+                        .x(timeScale)
                         .on('brushstart', brushStart)
-                        .on('brush', brushMove)
                         .on('brushend', brushEnd);
-                    //brushGroup = svg.append('g')
-                    //    .attr('class', 'brush')
-                    //    .call(brush);
-                    //
-                    //brushGroup.selectAll('.resize').append('path');
-                    //
-                    //brushGroup.selectAll('rect')
-                    //    .attr('height', height);
+                    xAxisGroup.append('g')
+                        .attr('class', 'x brush')
+                        .call(brush)
+                        .selectAll('rect')
+                        .attr('y', 0)
+                        .attr('height', 70);
+                    brushGroup = svg.append('g')
+                        .attr('class', 'brush')
+                        .call(brush);
+                    brushGroup.selectAll('.resize').append('path');
+                    brushGroup.selectAll('rect')
+                        .attr('height', 70);
                     function brushStart() {
                         svg.classed('selecting', true);
                     }
-                    function brushMove() {
-                        //useful for showing the daterange change dynamically while selecting
-                        var extent = brush.extent();
-                        //scope.$emit('DateRangeMove', extent);
-                    }
                     function brushEnd() {
-                        var extent = brush.extent(), startTime = Math.round(extent[0].getTime()), endTime = Math.round(extent[1].getTime()), dragSelectionDelta = endTime - startTime >= 60000;
-                        svg.classed('selecting', !d3.event.target.empty());
-                        // ignore range selections less than 1 minute
-                        if (dragSelectionDelta) {
-                            scope.$emit('DateRangeChanged', extent);
+                        var extent = brush.extent(), startTime = Math.round(extent[0].getTime()), endTime = Math.round(extent[1].getTime()), dragSelectionDelta = endTime - startTime;
+                        //svg.classed('selecting', !d3.event.target.empty());
+                        if (dragSelectionDelta >= 60000) {
+                            console.log('Drag: AvailTimeRangeChanged:' + extent);
+                            $rootScope.$broadcast(Charts.EventNames.AVAIL_CHART_TIMERANGE_CHANGED.toString(), extent);
                         }
                     }
                 }
                 scope.$watchCollection('data', function (newData) {
-                    console.debug('Avail Chart Data Changed');
+                    console.log('Avail Chart Data Changed');
                     if (newData) {
-                        transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
-                        scope.render(transformedDataPoints);
+                        _this.transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
+                        scope.render(_this.transformedDataPoints);
                     }
                 });
                 scope.$watchGroup(['startTimestamp', 'endTimestamp'], function (newTimestamp) {
-                    console.debug('Avail Chart Start/End Timestamp Changed');
+                    console.log('Avail Chart Start/End Timestamp Changed');
                     startTimestamp = newTimestamp[0] || startTimestamp;
                     endTimestamp = newTimestamp[1] || endTimestamp;
-                    scope.render(transformedDataPoints);
+                    scope.render(_this.transformedDataPoints);
                 });
-                scope.render = function (dataPoints) {
-                    console.debug('Starting Avail Chart Directive Render');
-                    console.group('Render Avail Chart');
-                    if (dataPoints) {
+                scope.render = function (transformedAvailDataPoint) {
+                    console.log('Starting Avail Chart Directive Render');
+                    if (transformedAvailDataPoint && transformedAvailDataPoint.length > 0) {
+                        console.group('Render Avail Chart');
                         console.time('availChartRender');
                         ///NOTE: layering order is important!
                         oneTimeChartSetup();
-                        determineAvailScale(dataPoints);
-                        createXAxisBrush();
+                        determineAvailScale(transformedAvailDataPoint);
                         createXandYAxes();
-                        createAvailabilityChart(dataPoints);
+                        createAvailabilityChart(transformedAvailDataPoint);
+                        createXAxisBrush();
                         console.timeEnd('availChartRender');
+                        console.groupEnd();
                     }
-                    console.groupEnd();
                 };
             };
         }
+        AvailabilityChartDirective.Factory = function () {
+            var directive = function ($rootScope) {
+                return new AvailabilityChartDirective($rootScope);
+            };
+            directive['$inject'] = ['$rootScope'];
+            return directive;
+        };
         return AvailabilityChartDirective;
     })();
     Charts.AvailabilityChartDirective = AvailabilityChartDirective;
+    _module.directive('availabilityChart', AvailabilityChartDirective.Factory());
 })(Charts || (Charts = {}));
 
 /// <reference path='../../vendor/vendor.d.ts' />
@@ -488,7 +561,6 @@ var Charts;
                             .domain([lowBound, highBound]);
                         yAxis = d3.svg.axis()
                             .scale(yScale)
-                            .tickSubdivide(1)
                             .ticks(5)
                             .tickSize(4, 4, 0)
                             .orient('left');
@@ -515,7 +587,6 @@ var Charts;
                             .scale(timeScale)
                             .ticks(xTicks)
                             .tickFormat(d3.time.format('%H:%M'))
-                            .tickSubdivide(xTickSubDivide)
                             .tickSize(4, 4, 0)
                             .orient('bottom');
                     }
@@ -566,7 +637,6 @@ var Charts;
                             .domain([lowBound, highBound]);
                         yAxis = d3.svg.axis()
                             .scale(yScale)
-                            .tickSubdivide(1)
                             .ticks(5)
                             .tickSize(4, 4, 0)
                             .orient('left');
@@ -579,7 +649,6 @@ var Charts;
                             .scale(timeScale)
                             .ticks(xTicks)
                             .tickFormat(d3.time.format('%H:%M'))
-                            .tickSubdivide(xTickSubDivide)
                             .tickSize(4, 4, 0)
                             .orient('bottom');
                     }
@@ -618,8 +687,6 @@ var Charts;
                         // buckets=120&end=1436831797533&start=1436828197533'
                         $http.get(url + '/' + metricTypeAndData[0] + 's/' + metricId + '/' + (metricTypeAndData[1] || 'data'), requestConfig).success(function (response) {
                             processedNewData = formatBucketedChartOutput(response);
-                            ///console.info('DataPoints from standalone URL: ');
-                            ///console.table(processedNewData);
                             scope.render(processedNewData, processedPreviousRangeData);
                         }).error(function (reason, status) {
                             $log.error('Error Loading Chart Data:' + status + ', ' + reason);
@@ -672,16 +739,16 @@ var Charts;
                     }
                     if (isEmptyDataBar(d)) {
                         // nodata
-                        hover = "<div class='chartHover'><small class='chartHoverLabel'>" + noDataLabel + "</small>\n                <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                <hr/>\n                <div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div></div>";
+                        hover = "<div class='chartHover'>\n                <small class='chartHoverLabel'>" + noDataLabel + "</small>\n                <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                <hr/>\n                <div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>\n                </div>";
                     }
                     else {
                         if (isRawMetric(d)) {
                             // raw single value from raw table
-                            hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>\n                  <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                  <hr/>\n                  <div><small><span class='chartHoverLabel'>" + singleValueLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.value).format('0,0.0') + "</span></small> </div></div> ";
+                            hover = "<div class='chartHover'>\n                <div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>\n                  <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small></div>\n                  <hr/>\n                  <div><small><span class='chartHoverLabel'>" + singleValueLabel + "</span><span>: </span><span class='chartHoverValue'>" + d3.format(d.value, 2) + "</span></small> </div>\n                  </div> ";
                         }
                         else {
                             // aggregate with min/avg/max
-                            hover = "<div class='chartHover'><div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>\n                  <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                  <hr/>\n                  <div><small><span class='chartHoverLabel'>" + maxLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.max).format('0,0.0') + "</span></small> </div>\n                  <div><small><span class='chartHoverLabel'>" + avgLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.avg).format('0,0.0') + "</span></small> </div>\n                  <div><small><span class='chartHoverLabel'>" + minLabel + "</span><span>: </span><span class='chartHoverValue'>" + numeral(d.min).format('0,0.0') + "</span></small> </div></div> ";
+                            hover = "<div class='chartHover'>\n                <small>\n                  <span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span>\n                </small>\n                  <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                  <hr/>\n                  <div><small><span class='chartHoverLabel'>" + maxLabel + "</span><span>: </span><span class='chartHoverValue'>" + d3.format(d.max, 2) + "</span></small> </div>\n                  <div><small><span class='chartHoverLabel'>" + avgLabel + "</span><span>: </span><span class='chartHoverValue'>" + d3.format(d.avg, 2) + "</span></small> </div>\n                  <div><small><span class='chartHoverLabel'>" + minLabel + "</span><span>: </span><span class='chartHoverValue'>" + d3.format(d.min, 2) + "</span></small> </div>\n                  </div> ";
                         }
                     }
                     return hover;
@@ -732,7 +799,7 @@ var Charts;
                         .attr('style', 'stroke:#ff8a9a; fill:none;')
                         .append('path').attr('d', 'M 0 0 6 0');
                 }
-                function createStackedBars(lowBound, highBound) {
+                function createRhqStackedBars(lowBound, highBound) {
                     // The gray bars at the bottom leading up
                     svg.selectAll('rect.leaderBar')
                         .data(chartData)
@@ -1472,38 +1539,29 @@ var Charts;
                 }
                 function createXAxisBrush() {
                     brush = d3.svg.brush()
-                        .x(timeScaleForBrush)
+                        .x(timeScale)
                         .on('brushstart', brushStart)
-                        .on('brush', brushMove)
                         .on('brushend', brushEnd);
-                    //brushGroup = svg.append('g')
-                    //    .attr('class', 'brush')
-                    //    .call(brush);
-                    //
-                    //brushGroup.selectAll('.resize').append('path');
-                    //
-                    //brushGroup.selectAll('rect')
-                    //    .attr('height', height);
+                    brushGroup = svg.append('g')
+                        .attr('class', 'brush')
+                        .call(brush);
+                    brushGroup.selectAll('.resize').append('path');
+                    brushGroup.selectAll('rect')
+                        .attr('height', height);
                     function brushStart() {
                         svg.classed('selecting', true);
                     }
-                    function brushMove() {
-                        //useful for showing the daterange change dynamically while selecting
-                        var extent = brush.extent();
-                        scope.$emit('DateRangeMove', extent);
-                    }
                     function brushEnd() {
-                        var extent = brush.extent(), startTime = Math.round(extent[0].getTime()), endTime = Math.round(extent[1].getTime()), dragSelectionDelta = endTime - startTime >= 60000;
+                        var extent = brush.extent(), startTime = Math.round(extent[0].getTime()), endTime = Math.round(extent[1].getTime()), dragSelectionDelta = endTime - startTime;
                         svg.classed('selecting', !d3.event.target.empty());
                         // ignore range selections less than 1 minute
-                        if (dragSelectionDelta) {
-                            scope.$emit('DateRangeChanged', extent);
+                        if (dragSelectionDelta >= 60000) {
+                            scope.$emit(Charts.EventNames.CHART_TIMERANGE_CHANGED, extent);
                         }
                     }
                 }
                 function createPreviousRangeOverlay(prevRangeData) {
                     if (prevRangeData) {
-                        $log.debug('Running PreviousRangeOverlay');
                         svg.append('path')
                             .datum(prevRangeData)
                             .attr('class', 'prevRangeAvgLine')
@@ -1514,7 +1572,7 @@ var Charts;
                 function createMultiMetricOverlay() {
                     var colorScale = d3.scale.category20();
                     if (multiChartOverlayData) {
-                        $log.warn('Running MultiChartOverlay for %i metrics', multiChartOverlayData.length);
+                        $log.log('Running MultiChartOverlay for %i metrics', multiChartOverlayData.length);
                         multiChartOverlayData.forEach(function (singleChartData) {
                             svg.append('path')
                                 .datum(singleChartData)
@@ -1575,23 +1633,21 @@ var Charts;
                         tip.hide();
                     });
                 }
-                scope.$watch('data', function (newData) {
+                scope.$watchCollection('data', function (newData) {
                     if (newData) {
-                        ///$log.debug('Chart Data Changed');
                         processedNewData = angular.fromJson(newData);
                         scope.render(processedNewData, processedPreviousRangeData);
                     }
-                }, true);
+                });
                 scope.$watch('multiData', function (newMultiData) {
                     if (newMultiData) {
-                        ///$log.debug('MultiData Chart Data Changed');
                         multiDataPoints = angular.fromJson(newMultiData);
                         scope.render(processedNewData, processedPreviousRangeData);
                     }
                 }, true);
                 scope.$watch('previousRangeData', function (newPreviousRangeValues) {
                     if (newPreviousRangeValues) {
-                        $log.debug('Previous Range data changed');
+                        //$log.debug('Previous Range data changed');
                         processedPreviousRangeData = angular.fromJson(newPreviousRangeValues);
                         scope.render(processedNewData, processedPreviousRangeData);
                     }
@@ -1634,7 +1690,6 @@ var Charts;
                 }
                 /// standalone charts attributes
                 scope.$watchGroup(['metricUrl', 'metricId', 'metricType', 'metricTenantId', 'timeRangeInSeconds'], function (standAloneParams) {
-                    ///$log.debug('standalone params has changed');
                     dataUrl = standAloneParams[0] || dataUrl;
                     metricId = standAloneParams[1] || metricId;
                     metricType = standAloneParams[2] || metricId;
@@ -1660,7 +1715,7 @@ var Charts;
                 function determineChartType(chartType) {
                     switch (chartType) {
                         case 'rhqbar':
-                            createStackedBars(lowBound, highBound);
+                            createRhqStackedBars(lowBound, highBound);
                             break;
                         case 'histogram':
                             createHistogramChart();
@@ -1684,7 +1739,8 @@ var Charts;
                             createScatterLineChart();
                             break;
                         default:
-                            $log.warn('chart-type is not valid. Must be in [bar,area,line,scatter,candlestick,histogram,hawkularline,hawkularmetric,availability] chart type: ' + chartType);
+                            $log.warn('chart-type is not valid. Must be in' +
+                                ' [rhqbar,histogram,area,line,scatter,histogram,hawkularline,hawkularmetric] chart type: ' + chartType);
                     }
                 }
                 scope.render = function (dataPoints, previousRangeDataPoints) {
