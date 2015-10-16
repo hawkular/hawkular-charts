@@ -418,7 +418,6 @@ namespace Charts {
 
               yAxis = d3.svg.axis()
                 .scale(yScale)
-                .tickSubdivide(1)
                 .ticks(5)
                 .tickSize(4, 4, 0)
                 .orient('left');
@@ -435,7 +434,6 @@ namespace Charts {
                 .scale(timeScale)
                 .ticks(xTicks)
                 .tickFormat(d3.time.format('%H:%M'))
-                .tickSubdivide(xTickSubDivide)
                 .tickSize(4, 4, 0)
                 .orient('bottom');
 
@@ -487,8 +485,6 @@ namespace Charts {
                 requestConfig).success((response) => {
 
                   processedNewData = formatBucketedChartOutput(response);
-                  ///console.info('DataPoints from standalone URL: ');
-                  ///console.table(processedNewData);
                   scope.render(processedNewData, processedPreviousRangeData);
 
                 }).error((reason, status) => {
@@ -1517,7 +1513,6 @@ namespace Charts {
 
           function createPreviousRangeOverlay(prevRangeData) {
             if (prevRangeData) {
-              $log.debug('Running PreviousRangeOverlay');
               svg.append('path')
                 .datum(prevRangeData)
                 .attr('class', 'prevRangeAvgLine')
@@ -1597,17 +1592,15 @@ namespace Charts {
               });
           }
 
-          scope.$watch('data', (newData) => {
+          scope.$watchCollection('data', (newData) => {
             if (newData) {
-              ///$log.debug('Chart Data Changed');
               processedNewData = angular.fromJson(newData);
               scope.render(processedNewData, processedPreviousRangeData);
             }
-          }, true);
+          } );
 
           scope.$watch('multiData', (newMultiData) => {
             if (newMultiData) {
-              $log.log('MultiData Chart Data Changed');
               multiDataPoints = angular.fromJson(newMultiData);
               scope.render(processedNewData, processedPreviousRangeData);
             }
@@ -1668,7 +1661,6 @@ namespace Charts {
           /// standalone charts attributes
           scope.$watchGroup(['metricUrl', 'metricId', 'metricType', 'metricTenantId', 'timeRangeInSeconds'],
             (standAloneParams) => {
-              ///$log.debug('standalone params has changed');
               dataUrl = standAloneParams[0] || dataUrl;
               metricId = standAloneParams[1] || metricId;
               metricType = standAloneParams[2] || metricId;
