@@ -314,7 +314,7 @@ namespace Charts {
               yAxis = d3.svg.axis()
                 .scale(yScale)
                 .ticks(5)
-                .tickSize(4, 4, 0)
+                .tickSize(4, 4)
                 .orient('left');
 
               timeScale = d3.time.scale()
@@ -342,7 +342,7 @@ namespace Charts {
                 .scale(timeScale)
                 .ticks(xTicks)
                 .tickFormat(d3.time.format('%H:%M'))
-                .tickSize(4, 4, 0)
+                .tickSize(4, 4)
                 .orient('bottom');
 
             }
@@ -419,7 +419,7 @@ namespace Charts {
               yAxis = d3.svg.axis()
                 .scale(yScale)
                 .ticks(5)
-                .tickSize(4, 4, 0)
+                .tickSize(4, 4)
                 .orient('left');
 
 
@@ -434,7 +434,7 @@ namespace Charts {
                 .scale(timeScale)
                 .ticks(xTicks)
                 .tickFormat(d3.time.format('%H:%M'))
-                .tickSize(4, 4, 0)
+                .tickSize(4, 4)
                 .orient('bottom');
 
             }
@@ -1284,7 +1284,7 @@ namespace Charts {
                   .scale(yScale)
                   .orient('left')
                   .ticks(10)
-                  .tickSize(-width, 0, 0)
+                  .tickSize(-width, 0)
                   .tickFormat('')
               );
             }
@@ -1735,11 +1735,11 @@ namespace Charts {
             }
 
             ///createHeader(attrs.chartTitle);
-            createXAxisBrush();
 
             if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
               createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
             }
+            createXAxisBrush();
 
             ///createYAxisGridLines();
             determineChartType(chartType);

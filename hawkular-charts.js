@@ -562,7 +562,7 @@ var Charts;
                         yAxis = d3.svg.axis()
                             .scale(yScale)
                             .ticks(5)
-                            .tickSize(4, 4, 0)
+                            .tickSize(4, 4)
                             .orient('left');
                         timeScale = d3.time.scale()
                             .range([0, width])
@@ -587,7 +587,7 @@ var Charts;
                             .scale(timeScale)
                             .ticks(xTicks)
                             .tickFormat(d3.time.format('%H:%M'))
-                            .tickSize(4, 4, 0)
+                            .tickSize(4, 4)
                             .orient('bottom');
                     }
                 }
@@ -638,7 +638,7 @@ var Charts;
                         yAxis = d3.svg.axis()
                             .scale(yScale)
                             .ticks(5)
-                            .tickSize(4, 4, 0)
+                            .tickSize(4, 4)
                             .orient('left');
                         timeScale = d3.time.scale()
                             .range([0, width])
@@ -649,7 +649,7 @@ var Charts;
                             .scale(timeScale)
                             .ticks(xTicks)
                             .tickFormat(d3.time.format('%H:%M'))
-                            .tickSize(4, 4, 0)
+                            .tickSize(4, 4)
                             .orient('bottom');
                     }
                 }
@@ -1385,7 +1385,7 @@ var Charts;
                             .scale(yScale)
                             .orient('left')
                             .ticks(10)
-                            .tickSize(-width, 0, 0)
+                            .tickSize(-width, 0)
                             .tickFormat(''));
                     }
                 }
@@ -1755,10 +1755,10 @@ var Charts;
                         determineMultiScale(multiDataPoints);
                     }
                     ///createHeader(attrs.chartTitle);
-                    createXAxisBrush();
                     if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                         createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
                     }
+                    createXAxisBrush();
                     ///createYAxisGridLines();
                     determineChartType(chartType);
                     if (showDataPoints) {
