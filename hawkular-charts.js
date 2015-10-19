@@ -1385,7 +1385,7 @@ var Charts;
                             .scale(yScale)
                             .orient('left')
                             .ticks(10)
-                            .tickSize(-width, 0, 0)
+                            .tickSize(-width, 0)
                             .tickFormat(''));
                     }
                 }
@@ -1755,10 +1755,10 @@ var Charts;
                         determineMultiScale(multiDataPoints);
                     }
                     ///createHeader(attrs.chartTitle);
-                    createXAxisBrush();
                     if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                         createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
                     }
+                    createXAxisBrush();
                     ///createYAxisGridLines();
                     determineChartType(chartType);
                     if (showDataPoints) {
