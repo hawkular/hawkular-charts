@@ -1759,11 +1759,11 @@ var Charts;
                         createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
                     }
                     createXAxisBrush();
-                    ///createYAxisGridLines();
                     determineChartType(chartType);
                     if (showDataPoints) {
                         createDataPoints(chartData);
                     }
+                    createYAxisGridLines();
                     createPreviousRangeOverlay(previousRangeDataPoints);
                     createMultiMetricOverlay();
                     createXandYAxes();
