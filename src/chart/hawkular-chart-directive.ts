@@ -203,7 +203,7 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
             chart = chartParent.append('svg')
-              .attr('viewBox', '0 0 760 250').attr('preserveAspectRatio', 'xMinYMin meet');
+              .attr('viewBox', '0 0 760 ' + chartHeight).attr('preserveAspectRatio', 'xMinYMin meet');
 
             createSvgDefs(chart);
 
@@ -1316,9 +1316,9 @@ namespace Charts {
                 .attr('class', 'y axis')
                 .call(yAxis)
                 .append('text')
-                .attr('transform', 'rotate(-90),translate( -70,-40)')
-                .attr('y', -30)
-                .style('text-anchor', 'end')
+                .attr('transform', 'rotate(-90),translate(0,-50)')
+                .attr('x',-chartHeight/2)
+                .style('text-anchor', 'start')
                 .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits);
             }
 
