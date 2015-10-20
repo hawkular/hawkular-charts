@@ -203,7 +203,7 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
             chart = chartParent.append('svg')
-              .attr('viewBox', '0 0 760 ' + chartHeight).attr('preserveAspectRatio', 'xMinYMin meet');
+              .attr('viewBox', '0 0 760 ' + (chartHeight + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
 
             createSvgDefs(chart);
 
