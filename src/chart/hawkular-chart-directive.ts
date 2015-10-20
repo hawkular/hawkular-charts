@@ -1741,11 +1741,11 @@ namespace Charts {
             }
             createXAxisBrush();
 
-            ///createYAxisGridLines();
             determineChartType(chartType);
             if (showDataPoints) {
               createDataPoints(chartData);
             }
+            createYAxisGridLines();
             createPreviousRangeOverlay(previousRangeDataPoints);
             createMultiMetricOverlay();
             createXandYAxes();
