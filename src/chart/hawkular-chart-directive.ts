@@ -75,6 +75,7 @@ namespace Charts {
    */
   export interface IMultiDataPoint {
     key: string;
+    keyHash?: string; // for using as valid html id
     color?: string; /// #fffeee
     values: IChartDataPoint[];
   }
@@ -173,6 +174,8 @@ namespace Charts {
             processedNewData,
             processedPreviousRangeData;
 
+          let hasInit = false;
+
           dataPoints = attrs.data;
           showDataPoints = attrs.showDataPoints;
           previousRangeDataPoints = attrs.previousRangeData;
@@ -207,6 +210,11 @@ namespace Charts {
 
             createSvgDefs(chart);
 
+            svg = chart.append('g')
+              .attr('width', width + margin.left + margin.right)
+              .attr('height', innerChartHeight)
+              .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
+
             tip = d3.tip()
               .attr('class', 'd3-tip')
               .offset([-10, 0])
@@ -214,14 +222,9 @@ namespace Charts {
                 return buildHover(d, i);
               });
 
-            svg = chart.append('g')
-              .attr('width', width + margin.left + margin.right)
-              .attr('height', innerChartHeight)
-              .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
-
-
             svg.call(tip);
 
+            hasInit = true;
           }
 
 
@@ -995,9 +998,12 @@ namespace Charts {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               });
 
-            svg.append('path')
-              .datum(chartData)
-              .attr('class', 'metricLine')
+            let path = svg.selectAll('path.metricLine');
+            if (!path[0].length) {
+              path = svg.append('path').attr('class', 'metricLine');
+            }
+
+            path.datum(chartData).transition()
               .attr('d', metricChartLine);
 
           }
@@ -1007,23 +1013,39 @@ namespace Charts {
               g = 0;
 
             if (multiDataPoints) {
-              multiDataPoints.forEach((singleChartData) => {
-                if (singleChartData && singleChartData.values) {
+              // before updating, let's remove those missing from datapoints (if any)
+              svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath) => {
+                let stillExists = false;
+                multiDataPoints.forEach((singleChartData) => {
+                  singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                  if (existingPath.getAttribute('id') === singleChartData.keyHash) {
+                    stillExists = true;
+                  }
+                });
+                if (!stillExists) {
+                  existingPath.remove();
+                }
+              });
 
-                  svg.append('path')
-                    .datum(singleChartData.values)
-                    .attr('class', 'multiLine')
+              multiDataPoints.forEach((singleChartData, idx) => {
+                if (singleChartData && singleChartData.values) {
+                  singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                  let path = svg.selectAll('path#' + singleChartData.keyHash);
+                  if (!path[0].length) {
+                    path = svg.append('path')
+                      .attr('id', singleChartData.keyHash)
+                      .attr('class', 'multiLine');
+                  }
+                  path.datum(singleChartData.values).transition()
                     .attr('fill', 'none')
                     .attr('stroke', () => {
                       if (singleChartData.color) {
                         return singleChartData.color;
                       } else {
-                        return colorScale(g);
+                        return colorScale(g++);
                       }
                     })
                     .attr('d', createLine('linear'));
-                  g++;
-
                 }
               });
             } else {
@@ -1081,20 +1103,29 @@ namespace Charts {
 
             if (hideHighLowValues === false) {
 
-              svg.append('path')
-                .datum(chartData)
-                .attr('class', 'highArea')
+              let highAreaPath = svg.selectAll('path.highArea');
+              if (!highAreaPath[0].length) {
+                highAreaPath = svg.append('path').attr('class', 'highArea');
+              }
+
+              highAreaPath.datum(chartData)
                 .attr('d', highArea);
 
-              svg.append('path')
-                .datum(chartData)
-                .attr('class', 'lowArea')
+              let lowAreaPath = svg.selectAll('path.lowArea');
+              if (!lowAreaPath[0].length) {
+                lowAreaPath = svg.append('path').attr('class', 'lowArea');
+              }
+
+              lowAreaPath.datum(chartData)
                 .attr('d', lowArea);
             }
 
-            svg.append('path')
-              .datum(chartData)
-              .attr('class', 'avgArea')
+            let avgAreaPath = svg.selectAll('path.avgArea');
+            if (!avgAreaPath[0].length) {
+              avgAreaPath = svg.append('path').attr('class', 'avgArea');
+            }
+
+            avgAreaPath.datum(chartData)
               .attr('d', avgArea);
 
           }
@@ -1279,7 +1310,11 @@ namespace Charts {
           function createYAxisGridLines() {
             // create the y axis grid lines
             if (yScale) {
-              svg.append('g').classed('grid y_grid', true)
+              let yAxis = svg.selectAll('g.grid.y_grid');
+              if (!yAxis[0].length) {
+                yAxis = svg.append('g').classed('grid y_grid', true);
+              }
+              yAxis
                 .call(d3.svg.axis()
                   .scale(yScale)
                   .orient('left')
@@ -1381,9 +1416,11 @@ namespace Charts {
           }
 
           function createAlertLine(alertValue:number) {
-            svg.append('path')
-              .datum(chartData)
-              .attr('class', 'alertLine')
+            let alertLine = svg.selectAll('path.alertLine');
+            if (!alertLine[0].length) {
+              alertLine = svg.append('path').attr('class', 'alertLine');
+            }
+            alertLine.datum(chartData)
               .attr('d', createAlertLineDef(alertValue));
           }
 
@@ -1721,11 +1758,30 @@ namespace Charts {
             }
           }
 
+          // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+          function hashString(str: string): number {
+            let hash = 0, i, chr, len;
+            if (str.length == 0) return hash;
+            for (i = 0, len = str.length; i < len; i++) {
+              chr   = str.charCodeAt(i);
+              hash  = ((hash << 5) - hash) + chr;
+              hash |= 0; // Convert to 32bit integer
+            }
+            return hash;
+          }
+
           scope.render = (dataPoints, previousRangeDataPoints) => {
+            // if we don't have data, don't bother..
+            if(!dataPoints && !multiDataPoints) {
+              return;
+            }
+
             debug && console.group('Render Chart');
             debug && console.time('chartRender');
             //NOTE: layering order is important!
-            initialization();
+            if (!hasInit) {
+              initialization();
+            }
             if (dataPoints) {
               determineScale(dataPoints);
             }
@@ -1808,7 +1864,7 @@ namespace Charts {
             avgLabel: '@',
             timestampLabel: '@',
             showAvgLine: '@',
-            hideHighLowValues: '@',
+            hideHighLowValues: '=',
             chartTitle: '@'
           }
         };

@@ -455,6 +455,7 @@ var Charts;
                 var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
                 // chart specific vars
                 var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
+                var hasInit = false;
                 dataPoints = attrs.data;
                 showDataPoints = attrs.showDataPoints;
                 previousRangeDataPoints = attrs.previousRangeData;
@@ -481,17 +482,18 @@ var Charts;
                     chart = chartParent.append('svg')
                         .attr('viewBox', '0 0 760 ' + (chartHeight + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
                     createSvgDefs(chart);
+                    svg = chart.append('g')
+                        .attr('width', width + margin.left + margin.right)
+                        .attr('height', innerChartHeight)
+                        .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
                     tip = d3.tip()
                         .attr('class', 'd3-tip')
                         .offset([-10, 0])
                         .html(function (d, i) {
                         return buildHover(d, i);
                     });
-                    svg = chart.append('g')
-                        .attr('width', width + margin.left + margin.right)
-                        .attr('height', innerChartHeight)
-                        .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
                     svg.call(tip);
+                    hasInit = true;
                 }
                 function setupFilteredData(dataPoints) {
                     var alertPeak, highPeak;
@@ -1127,30 +1129,49 @@ var Charts;
                         .y(function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     });
-                    svg.append('path')
-                        .datum(chartData)
-                        .attr('class', 'metricLine')
+                    var path = svg.selectAll('path.metricLine');
+                    if (!path[0].length) {
+                        path = svg.append('path').attr('class', 'metricLine');
+                    }
+                    path.datum(chartData).transition()
                         .attr('d', metricChartLine);
                 }
                 function createMultiLineChart(multiDataPoints) {
                     var colorScale = d3.scale.category10(), g = 0;
                     if (multiDataPoints) {
-                        multiDataPoints.forEach(function (singleChartData) {
+                        // before updating, let's remove those missing from datapoints (if any)
+                        svg.selectAll('path[id^=\'multiLine\']')[0].forEach(function (existingPath) {
+                            var stillExists = false;
+                            multiDataPoints.forEach(function (singleChartData) {
+                                singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                                if (existingPath.getAttribute('id') === singleChartData.keyHash) {
+                                    stillExists = true;
+                                }
+                            });
+                            if (!stillExists) {
+                                existingPath.remove();
+                            }
+                        });
+                        multiDataPoints.forEach(function (singleChartData, idx) {
                             if (singleChartData && singleChartData.values) {
-                                svg.append('path')
-                                    .datum(singleChartData.values)
-                                    .attr('class', 'multiLine')
+                                singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                                var path = svg.selectAll('path#' + singleChartData.keyHash);
+                                if (!path[0].length) {
+                                    path = svg.append('path')
+                                        .attr('id', singleChartData.keyHash)
+                                        .attr('class', 'multiLine');
+                                }
+                                path.datum(singleChartData.values).transition()
                                     .attr('fill', 'none')
                                     .attr('stroke', function () {
                                     if (singleChartData.color) {
                                         return singleChartData.color;
                                     }
                                     else {
-                                        return colorScale(g);
+                                        return colorScale(g++);
                                     }
                                 })
                                     .attr('d', createLine('linear'));
-                                g++;
                             }
                         });
                     }
@@ -1200,18 +1221,24 @@ var Charts;
                         return height;
                     });
                     if (hideHighLowValues === false) {
-                        svg.append('path')
-                            .datum(chartData)
-                            .attr('class', 'highArea')
+                        var highAreaPath = svg.selectAll('path.highArea');
+                        if (!highAreaPath[0].length) {
+                            highAreaPath = svg.append('path').attr('class', 'highArea');
+                        }
+                        highAreaPath.datum(chartData)
                             .attr('d', highArea);
-                        svg.append('path')
-                            .datum(chartData)
-                            .attr('class', 'lowArea')
+                        var lowAreaPath = svg.selectAll('path.lowArea');
+                        if (!lowAreaPath[0].length) {
+                            lowAreaPath = svg.append('path').attr('class', 'lowArea');
+                        }
+                        lowAreaPath.datum(chartData)
                             .attr('d', lowArea);
                     }
-                    svg.append('path')
-                        .datum(chartData)
-                        .attr('class', 'avgArea')
+                    var avgAreaPath = svg.selectAll('path.avgArea');
+                    if (!avgAreaPath[0].length) {
+                        avgAreaPath = svg.append('path').attr('class', 'avgArea');
+                    }
+                    avgAreaPath.datum(chartData)
                         .attr('d', avgArea);
                 }
                 function createScatterChart() {
@@ -1380,7 +1407,11 @@ var Charts;
                 function createYAxisGridLines() {
                     // create the y axis grid lines
                     if (yScale) {
-                        svg.append('g').classed('grid y_grid', true)
+                        var yAxis_1 = svg.selectAll('g.grid.y_grid');
+                        if (!yAxis_1[0].length) {
+                            yAxis_1 = svg.append('g').classed('grid y_grid', true);
+                        }
+                        yAxis_1
                             .call(d3.svg.axis()
                             .scale(yScale)
                             .orient('left')
@@ -1463,9 +1494,11 @@ var Charts;
                     return line;
                 }
                 function createAlertLine(alertValue) {
-                    svg.append('path')
-                        .datum(chartData)
-                        .attr('class', 'alertLine')
+                    var alertLine = svg.selectAll('path.alertLine');
+                    if (!alertLine[0].length) {
+                        alertLine = svg.append('path').attr('class', 'alertLine');
+                    }
+                    alertLine.datum(chartData)
                         .attr('d', createAlertLineDef(alertValue));
                 }
                 function extractAlertRanges(chartData, threshold) {
@@ -1743,11 +1776,29 @@ var Charts;
                                 ' [rhqbar,histogram,area,line,scatter,histogram,hawkularline,hawkularmetric] chart type: ' + chartType);
                     }
                 }
+                // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+                function hashString(str) {
+                    var hash = 0, i, chr, len;
+                    if (str.length == 0)
+                        return hash;
+                    for (i = 0, len = str.length; i < len; i++) {
+                        chr = str.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + chr;
+                        hash |= 0; // Convert to 32bit integer
+                    }
+                    return hash;
+                }
                 scope.render = function (dataPoints, previousRangeDataPoints) {
+                    // if we don't have data, don't bother..
+                    if (!dataPoints && !multiDataPoints) {
+                        return;
+                    }
                     debug && console.group('Render Chart');
                     debug && console.time('chartRender');
                     //NOTE: layering order is important!
-                    initialization();
+                    if (!hasInit) {
+                        initialization();
+                    }
                     if (dataPoints) {
                         determineScale(dataPoints);
                     }
@@ -1823,7 +1874,7 @@ var Charts;
                     avgLabel: '@',
                     timestampLabel: '@',
                     showAvgLine: '@',
-                    hideHighLowValues: '@',
+                    hideHighLowValues: '=',
                     chartTitle: '@'
                 }
             };
