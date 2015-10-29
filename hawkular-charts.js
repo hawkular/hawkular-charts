@@ -1129,12 +1129,17 @@ var Charts;
                         .y(function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     });
-                    var path = svg.selectAll('path.metricLine');
-                    if (!path[0].length) {
-                        path = svg.append('path').attr('class', 'metricLine');
-                    }
-                    path.datum(chartData).transition()
+                    var pathMetric = svg.selectAll('path.metricLine').data([chartData]);
+                    // update existing
+                    pathMetric.attr('class', 'metricLine')
+                        .transition()
                         .attr('d', metricChartLine);
+                    // add new ones
+                    pathMetric.enter().append('path')
+                        .attr('class', 'metricLine')
+                        .transition()
+                        .attr('d', metricChartLine);
+                    pathMetric.exit().remove();
                 }
                 function createMultiLineChart(multiDataPoints) {
                     var colorScale = d3.scale.category10(), g = 0;
@@ -1551,9 +1556,25 @@ var Charts;
                     return alertBoundAreaItems;
                 }
                 function createAlertBoundsArea(alertBounds) {
-                    svg.selectAll('rect.alert')
-                        .data(alertBounds)
-                        .enter().append('rect')
+                    var rectAlert = svg.selectAll('rect.alertBounds').data(alertBounds);
+                    // update existing
+                    rectAlert.attr('class', 'alertBounds')
+                        .attr('x', function (d) {
+                        return timeScale(d.startTimestamp);
+                    })
+                        .attr('y', function () {
+                        return yScale(highBound);
+                    })
+                        .attr('height', function (d) {
+                        ///@todo: make the height adjustable
+                        return 185;
+                        //return yScale(0) - height;
+                    })
+                        .attr('width', function (d) {
+                        return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
+                    });
+                    // add new ones
+                    rectAlert.enter().append('rect')
                         .attr('class', 'alertBounds')
                         .attr('x', function (d) {
                         return timeScale(d.startTimestamp);
@@ -1569,6 +1590,7 @@ var Charts;
                         .attr('width', function (d) {
                         return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
                     });
+                    rectAlert.exit().remove();
                 }
                 function createXAxisBrush() {
                     brush = d3.svg.brush()
@@ -1589,6 +1611,7 @@ var Charts;
                         svg.classed('selecting', !d3.event.target.empty());
                         // ignore range selections less than 1 minute
                         if (dragSelectionDelta >= 60000) {
+                            brushGroup.remove();
                             scope.$emit(Charts.EventNames.CHART_TIMERANGE_CHANGED, extent);
                         }
                     }
@@ -1650,9 +1673,22 @@ var Charts;
                 }
                 function createDataPoints(dataPoints) {
                     var radius = 1;
-                    svg.selectAll('.dataPointDot')
-                        .data(dataPoints)
-                        .enter().append('circle')
+                    var dotDatapoint = svg.selectAll('.dataPointDot').data(dataPoints);
+                    // update existing
+                    dotDatapoint.attr('class', 'dataPointDot')
+                        .attr('r', radius)
+                        .attr('cx', function (d) {
+                        return timeScale(d.timestamp);
+                    })
+                        .attr('cy', function (d) {
+                        return d.avg ? yScale(d.avg) : -9999999;
+                    }).on('mouseover', function (d, i) {
+                        tip.show(d, i);
+                    }).on('mouseout', function () {
+                        tip.hide();
+                    });
+                    // add new ones
+                    dotDatapoint.enter().append('circle')
                         .attr('class', 'dataPointDot')
                         .attr('r', radius)
                         .attr('cx', function (d) {
@@ -1665,6 +1701,7 @@ var Charts;
                     }).on('mouseout', function () {
                         tip.hide();
                     });
+                    dotDatapoint.exit().remove();
                 }
                 scope.$watchCollection('data', function (newData) {
                     if (newData) {

@@ -998,14 +998,17 @@ namespace Charts {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               });
 
-            let path = svg.selectAll('path.metricLine');
-            if (!path[0].length) {
-              path = svg.append('path').attr('class', 'metricLine');
-            }
-
-            path.datum(chartData).transition()
+            let pathMetric = svg.selectAll('path.metricLine').data([chartData]);
+            // update existing
+            pathMetric.attr('class', 'metricLine')
+              .transition()
               .attr('d', metricChartLine);
-
+            // add new ones
+            pathMetric.enter().append('path')
+              .attr('class', 'metricLine')
+              .transition()
+              .attr('d', metricChartLine);
+            pathMetric.exit().remove();
           }
 
           function createMultiLineChart(multiDataPoints:IMultiDataPoint[]) {
@@ -1492,9 +1495,25 @@ namespace Charts {
           }
 
           function createAlertBoundsArea(alertBounds:AlertBound[]) {
-            svg.selectAll('rect.alert')
-              .data(alertBounds)
-              .enter().append('rect')
+            let rectAlert = svg.selectAll('rect.alertBounds').data(alertBounds);
+            // update existing
+            rectAlert.attr('class', 'alertBounds')
+              .attr('x', (d:AlertBound) => {
+                return timeScale(d.startTimestamp);
+              })
+              .attr('y', () => {
+                return yScale(highBound);
+              })
+              .attr('height', (d:AlertBound) => {
+                ///@todo: make the height adjustable
+                return 185;
+                //return yScale(0) - height;
+              })
+              .attr('width', (d:AlertBound) => {
+                return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
+              });
+            // add new ones
+            rectAlert.enter().append('rect')
               .attr('class', 'alertBounds')
               .attr('x', (d:AlertBound) => {
                 return timeScale(d.startTimestamp);
@@ -1510,7 +1529,7 @@ namespace Charts {
               .attr('width', (d:AlertBound) => {
                 return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
               });
-
+            rectAlert.exit().remove();
           }
 
           function createXAxisBrush() {
@@ -1542,6 +1561,7 @@ namespace Charts {
               svg.classed('selecting', !d3.event.target.empty());
               // ignore range selections less than 1 minute
               if (dragSelectionDelta >= 60000) {
+                brushGroup.remove();
                 scope.$emit(EventNames.CHART_TIMERANGE_CHANGED, extent);
               }
             }
@@ -1612,9 +1632,22 @@ namespace Charts {
 
           function createDataPoints(dataPoints:IChartDataPoint[]) {
             let radius = 1;
-            svg.selectAll('.dataPointDot')
-              .data(dataPoints)
-              .enter().append('circle')
+            let dotDatapoint = svg.selectAll('.dataPointDot').data(dataPoints);
+            // update existing
+            dotDatapoint.attr('class', 'dataPointDot')
+              .attr('r', radius)
+              .attr('cx', function (d) {
+                return timeScale(d.timestamp);
+              })
+              .attr('cy', function (d) {
+                return d.avg ? yScale(d.avg) : -9999999;
+              }).on('mouseover', function (d, i) {
+                tip.show(d, i);
+              }).on('mouseout', function () {
+                tip.hide();
+              });
+            // add new ones
+            dotDatapoint.enter().append('circle')
               .attr('class', 'dataPointDot')
               .attr('r', radius)
               .attr('cx', function (d) {
@@ -1627,6 +1660,7 @@ namespace Charts {
               }).on('mouseout', function () {
                 tip.hide();
               });
+            dotDatapoint.exit().remove();
           }
 
           scope.$watchCollection('data', (newData) => {
