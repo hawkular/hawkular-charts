@@ -224,6 +224,9 @@ namespace Charts {
 
             svg.call(tip);
 
+            // a placeholder for the alerts
+            svg.append('g').attr('class', 'alertHolder');
+
             hasInit = true;
           }
 
@@ -1419,12 +1422,15 @@ namespace Charts {
           }
 
           function createAlertLine(alertValue:number) {
-            let alertLine = svg.selectAll('path.alertLine');
-            if (!alertLine[0].length) {
-              alertLine = svg.append('path').attr('class', 'alertLine');
-            }
-            alertLine.datum(chartData)
+            let pathAlertLine  = svg.selectAll('path.alertLine').data([chartData]);
+            // update existing
+            pathAlertLine.attr('class', 'alertLine')
               .attr('d', createAlertLineDef(alertValue));
+            // add new ones
+            pathAlertLine.enter().append('path')
+              .attr('class', 'alertLine')
+              .attr('d', createAlertLineDef(alertValue));
+            pathAlertLine.exit().remove();
           }
 
 
@@ -1495,7 +1501,7 @@ namespace Charts {
           }
 
           function createAlertBoundsArea(alertBounds:AlertBound[]) {
-            let rectAlert = svg.selectAll('rect.alertBounds').data(alertBounds);
+            let rectAlert = svg.selectAll('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
             // update existing
             rectAlert.attr('class', 'alertBounds')
               .attr('x', (d:AlertBound) => {
@@ -1881,7 +1887,7 @@ namespace Charts {
             chartHeight: '@',
             chartType: '@',
             yAxisUnits: '@',
-            useZeroMinValue: '@',
+            useZeroMinValue: '=',
             buttonbarDatetimeFormat: '@',
             timeLabel: '@',
             dateLabel: '@',

@@ -493,6 +493,8 @@ var Charts;
                         return buildHover(d, i);
                     });
                     svg.call(tip);
+                    // a placeholder for the alerts
+                    svg.append('g').attr('class', 'alertHolder');
                     hasInit = true;
                 }
                 function setupFilteredData(dataPoints) {
@@ -1499,12 +1501,15 @@ var Charts;
                     return line;
                 }
                 function createAlertLine(alertValue) {
-                    var alertLine = svg.selectAll('path.alertLine');
-                    if (!alertLine[0].length) {
-                        alertLine = svg.append('path').attr('class', 'alertLine');
-                    }
-                    alertLine.datum(chartData)
+                    var pathAlertLine = svg.selectAll('path.alertLine').data([chartData]);
+                    // update existing
+                    pathAlertLine.attr('class', 'alertLine')
                         .attr('d', createAlertLineDef(alertValue));
+                    // add new ones
+                    pathAlertLine.enter().append('path')
+                        .attr('class', 'alertLine')
+                        .attr('d', createAlertLineDef(alertValue));
+                    pathAlertLine.exit().remove();
                 }
                 function extractAlertRanges(chartData, threshold) {
                     var alertBoundAreaItem;
@@ -1556,7 +1561,7 @@ var Charts;
                     return alertBoundAreaItems;
                 }
                 function createAlertBoundsArea(alertBounds) {
-                    var rectAlert = svg.selectAll('rect.alertBounds').data(alertBounds);
+                    var rectAlert = svg.selectAll('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
                     // update existing
                     rectAlert.attr('class', 'alertBounds')
                         .attr('x', function (d) {
@@ -1894,7 +1899,7 @@ var Charts;
                     chartHeight: '@',
                     chartType: '@',
                     yAxisUnits: '@',
-                    useZeroMinValue: '@',
+                    useZeroMinValue: '=',
                     buttonbarDatetimeFormat: '@',
                     timeLabel: '@',
                     dateLabel: '@',
