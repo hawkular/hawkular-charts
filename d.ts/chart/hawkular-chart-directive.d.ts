@@ -42,6 +42,7 @@ declare namespace Charts {
      */
     interface IMultiDataPoint {
         key: string;
+        keyHash?: string;
         color?: string;
         values: IChartDataPoint[];
     }

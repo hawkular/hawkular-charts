@@ -455,6 +455,7 @@ var Charts;
                 var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
                 // chart specific vars
                 var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
+                var hasInit = false;
                 dataPoints = attrs.data;
                 showDataPoints = attrs.showDataPoints;
                 previousRangeDataPoints = attrs.previousRangeData;
@@ -481,17 +482,20 @@ var Charts;
                     chart = chartParent.append('svg')
                         .attr('viewBox', '0 0 760 ' + (chartHeight + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
                     createSvgDefs(chart);
+                    svg = chart.append('g')
+                        .attr('width', width + margin.left + margin.right)
+                        .attr('height', innerChartHeight)
+                        .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
                     tip = d3.tip()
                         .attr('class', 'd3-tip')
                         .offset([-10, 0])
                         .html(function (d, i) {
                         return buildHover(d, i);
                     });
-                    svg = chart.append('g')
-                        .attr('width', width + margin.left + margin.right)
-                        .attr('height', innerChartHeight)
-                        .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
                     svg.call(tip);
+                    // a placeholder for the alerts
+                    svg.append('g').attr('class', 'alertHolder');
+                    hasInit = true;
                 }
                 function setupFilteredData(dataPoints) {
                     var alertPeak, highPeak;
@@ -949,10 +953,15 @@ var Charts;
                 function createHistogramChart() {
                     var strokeOpacity = '0.6';
                     // upper portion representing avg to high
-                    svg.selectAll('rect.histogram')
-                        .data(chartData)
-                        .enter().append('rect')
-                        .attr('class', 'histogram')
+                    var rectHistogram = svg.selectAll('rect.histogram').data(chartData);
+                    // update existing
+                    rectHistogram.attr('class', 'histogram')
+                        .on('mouseover', function (d, i) {
+                        tip.show(d, i);
+                    }).on('mouseout', function () {
+                        tip.hide();
+                    })
+                        .transition()
                         .attr('x', function (d) {
                         return timeScale(d.timestamp);
                     })
@@ -996,15 +1005,87 @@ var Charts;
                     })
                         .attr('data-hawkular-value', function (d) {
                         return d.avg;
-                    }).on('mouseover', function (d, i) {
+                    }) /**/;
+                    // add new ones
+                    rectHistogram.enter().append('rect')
+                        .on('mouseover', function (d, i) {
                         tip.show(d, i);
-                    }).on('mouseout', function () {
+                    })
+                        .on('mouseout', function () {
                         tip.hide();
+                    })
+                        .attr('class', 'histogram')
+                        .transition()
+                        .attr('x', function (d) {
+                        return timeScale(d.timestamp);
+                    })
+                        .attr('width', function () {
+                        return calcBarWidth();
+                    })
+                        .attr('y', function (d) {
+                        if (!isEmptyDataBar(d)) {
+                            return yScale(d.avg);
+                        }
+                        else {
+                            return 0;
+                        }
+                    })
+                        .attr('height', function (d) {
+                        if (isEmptyDataBar(d)) {
+                            return height - yScale(highBound);
+                        }
+                        else {
+                            return height - yScale(d.avg);
+                        }
+                    })
+                        .attr('fill', function (d, i) {
+                        if (isEmptyDataBar(d)) {
+                            return 'url(#noDataStripes)';
+                        }
+                        else {
+                            return '#C0C0C0';
+                        }
+                    })
+                        .attr('stroke', function (d) {
+                        return '#777';
+                    })
+                        .attr('stroke-width', function (d) {
+                        if (isEmptyDataBar(d)) {
+                            return '0';
+                        }
+                        else {
+                            return '0';
+                        }
+                    })
+                        .attr('data-hawkular-value', function (d) {
+                        return d.avg;
                     });
-                    if (hideHighLowValues === false) {
-                        svg.selectAll('.histogram.top.stem')
-                            .data(chartData)
-                            .enter().append('line')
+                    // remove old ones
+                    rectHistogram.exit().remove();
+                    if (!hideHighLowValues) {
+                        var lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartData);
+                        // update existing
+                        lineHistoHighStem.attr('class', 'histogramTopStem')
+                            .attr('x1', function (d) {
+                            return xMidPointStartPosition(d);
+                        })
+                            .attr('x2', function (d) {
+                            return xMidPointStartPosition(d);
+                        })
+                            .attr('y1', function (d) {
+                            return yScale(d.max);
+                        })
+                            .attr('y2', function (d) {
+                            return yScale(d.avg);
+                        })
+                            .attr('stroke', function (d) {
+                            return 'red';
+                        })
+                            .attr('stroke-opacity', function (d) {
+                            return strokeOpacity;
+                        });
+                        // add new ones
+                        lineHistoHighStem.enter().append('line')
                             .attr('class', 'histogramTopStem')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d);
@@ -1024,9 +1105,11 @@ var Charts;
                             .attr('stroke-opacity', function (d) {
                             return strokeOpacity;
                         });
-                        svg.selectAll('.histogram.bottom.stem')
-                            .data(chartData)
-                            .enter().append('line')
+                        // remove old ones
+                        lineHistoHighStem.exit().remove();
+                        var lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartData);
+                        // update existing
+                        lineHistoLowStem
                             .attr('class', 'histogramBottomStem')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d);
@@ -1045,9 +1128,31 @@ var Charts;
                         }).attr('stroke-opacity', function (d) {
                             return strokeOpacity;
                         });
-                        svg.selectAll('.histogram.top.cross')
-                            .data(chartData)
-                            .enter().append('line')
+                        // add new ones
+                        lineHistoLowStem.enter().append('line')
+                            .attr('class', 'histogramBottomStem')
+                            .attr('x1', function (d) {
+                            return xMidPointStartPosition(d);
+                        })
+                            .attr('x2', function (d) {
+                            return xMidPointStartPosition(d);
+                        })
+                            .attr('y1', function (d) {
+                            return yScale(d.avg);
+                        })
+                            .attr('y2', function (d) {
+                            return yScale(d.min);
+                        })
+                            .attr('stroke', function (d) {
+                            return 'red';
+                        }).attr('stroke-opacity', function (d) {
+                            return strokeOpacity;
+                        });
+                        // remove old ones
+                        lineHistoLowStem.exit().remove();
+                        var lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartData);
+                        // update existing
+                        lineHistoTopCross
                             .attr('class', 'histogramTopCross')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d) - 3;
@@ -1070,9 +1175,35 @@ var Charts;
                             .attr('stroke-opacity', function (d) {
                             return strokeOpacity;
                         });
-                        svg.selectAll('.histogram.bottom.cross')
-                            .data(chartData)
-                            .enter().append('line')
+                        // add new ones
+                        lineHistoTopCross.enter().append('line')
+                            .attr('class', 'histogramTopCross')
+                            .attr('x1', function (d) {
+                            return xMidPointStartPosition(d) - 3;
+                        })
+                            .attr('x2', function (d) {
+                            return xMidPointStartPosition(d) + 3;
+                        })
+                            .attr('y1', function (d) {
+                            return yScale(d.max);
+                        })
+                            .attr('y2', function (d) {
+                            return yScale(d.max);
+                        })
+                            .attr('stroke', function (d) {
+                            return 'red';
+                        })
+                            .attr('stroke-width', function (d) {
+                            return '0.5';
+                        })
+                            .attr('stroke-opacity', function (d) {
+                            return strokeOpacity;
+                        });
+                        // remove old ones
+                        lineHistoTopCross.exit().remove();
+                        var lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartData);
+                        // update existing
+                        lineHistoBottomCross
                             .attr('class', 'histogramBottomCross')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d) - 3;
@@ -1095,6 +1226,32 @@ var Charts;
                             .attr('stroke-opacity', function (d) {
                             return strokeOpacity;
                         });
+                        // add new ones
+                        lineHistoBottomCross.enter().append('line')
+                            .attr('class', 'histogramBottomCross')
+                            .attr('x1', function (d) {
+                            return xMidPointStartPosition(d) - 3;
+                        })
+                            .attr('x2', function (d) {
+                            return xMidPointStartPosition(d) + 3;
+                        })
+                            .attr('y1', function (d) {
+                            return yScale(d.min);
+                        })
+                            .attr('y2', function (d) {
+                            return yScale(d.min);
+                        })
+                            .attr('stroke', function (d) {
+                            return 'red';
+                        })
+                            .attr('stroke-width', function (d) {
+                            return '0.5';
+                        })
+                            .attr('stroke-opacity', function (d) {
+                            return strokeOpacity;
+                        });
+                        // remove old ones
+                        lineHistoBottomCross.exit().remove();
                     }
                 }
                 function createHawkularLineChart() {
@@ -1127,18 +1284,41 @@ var Charts;
                         .y(function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     });
-                    svg.append('path')
-                        .datum(chartData)
-                        .attr('class', 'metricLine')
+                    var pathMetric = svg.selectAll('path.metricLine').data([chartData]);
+                    // update existing
+                    pathMetric.attr('class', 'metricLine')
+                        .transition()
                         .attr('d', metricChartLine);
+                    // add new ones
+                    pathMetric.enter().append('path')
+                        .attr('class', 'metricLine')
+                        .transition()
+                        .attr('d', metricChartLine);
+                    // remove old ones
+                    pathMetric.exit().remove();
                 }
                 function createMultiLineChart(multiDataPoints) {
                     var colorScale = d3.scale.category10(), g = 0;
                     if (multiDataPoints) {
-                        multiDataPoints.forEach(function (singleChartData) {
+                        // before updating, let's remove those missing from datapoints (if any)
+                        svg.selectAll('path[id^=\'multiLine\']')[0].forEach(function (existingPath) {
+                            var stillExists = false;
+                            multiDataPoints.forEach(function (singleChartData) {
+                                singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                                if (existingPath.getAttribute('id') === singleChartData.keyHash) {
+                                    stillExists = true;
+                                }
+                            });
+                            if (!stillExists) {
+                                existingPath.remove();
+                            }
+                        });
+                        multiDataPoints.forEach(function (singleChartData, idx) {
                             if (singleChartData && singleChartData.values) {
-                                svg.append('path')
-                                    .datum(singleChartData.values)
+                                singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                                var pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash).data([singleChartData.values]);
+                                // update existing
+                                pathMultiLine.attr('id', singleChartData.keyHash)
                                     .attr('class', 'multiLine')
                                     .attr('fill', 'none')
                                     .attr('stroke', function () {
@@ -1146,11 +1326,28 @@ var Charts;
                                         return singleChartData.color;
                                     }
                                     else {
-                                        return colorScale(g);
+                                        return colorScale(g++);
                                     }
                                 })
+                                    .transition()
                                     .attr('d', createLine('linear'));
-                                g++;
+                                // add new ones
+                                pathMultiLine.enter().append('path')
+                                    .attr('id', singleChartData.keyHash)
+                                    .attr('class', 'multiLine')
+                                    .attr('fill', 'none')
+                                    .attr('stroke', function () {
+                                    if (singleChartData.color) {
+                                        return singleChartData.color;
+                                    }
+                                    else {
+                                        return colorScale(g++);
+                                    }
+                                })
+                                    .transition()
+                                    .attr('d', createLine('linear'));
+                                // remove old ones
+                                pathMultiLine.exit().remove();
                             }
                         });
                     }
@@ -1184,7 +1381,7 @@ var Charts;
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     }).
                         y0(function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+                        return hideHighLowValues ? height : yScale(d.min);
                     }), lowArea = d3.svg.area()
                         .interpolate(interpolation)
                         .defined(function (d) {
@@ -1199,20 +1396,40 @@ var Charts;
                         .y0(function () {
                         return height;
                     });
-                    if (hideHighLowValues === false) {
-                        svg.append('path')
-                            .datum(chartData)
+                    if (!hideHighLowValues) {
+                        var highAreaPath = svg.selectAll('path.highArea').data([chartData]);
+                        // update existing
+                        highAreaPath.attr('class', 'highArea')
+                            .attr('d', highArea);
+                        // add new ones
+                        highAreaPath.enter().append('path')
                             .attr('class', 'highArea')
                             .attr('d', highArea);
-                        svg.append('path')
-                            .datum(chartData)
+                        // remove old ones
+                        highAreaPath.exit().remove();
+                        var lowAreaPath = svg.selectAll('path.lowArea').data([chartData]);
+                        // update existing
+                        lowAreaPath.attr('class', 'lowArea')
+                            .attr('d', lowArea);
+                        // add new ones
+                        lowAreaPath.enter().append('path')
                             .attr('class', 'lowArea')
                             .attr('d', lowArea);
+                        // remove old ones
+                        lowAreaPath.exit().remove();
                     }
-                    svg.append('path')
-                        .datum(chartData)
-                        .attr('class', 'avgArea')
+                    var avgAreaPath = svg.selectAll('path.avgArea').data([chartData]);
+                    // update existing
+                    avgAreaPath.attr('class', 'avgArea')
+                        .transition()
                         .attr('d', avgArea);
+                    // add new ones
+                    avgAreaPath.enter().append('path')
+                        .attr('class', 'avgArea')
+                        .transition()
+                        .attr('d', avgArea);
+                    // remove old ones
+                    avgAreaPath.exit().remove();
                 }
                 function createScatterChart() {
                     if (hideHighLowValues === false) {
@@ -1380,7 +1597,11 @@ var Charts;
                 function createYAxisGridLines() {
                     // create the y axis grid lines
                     if (yScale) {
-                        svg.append('g').classed('grid y_grid', true)
+                        var yAxis_1 = svg.selectAll('g.grid.y_grid');
+                        if (!yAxis_1[0].length) {
+                            yAxis_1 = svg.append('g').classed('grid y_grid', true);
+                        }
+                        yAxis_1
                             .call(d3.svg.axis()
                             .scale(yScale)
                             .orient('left')
@@ -1463,10 +1684,16 @@ var Charts;
                     return line;
                 }
                 function createAlertLine(alertValue) {
-                    svg.append('path')
-                        .datum(chartData)
+                    var pathAlertLine = svg.selectAll('path.alertLine').data([chartData]);
+                    // update existing
+                    pathAlertLine.attr('class', 'alertLine')
+                        .attr('d', createAlertLineDef(alertValue));
+                    // add new ones
+                    pathAlertLine.enter().append('path')
                         .attr('class', 'alertLine')
                         .attr('d', createAlertLineDef(alertValue));
+                    // remove old ones
+                    pathAlertLine.exit().remove();
                 }
                 function extractAlertRanges(chartData, threshold) {
                     var alertBoundAreaItem;
@@ -1518,9 +1745,25 @@ var Charts;
                     return alertBoundAreaItems;
                 }
                 function createAlertBoundsArea(alertBounds) {
-                    svg.selectAll('rect.alert')
-                        .data(alertBounds)
-                        .enter().append('rect')
+                    var rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
+                    // update existing
+                    rectAlert.attr('class', 'alertBounds')
+                        .attr('x', function (d) {
+                        return timeScale(d.startTimestamp);
+                    })
+                        .attr('y', function () {
+                        return yScale(highBound);
+                    })
+                        .attr('height', function (d) {
+                        ///@todo: make the height adjustable
+                        return 185;
+                        //return yScale(0) - height;
+                    })
+                        .attr('width', function (d) {
+                        return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
+                    });
+                    // add new ones
+                    rectAlert.enter().append('rect')
                         .attr('class', 'alertBounds')
                         .attr('x', function (d) {
                         return timeScale(d.startTimestamp);
@@ -1536,6 +1779,8 @@ var Charts;
                         .attr('width', function (d) {
                         return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
                     });
+                    // remove old ones
+                    rectAlert.exit().remove();
                 }
                 function createXAxisBrush() {
                     brush = d3.svg.brush()
@@ -1556,6 +1801,7 @@ var Charts;
                         svg.classed('selecting', !d3.event.target.empty());
                         // ignore range selections less than 1 minute
                         if (dragSelectionDelta >= 60000) {
+                            brushGroup.remove();
                             scope.$emit(Charts.EventNames.CHART_TIMERANGE_CHANGED, extent);
                         }
                     }
@@ -1617,9 +1863,22 @@ var Charts;
                 }
                 function createDataPoints(dataPoints) {
                     var radius = 1;
-                    svg.selectAll('.dataPointDot')
-                        .data(dataPoints)
-                        .enter().append('circle')
+                    var dotDatapoint = svg.selectAll('.dataPointDot').data(dataPoints);
+                    // update existing
+                    dotDatapoint.attr('class', 'dataPointDot')
+                        .attr('r', radius)
+                        .attr('cx', function (d) {
+                        return timeScale(d.timestamp);
+                    })
+                        .attr('cy', function (d) {
+                        return d.avg ? yScale(d.avg) : -9999999;
+                    }).on('mouseover', function (d, i) {
+                        tip.show(d, i);
+                    }).on('mouseout', function () {
+                        tip.hide();
+                    });
+                    // add new ones
+                    dotDatapoint.enter().append('circle')
                         .attr('class', 'dataPointDot')
                         .attr('r', radius)
                         .attr('cx', function (d) {
@@ -1632,6 +1891,8 @@ var Charts;
                     }).on('mouseout', function () {
                         tip.hide();
                     });
+                    // remove old ones
+                    dotDatapoint.exit().remove();
                 }
                 scope.$watchCollection('data', function (newData) {
                     if (newData) {
@@ -1743,11 +2004,29 @@ var Charts;
                                 ' [rhqbar,histogram,area,line,scatter,histogram,hawkularline,hawkularmetric] chart type: ' + chartType);
                     }
                 }
+                // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+                function hashString(str) {
+                    var hash = 0, i, chr, len;
+                    if (str.length == 0)
+                        return hash;
+                    for (i = 0, len = str.length; i < len; i++) {
+                        chr = str.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + chr;
+                        hash |= 0; // Convert to 32bit integer
+                    }
+                    return hash;
+                }
                 scope.render = function (dataPoints, previousRangeDataPoints) {
+                    // if we don't have data, don't bother..
+                    if (!dataPoints && !multiDataPoints) {
+                        return;
+                    }
                     debug && console.group('Render Chart');
                     debug && console.time('chartRender');
                     //NOTE: layering order is important!
-                    initialization();
+                    if (!hasInit) {
+                        initialization();
+                    }
                     if (dataPoints) {
                         determineScale(dataPoints);
                     }
@@ -1799,14 +2078,14 @@ var Charts;
                     previousRangeData: '@',
                     annotationData: '@',
                     contextData: '@',
-                    showDataPoints: '@',
+                    showDataPoints: '=',
                     alertValue: '@',
                     interpolation: '@',
                     multiChartOverlayData: '@',
                     chartHeight: '@',
                     chartType: '@',
                     yAxisUnits: '@',
-                    useZeroMinValue: '@',
+                    useZeroMinValue: '=',
                     buttonbarDatetimeFormat: '@',
                     timeLabel: '@',
                     dateLabel: '@',
@@ -1822,8 +2101,8 @@ var Charts;
                     maxLabel: '@',
                     avgLabel: '@',
                     timestampLabel: '@',
-                    showAvgLine: '@',
-                    hideHighLowValues: '@',
+                    showAvgLine: '=',
+                    hideHighLowValues: '=',
                     chartTitle: '@'
                 }
             };

@@ -75,6 +75,7 @@ namespace Charts {
    */
   export interface IMultiDataPoint {
     key: string;
+    keyHash?: string; // for using as valid html id
     color?: string; /// #fffeee
     values: IChartDataPoint[];
   }
@@ -173,6 +174,8 @@ namespace Charts {
             processedNewData,
             processedPreviousRangeData;
 
+          let hasInit = false;
+
           dataPoints = attrs.data;
           showDataPoints = attrs.showDataPoints;
           previousRangeDataPoints = attrs.previousRangeData;
@@ -207,6 +210,11 @@ namespace Charts {
 
             createSvgDefs(chart);
 
+            svg = chart.append('g')
+              .attr('width', width + margin.left + margin.right)
+              .attr('height', innerChartHeight)
+              .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
+
             tip = d3.tip()
               .attr('class', 'd3-tip')
               .offset([-10, 0])
@@ -214,14 +222,12 @@ namespace Charts {
                 return buildHover(d, i);
               });
 
-            svg = chart.append('g')
-              .attr('width', width + margin.left + margin.right)
-              .attr('height', innerChartHeight)
-              .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
-
-
             svg.call(tip);
 
+            // a placeholder for the alerts
+            svg.append('g').attr('class', 'alertHolder');
+
+            hasInit = true;
           }
 
 
@@ -801,10 +807,16 @@ namespace Charts {
             let strokeOpacity = '0.6';
 
             // upper portion representing avg to high
-            svg.selectAll('rect.histogram')
-              .data(chartData)
-              .enter().append('rect')
-              .attr('class', 'histogram')
+            let rectHistogram = svg.selectAll('rect.histogram').data(chartData);
+
+            // update existing
+            rectHistogram.attr('class', 'histogram')
+              .on('mouseover', (d, i) => {
+                tip.show(d, i);
+              }).on('mouseout', () => {
+                tip.hide();
+              })
+              .transition()
               .attr('x', (d) => {
                 return timeScale(d.timestamp);
               })
@@ -848,17 +860,89 @@ namespace Charts {
               })
               .attr('data-hawkular-value', (d) => {
                 return d.avg;
-              }).on('mouseover', (d, i) => {
+              })/**/;
+            // add new ones
+            rectHistogram.enter().append('rect')
+              .on('mouseover', (d, i) => {
                 tip.show(d, i);
-              }).on('mouseout', () => {
+              })
+              .on('mouseout', () => {
                 tip.hide();
+              })
+              .attr('class', 'histogram')
+              .transition()
+              .attr('x', (d) => {
+                return timeScale(d.timestamp);
+              })
+              .attr('width', () => {
+                return calcBarWidth();
+              })
+              .attr('y', (d) => {
+                if (!isEmptyDataBar(d)) {
+                  return yScale(d.avg);
+                }
+                else {
+                  return 0;
+                }
+              })
+              .attr('height', (d) => {
+                if (isEmptyDataBar(d)) {
+                  return height - yScale(highBound);
+                }
+                else {
+                  return height - yScale(d.avg);
+                }
+              })
+              .attr('fill', (d, i) => {
+                if (isEmptyDataBar(d)) {
+                  return 'url(#noDataStripes)';
+                }
+                else {
+                  return '#C0C0C0';
+                }
+              })
+              .attr('stroke', (d) => {
+                return '#777';
+              })
+              .attr('stroke-width', (d) => {
+                if (isEmptyDataBar(d)) {
+                  return '0';
+                }
+                else {
+                  return '0';
+                }
+              })
+              .attr('data-hawkular-value', (d) => {
+                return d.avg;
               });
+            // remove old ones
+            rectHistogram.exit().remove();
 
-            if (hideHighLowValues === false) {
+            if (!hideHighLowValues) {
 
-              svg.selectAll('.histogram.top.stem')
-                .data(chartData)
-                .enter().append('line')
+              let lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartData);
+              // update existing
+              lineHistoHighStem.attr('class', 'histogramTopStem')
+                .attr('x1', (d) => {
+                  return xMidPointStartPosition(d);
+                })
+                .attr('x2', (d) => {
+                  return xMidPointStartPosition(d);
+                })
+                .attr('y1', (d) => {
+                  return yScale(d.max);
+                })
+                .attr('y2', (d) => {
+                  return yScale(d.avg);
+                })
+                .attr('stroke', (d) => {
+                  return 'red';
+                })
+                .attr('stroke-opacity', (d) => {
+                  return strokeOpacity;
+                });
+              // add new ones
+              lineHistoHighStem.enter().append('line')
                 .attr('class', 'histogramTopStem')
                 .attr('x1', (d) => {
                   return xMidPointStartPosition(d);
@@ -878,10 +962,12 @@ namespace Charts {
                 .attr('stroke-opacity', (d) => {
                   return strokeOpacity;
                 });
+              // remove old ones
+              lineHistoHighStem.exit().remove();
 
-              svg.selectAll('.histogram.bottom.stem')
-                .data(chartData)
-                .enter().append('line')
+              let lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartData);
+              // update existing
+              lineHistoLowStem
                 .attr('class', 'histogramBottomStem')
                 .attr('x1', (d) => {
                   return xMidPointStartPosition(d);
@@ -900,10 +986,33 @@ namespace Charts {
                 }).attr('stroke-opacity', (d) => {
                   return strokeOpacity;
                 });
+              // add new ones
+              lineHistoLowStem.enter().append('line')
+                .attr('class', 'histogramBottomStem')
+                .attr('x1', (d) => {
+                  return xMidPointStartPosition(d);
+                })
+                .attr('x2', (d)  => {
+                  return xMidPointStartPosition(d);
+                })
+                .attr('y1', (d) => {
+                  return yScale(d.avg);
+                })
+                .attr('y2', (d)  => {
+                  return yScale(d.min);
+                })
+                .attr('stroke', (d) => {
+                  return 'red';
+                }).attr('stroke-opacity', (d) => {
+                  return strokeOpacity;
+                });
+              // remove old ones
+              lineHistoLowStem.exit().remove();
 
-              svg.selectAll('.histogram.top.cross')
-                .data(chartData)
-                .enter().append('line')
+
+              let lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartData);
+              // update existing
+              lineHistoTopCross
                 .attr('class', 'histogramTopCross')
                 .attr('x1', function (d) {
                   return xMidPointStartPosition(d) - 3;
@@ -926,10 +1035,36 @@ namespace Charts {
                 .attr('stroke-opacity', function (d) {
                   return strokeOpacity;
                 });
+              // add new ones
+              lineHistoTopCross.enter().append('line')
+                .attr('class', 'histogramTopCross')
+                .attr('x1', function (d) {
+                  return xMidPointStartPosition(d) - 3;
+                })
+                .attr('x2', function (d) {
+                  return xMidPointStartPosition(d) + 3;
+                })
+                .attr('y1', function (d) {
+                  return yScale(d.max);
+                })
+                .attr('y2', function (d) {
+                  return yScale(d.max);
+                })
+                .attr('stroke', function (d) {
+                  return 'red';
+                })
+                .attr('stroke-width', function (d) {
+                  return '0.5';
+                })
+                .attr('stroke-opacity', function (d) {
+                  return strokeOpacity;
+                });
+              // remove old ones
+              lineHistoTopCross.exit().remove();
 
-              svg.selectAll('.histogram.bottom.cross')
-                .data(chartData)
-                .enter().append('line')
+              let lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartData);
+              // update existing
+              lineHistoBottomCross
                 .attr('class', 'histogramBottomCross')
                 .attr('x1', function (d) {
                   return xMidPointStartPosition(d) - 3;
@@ -952,6 +1087,32 @@ namespace Charts {
                 .attr('stroke-opacity', function (d) {
                   return strokeOpacity;
                 });
+              // add new ones
+              lineHistoBottomCross.enter().append('line')
+                .attr('class', 'histogramBottomCross')
+                .attr('x1', function (d) {
+                  return xMidPointStartPosition(d) - 3;
+                })
+                .attr('x2', function (d) {
+                  return xMidPointStartPosition(d) + 3;
+                })
+                .attr('y1', function (d) {
+                  return yScale(d.min);
+                })
+                .attr('y2', function (d) {
+                  return yScale(d.min);
+                })
+                .attr('stroke', function (d) {
+                  return 'red';
+                })
+                .attr('stroke-width', function (d) {
+                  return '0.5';
+                })
+                .attr('stroke-opacity', function (d) {
+                  return strokeOpacity;
+                });
+              // remove old ones
+              lineHistoBottomCross.exit().remove();
 
             }
 
@@ -995,11 +1156,18 @@ namespace Charts {
                 return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
               });
 
-            svg.append('path')
-              .datum(chartData)
-              .attr('class', 'metricLine')
+            let pathMetric = svg.selectAll('path.metricLine').data([chartData]);
+            // update existing
+            pathMetric.attr('class', 'metricLine')
+              .transition()
               .attr('d', metricChartLine);
-
+            // add new ones
+            pathMetric.enter().append('path')
+              .attr('class', 'metricLine')
+              .transition()
+              .attr('d', metricChartLine);
+            // remove old ones
+            pathMetric.exit().remove();
           }
 
           function createMultiLineChart(multiDataPoints:IMultiDataPoint[]) {
@@ -1007,23 +1175,53 @@ namespace Charts {
               g = 0;
 
             if (multiDataPoints) {
-              multiDataPoints.forEach((singleChartData) => {
-                if (singleChartData && singleChartData.values) {
+              // before updating, let's remove those missing from datapoints (if any)
+              svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath) => {
+                let stillExists = false;
+                multiDataPoints.forEach((singleChartData) => {
+                  singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                  if (existingPath.getAttribute('id') === singleChartData.keyHash) {
+                    stillExists = true;
+                  }
+                });
+                if (!stillExists) {
+                  existingPath.remove();
+                }
+              });
 
-                  svg.append('path')
-                    .datum(singleChartData.values)
+              multiDataPoints.forEach((singleChartData, idx) => {
+                if (singleChartData && singleChartData.values) {
+                  singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                  let pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash).data([singleChartData.values]);
+                  // update existing
+                  pathMultiLine.attr('id', singleChartData.keyHash)
                     .attr('class', 'multiLine')
                     .attr('fill', 'none')
                     .attr('stroke', () => {
                       if (singleChartData.color) {
                         return singleChartData.color;
                       } else {
-                        return colorScale(g);
+                        return colorScale(g++);
                       }
                     })
+                    .transition()
                     .attr('d', createLine('linear'));
-                  g++;
-
+                  // add new ones
+                  pathMultiLine.enter().append('path')
+                    .attr('id', singleChartData.keyHash)
+                    .attr('class', 'multiLine')
+                    .attr('fill', 'none')
+                    .attr('stroke', () => {
+                      if (singleChartData.color) {
+                        return singleChartData.color;
+                      } else {
+                        return colorScale(g++);
+                      }
+                    })
+                    .transition()
+                    .attr('d', createLine('linear'));
+                  // remove old ones
+                  pathMultiLine.exit().remove();
                 }
               });
             } else {
@@ -1060,7 +1258,7 @@ namespace Charts {
                   return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                 }).
                 y0((d) => {
-                  return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+                  return hideHighLowValues ? height : yScale(d.min);
                 }),
 
               lowArea = d3.svg.area()
@@ -1079,24 +1277,42 @@ namespace Charts {
                 });
 
 
-            if (hideHighLowValues === false) {
-
-              svg.append('path')
-                .datum(chartData)
+            if (!hideHighLowValues) {
+              let highAreaPath  = svg.selectAll('path.highArea').data([chartData]);
+              // update existing
+              highAreaPath.attr('class', 'highArea')
+                .attr('d', highArea);
+              // add new ones
+              highAreaPath.enter().append('path')
                 .attr('class', 'highArea')
                 .attr('d', highArea);
+              // remove old ones
+              highAreaPath.exit().remove();
 
-              svg.append('path')
-                .datum(chartData)
+              let lowAreaPath  = svg.selectAll('path.lowArea').data([chartData]);
+              // update existing
+              lowAreaPath.attr('class', 'lowArea')
+                .attr('d', lowArea);
+              // add new ones
+              lowAreaPath.enter().append('path')
                 .attr('class', 'lowArea')
                 .attr('d', lowArea);
+              // remove old ones
+              lowAreaPath.exit().remove();
             }
 
-            svg.append('path')
-              .datum(chartData)
-              .attr('class', 'avgArea')
+            let avgAreaPath  = svg.selectAll('path.avgArea').data([chartData]);
+            // update existing
+            avgAreaPath.attr('class', 'avgArea')
+              .transition()
               .attr('d', avgArea);
-
+            // add new ones
+            avgAreaPath.enter().append('path')
+              .attr('class', 'avgArea')
+              .transition()
+              .attr('d', avgArea);
+            // remove old ones
+            avgAreaPath.exit().remove();
           }
 
           function createScatterChart() {
@@ -1279,7 +1495,11 @@ namespace Charts {
           function createYAxisGridLines() {
             // create the y axis grid lines
             if (yScale) {
-              svg.append('g').classed('grid y_grid', true)
+              let yAxis = svg.selectAll('g.grid.y_grid');
+              if (!yAxis[0].length) {
+                yAxis = svg.append('g').classed('grid y_grid', true);
+              }
+              yAxis
                 .call(d3.svg.axis()
                   .scale(yScale)
                   .orient('left')
@@ -1381,10 +1601,16 @@ namespace Charts {
           }
 
           function createAlertLine(alertValue:number) {
-            svg.append('path')
-              .datum(chartData)
+            let pathAlertLine  = svg.selectAll('path.alertLine').data([chartData]);
+            // update existing
+            pathAlertLine.attr('class', 'alertLine')
+              .attr('d', createAlertLineDef(alertValue));
+            // add new ones
+            pathAlertLine.enter().append('path')
               .attr('class', 'alertLine')
               .attr('d', createAlertLineDef(alertValue));
+            // remove old ones
+            pathAlertLine.exit().remove();
           }
 
 
@@ -1455,9 +1681,25 @@ namespace Charts {
           }
 
           function createAlertBoundsArea(alertBounds:AlertBound[]) {
-            svg.selectAll('rect.alert')
-              .data(alertBounds)
-              .enter().append('rect')
+            let rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
+            // update existing
+            rectAlert.attr('class', 'alertBounds')
+              .attr('x', (d:AlertBound) => {
+                return timeScale(d.startTimestamp);
+              })
+              .attr('y', () => {
+                return yScale(highBound);
+              })
+              .attr('height', (d:AlertBound) => {
+                ///@todo: make the height adjustable
+                return 185;
+                //return yScale(0) - height;
+              })
+              .attr('width', (d:AlertBound) => {
+                return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
+              });
+            // add new ones
+            rectAlert.enter().append('rect')
               .attr('class', 'alertBounds')
               .attr('x', (d:AlertBound) => {
                 return timeScale(d.startTimestamp);
@@ -1473,7 +1715,8 @@ namespace Charts {
               .attr('width', (d:AlertBound) => {
                 return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
               });
-
+            // remove old ones
+            rectAlert.exit().remove();
           }
 
           function createXAxisBrush() {
@@ -1505,6 +1748,7 @@ namespace Charts {
               svg.classed('selecting', !d3.event.target.empty());
               // ignore range selections less than 1 minute
               if (dragSelectionDelta >= 60000) {
+                brushGroup.remove();
                 scope.$emit(EventNames.CHART_TIMERANGE_CHANGED, extent);
               }
             }
@@ -1575,9 +1819,22 @@ namespace Charts {
 
           function createDataPoints(dataPoints:IChartDataPoint[]) {
             let radius = 1;
-            svg.selectAll('.dataPointDot')
-              .data(dataPoints)
-              .enter().append('circle')
+            let dotDatapoint = svg.selectAll('.dataPointDot').data(dataPoints);
+            // update existing
+            dotDatapoint.attr('class', 'dataPointDot')
+              .attr('r', radius)
+              .attr('cx', function (d) {
+                return timeScale(d.timestamp);
+              })
+              .attr('cy', function (d) {
+                return d.avg ? yScale(d.avg) : -9999999;
+              }).on('mouseover', function (d, i) {
+                tip.show(d, i);
+              }).on('mouseout', function () {
+                tip.hide();
+              });
+            // add new ones
+            dotDatapoint.enter().append('circle')
               .attr('class', 'dataPointDot')
               .attr('r', radius)
               .attr('cx', function (d) {
@@ -1590,6 +1847,8 @@ namespace Charts {
               }).on('mouseout', function () {
                 tip.hide();
               });
+            // remove old ones
+            dotDatapoint.exit().remove();
           }
 
           scope.$watchCollection('data', (newData) => {
@@ -1721,11 +1980,30 @@ namespace Charts {
             }
           }
 
+          // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+          function hashString(str: string): number {
+            let hash = 0, i, chr, len;
+            if (str.length == 0) return hash;
+            for (i = 0, len = str.length; i < len; i++) {
+              chr   = str.charCodeAt(i);
+              hash  = ((hash << 5) - hash) + chr;
+              hash |= 0; // Convert to 32bit integer
+            }
+            return hash;
+          }
+
           scope.render = (dataPoints, previousRangeDataPoints) => {
+            // if we don't have data, don't bother..
+            if(!dataPoints && !multiDataPoints) {
+              return;
+            }
+
             debug && console.group('Render Chart');
             debug && console.time('chartRender');
             //NOTE: layering order is important!
-            initialization();
+            if (!hasInit) {
+              initialization();
+            }
             if (dataPoints) {
               determineScale(dataPoints);
             }
@@ -1784,14 +2062,14 @@ namespace Charts {
             previousRangeData: '@',
             annotationData: '@',
             contextData: '@',
-            showDataPoints: '@',
+            showDataPoints: '=',
             alertValue: '@',
             interpolation: '@',
             multiChartOverlayData: '@',
             chartHeight: '@',
             chartType: '@',
             yAxisUnits: '@',
-            useZeroMinValue: '@',
+            useZeroMinValue: '=',
             buttonbarDatetimeFormat: '@',
             timeLabel: '@',
             dateLabel: '@',
@@ -1807,8 +2085,8 @@ namespace Charts {
             maxLabel: '@',
             avgLabel: '@',
             timestampLabel: '@',
-            showAvgLine: '@',
-            hideHighLowValues: '@',
+            showAvgLine: '=',
+            hideHighLowValues: '=',
             chartTitle: '@'
           }
         };
