@@ -57,7 +57,7 @@ var normalSizeOptions = {
 };
 
 gulp.task('bower', function () {
-  gulp.src('multi-chart-sample.html')
+  gulp.src('metrics-chart-sample.html')
     .pipe(wiredep({}))
     .pipe(gulp.dest('.'));
 });
@@ -68,7 +68,7 @@ gulp.task('path-adjust', function () {
     .pipe(map(function (buf, filename) {
       var textContent = buf.toString();
       var newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
-      console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
+      //console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
       return newTextContent;
     }))
     .pipe(gulp.dest('libs'));
