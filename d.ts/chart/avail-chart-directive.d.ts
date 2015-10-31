@@ -2,9 +2,9 @@
 declare namespace Charts {
     class AvailStatus {
         value: string;
-        static UP: EventNames;
-        static DOWN: EventNames;
-        static UNKNOWN: EventNames;
+        static UP: string;
+        static DOWN: string;
+        static UNKNOWN: string;
         constructor(value: string);
         toString(): string;
     }

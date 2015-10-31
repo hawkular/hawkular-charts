@@ -13,9 +13,9 @@ namespace Charts {
 
   export class AvailStatus {
 
-    public static UP = new EventNames('up');
-    public static DOWN = new EventNames('down');
-    public static UNKNOWN = new EventNames('unknown');
+    public static UP = 'up';
+    public static DOWN = 'down';
+    public static UNKNOWN = 'unknown';
 
 
     constructor(public value:string) {
