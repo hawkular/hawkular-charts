@@ -7,6 +7,7 @@
   "homepage": "https://github.com/hawkular/hawkular-charts",
   "dependencies": {},
   "devDependencies": {
+    "browser-sync": "^2.9.11",
     "event-stream": "3.3.2",
     "gulp": "3.9.0",
     "gulp-angular-templatecache": "1.8.0",

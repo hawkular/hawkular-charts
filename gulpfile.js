@@ -31,6 +31,7 @@ var gulp = require('gulp'),
   merge = require('merge2'),
   uglify = require('gulp-uglify'),
   gutil = require('gulp-util'),
+  browsersync = require('browser-sync'),
   tslint = require('gulp-tslint');
 
 var plugins = gulpLoadPlugins({});
@@ -39,6 +40,7 @@ var pkg = require('./package.json');
 var config = {
   main: '.',
   ts: ['src/**/*.ts'],
+  css: ['css/*.css'],
   dist: './dist/',
   js: pkg.name + '.js',
   tsProject: plugins.typescript.createProject({
@@ -116,6 +118,14 @@ gulp.task('tslint', function () {
     .pipe(tslint.report('verbose'));
 });
 
+gulp.task('browsersync', function(callback) {
+  return browsersync({
+    server: {
+      baseDir:'./'
+    }
+  }, callback);
+});
+
 
 gulp.task('concat', function () {
   var gZipSize = size(gZippedSizeOptions);
@@ -130,14 +140,17 @@ gulp.task('clean', ['concat'], function () {
     .pipe(plugins.clean());
 });
 
+gulp.task('dev-build', ['bower', 'path-adjust', 'tslint', 'tsc', 'concat', 'clean']);
+
 gulp.task('watch', function () {
-  gulp.watch(config.ts, ['build']);
+  gulp.watch(config.css, ['dev-build', browsersync.reload]);
+  gulp.watch(config.js, ['dev-build', browsersync.reload]);
 });
 
 
 gulp.task('build', ['bower', 'path-adjust', 'tslint', 'tsc', 'concat', 'clean']);
-
-gulp.task('default', ['build']);
+//gulp.task('default', gulp.parallel('bower', 'path-adjust','tslint','tsc','concat', 'browsersync', 'watch'));
+gulp.task('default', ['watch']);
 
 
 
