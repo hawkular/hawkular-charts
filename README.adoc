@@ -17,9 +17,16 @@ little effort.
 == Quickstart
 
 The quickest way to start using the charts is to fire up a http server and start playing with the code. To run the
- examples, start an http server from the _hawkular-charts_ root directory:
+ examples, from the _hawkular-charts_ root directory:
 
- `python -m SimpleHTTPServer 8000 .`
+ `npm install && bower install`
+
+ `gulp server`
+
+This command will startup a web server and launch the default browser to that page -- listening for any
+changes in your code and automatically refreshing the browser with changes. Additionally, it will sync the
+changes to all of the browsers with localhost:3000/* open -- making it easy to check across multiple browsers and
+even mobile browsers for responsive layout changes!
 
 Then start playing around the the examples (each has data in the example):
 
