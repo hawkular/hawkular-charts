@@ -20,6 +20,7 @@ var gulp = require('gulp'),
   eventStream = require('event-stream'),
   gulpLoadPlugins = require('gulp-load-plugins'),
   map = require('vinyl-map'),
+  express = require('express'),
   fs = require('fs'),
   path = require('path'),
   filesize = require('gulp-filesize'),
@@ -31,14 +32,17 @@ var gulp = require('gulp'),
   merge = require('merge2'),
   uglify = require('gulp-uglify'),
   gutil = require('gulp-util'),
+  browsersync = require('browser-sync'),
   tslint = require('gulp-tslint');
 
+var server;
 var plugins = gulpLoadPlugins({});
 var pkg = require('./package.json');
 
 var config = {
   main: '.',
   ts: ['src/**/*.ts'],
+  css: ['css/*.css'],
   dist: './dist/',
   js: pkg.name + '.js',
   tsProject: plugins.typescript.createProject({
@@ -93,6 +97,7 @@ gulp.task('tsc', ['clean-defs'], function () {
       .pipe(plugins.concat(config.js))
       //.pipe(stripDebug())
       .pipe(gulp.dest('.'))
+      .pipe(reload())
       .pipe(uglify())
       .pipe(rename('hawkular-charts.min.js'))
       .pipe(gulp.dest('.')),
@@ -117,6 +122,7 @@ gulp.task('tslint', function () {
 });
 
 
+
 gulp.task('concat', function () {
   var gZipSize = size(gZippedSizeOptions);
   return gulp.src([config.js])
@@ -125,19 +131,34 @@ gulp.task('concat', function () {
     .pipe(gZipSize);
 });
 
-gulp.task('clean', ['concat'], function () {
+gulp.task('clean', function () {
   return gulp.src([config.js], {read: false})
     .pipe(plugins.clean());
 });
 
+gulp.task('server', ['watch'], function () {
+  server = express();
+  server.use(express.static('.'));
+  server.listen(8000);
+  browsersync({proxy: 'localhost:8000'})
+});
+
+gulp.task('dev-build', ['bower', 'path-adjust', 'tslint', 'tsc', 'concat', 'clean']);
+
 gulp.task('watch', function () {
-  gulp.watch(config.ts, ['build']);
+  gulp.watch(config.css, ['tsc']);
+  gulp.watch(config.ts, ['tsc']);
 });
 
 
 gulp.task('build', ['bower', 'path-adjust', 'tslint', 'tsc', 'concat', 'clean']);
+gulp.task('default', ['server']);
 
-gulp.task('default', ['build']);
 
-
+function reload() {
+  if(server) {
+    return browsersync.reload({stream:true});
+  }
+  return gutil.noop();
+}
 
