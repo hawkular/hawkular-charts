@@ -1253,6 +1253,11 @@ var Charts;
                         // remove old ones
                         lineHistoBottomCross.exit().remove();
                     }
+                    else {
+                        // we should hide high-low values.. or remove if existing
+                        svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').
+                            remove();
+                    }
                 }
                 function createHawkularLineChart() {
                     var chartLine = d3.svg.line()
