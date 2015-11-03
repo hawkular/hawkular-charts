@@ -1115,6 +1115,11 @@ namespace Charts {
               lineHistoBottomCross.exit().remove();
 
             }
+            else {
+              // we should hide high-low values.. or remove if existing
+              svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').
+                remove();
+            }
 
           }
 
