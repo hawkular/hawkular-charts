@@ -1,0 +1,17 @@
+[
+  {"timestamp": 1438025381038, "value": "up"},
+  {"timestamp": 1438031047504, "value": "down"},
+  {"timestamp": 1438032281632, "value": "up"},
+  {"timestamp": 1438034187172, "value": "down"},
+  {"timestamp": 1438034766171, "value": "up"},
+  {"timestamp": 1438034787147, "value": "down"},
+  {"timestamp": 1438034802775, "value": "up"},
+  {"timestamp": 1438039047364, "value": "down"},
+  {"timestamp": 1438039062766, "value": "up"},
+  {"timestamp": 1438039207126, "value": "down"},
+  {"timestamp": 1438039504732, "value": "up"},
+  {"timestamp": 1438041407558, "value": "down"},
+  {"timestamp": 1438042026783, "value": "up"},
+  {"timestamp": 1438042627486, "value": "down"},
+  {"timestamp": 1438042664875, "value": "up"}
+]
