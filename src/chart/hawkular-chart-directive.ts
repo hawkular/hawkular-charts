@@ -411,8 +411,6 @@ namespace Charts {
 
             if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
 
-              firstDataArray = multiDataPoints[0].values;
-
               let lowHigh = setupFilteredMultiData(multiDataPoints);
               lowBound = lowHigh[0];
               highBound = lowHigh[1]
@@ -428,13 +426,10 @@ namespace Charts {
                 .tickSize(4, 4, 0)
                 .orient('left');
 
-
               timeScale = d3.time.scale()
                 .range([0, width])
-                .domain(d3.extent(firstDataArray, (d:IChartDataPoint) => {
-                  return d.timestamp;
-                }));
-
+                .domain([d3.min(multiDataPoints, (d) => d3.min(d.values, (p) => p.timestamp )),
+                  d3.max(multiDataPoints, (d) => d3.max(d.values, (p) => p.timestamp))]);
 
               xAxis = d3.svg.axis()
                 .scale(timeScale)
