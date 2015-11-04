@@ -336,6 +336,7 @@ var Charts;
                             console.log('Drag: AvailTimeRangeChanged:' + extent);
                             $rootScope.$broadcast(Charts.EventNames.AVAIL_CHART_TIMERANGE_CHANGED.toString(), extent);
                         }
+                        brushGroup.call(brush.clear());
                     }
                 }
                 scope.$watchCollection('data', function (newData) {
@@ -1807,8 +1808,10 @@ var Charts;
                         // ignore range selections less than 1 minute
                         if (dragSelectionDelta >= 60000) {
                             brushGroup.remove();
-                            scope.$emit(Charts.EventNames.CHART_TIMERANGE_CHANGED, extent);
+                            $rootScope.$broadcast(Charts.EventNames.CHART_TIMERANGE_CHANGED.toString(), extent);
                         }
+                        // clear the brush selection
+                        brushGroup.call(brush.clear());
                     }
                 }
                 function createPreviousRangeOverlay(prevRangeData) {
