@@ -470,6 +470,7 @@ namespace Charts {
               console.log('Drag: AvailTimeRangeChanged:' + extent);
               $rootScope.$broadcast(EventNames.AVAIL_CHART_TIMERANGE_CHANGED.toString(), extent);
             }
+            brushGroup.call(brush.clear());
           }
         }
 
