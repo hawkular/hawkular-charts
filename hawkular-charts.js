@@ -632,7 +632,6 @@ var Charts;
                     var xTicks = 9, xTickSubDivide = 5;
                     var firstDataArray;
                     if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
-                        firstDataArray = multiDataPoints[0].values;
                         var lowHigh = setupFilteredMultiData(multiDataPoints);
                         lowBound = lowHigh[0];
                         highBound = lowHigh[1];
@@ -647,9 +646,8 @@ var Charts;
                             .orient('left');
                         timeScale = d3.time.scale()
                             .range([0, width])
-                            .domain(d3.extent(firstDataArray, function (d) {
-                            return d.timestamp;
-                        }));
+                            .domain([d3.min(multiDataPoints, function (d) { return d3.min(d.values, function (p) { return p.timestamp; }); }),
+                            d3.max(multiDataPoints, function (d) { return d3.max(d.values, function (p) { return p.timestamp; }); })]);
                         xAxis = d3.svg.axis()
                             .scale(timeScale)
                             .ticks(xTicks)
@@ -1789,13 +1787,15 @@ var Charts;
                     rectAlert.exit().remove();
                 }
                 function createXAxisBrush() {
+                    brushGroup = svg.selectAll('g.brush');
+                    if (brushGroup.empty()) {
+                        brushGroup = svg.append('g').attr('class', 'brush');
+                    }
                     brush = d3.svg.brush()
                         .x(timeScale)
                         .on('brushstart', brushStart)
                         .on('brushend', brushEnd);
-                    brushGroup = svg.append('g')
-                        .attr('class', 'brush')
-                        .call(brush);
+                    brushGroup.call(brush);
                     brushGroup.selectAll('.resize').append('path');
                     brushGroup.selectAll('rect')
                         .attr('height', height);
@@ -1807,7 +1807,6 @@ var Charts;
                         svg.classed('selecting', !d3.event.target.empty());
                         // ignore range selections less than 1 minute
                         if (dragSelectionDelta >= 60000) {
-                            brushGroup.remove();
                             $rootScope.$broadcast(Charts.EventNames.CHART_TIMERANGE_CHANGED.toString(), extent);
                         }
                         // clear the brush selection

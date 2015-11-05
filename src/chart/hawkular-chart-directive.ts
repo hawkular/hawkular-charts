@@ -1721,14 +1721,17 @@ namespace Charts {
 
           function createXAxisBrush() {
 
+            brushGroup = svg.selectAll('g.brush')
+            if (brushGroup.empty()) {
+              brushGroup = svg.append('g').attr('class', 'brush');
+            }
+
             brush = d3.svg.brush()
               .x(timeScale)
               .on('brushstart', brushStart)
               .on('brushend', brushEnd);
 
-            brushGroup = svg.append('g')
-              .attr('class', 'brush')
-              .call(brush);
+            brushGroup.call(brush);
 
             brushGroup.selectAll('.resize').append('path');
 
@@ -1748,7 +1751,6 @@ namespace Charts {
               svg.classed('selecting', !d3.event.target.empty());
               // ignore range selections less than 1 minute
               if (dragSelectionDelta >= 60000) {
-                brushGroup.remove();
                 $rootScope.$broadcast(EventNames.CHART_TIMERANGE_CHANGED.toString(), extent);
               }
               // clear the brush selection
