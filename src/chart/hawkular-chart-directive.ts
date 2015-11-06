@@ -1979,7 +1979,7 @@ namespace Charts {
                 break;
               default:
                 $log.warn('chart-type is not valid. Must be in' +
-                  ' [rhqbar,histogram,area,line,scatter,histogram,hawkularline,hawkularmetric] chart type: ' + chartType);
+                  ' [rhqbar,area,line,scatter,histogram,hawkularline,hawkularmetric] chart type: ' + chartType);
 
             }
           }
