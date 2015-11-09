@@ -1118,30 +1118,6 @@ namespace Charts {
 
           }
 
-
-          function createHawkularLineChart() {
-            let chartLine = d3.svg.line()
-              .interpolate(interpolation)
-              .defined((d) => {
-                return !d.empty;
-              })
-              .x((d) => {
-                return timeScale(d.timestamp);
-              })
-              .y((d) => {
-                return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-              });
-
-
-            // Bar avg line
-            svg.append('path')
-              .datum(chartData)
-              .attr('class', 'avgLine')
-              .attr('d', chartLine);
-
-          }
-
-
           function createHawkularMetricChart() {
 
             let metricChartLine = d3.svg.line()
@@ -1959,9 +1935,8 @@ namespace Charts {
               case 'histogram' :
                 createHistogramChart();
                 break;
+              case 'line' :
               case 'hawkularline' :
-                createHawkularLineChart();
-                break;
               case 'hawkularmetric' :
                 createHawkularMetricChart();
                 break;
@@ -1979,7 +1954,7 @@ namespace Charts {
                 break;
               default:
                 $log.warn('chart-type is not valid. Must be in' +
-                  ' [rhqbar,area,line,scatter,histogram,hawkularline,hawkularmetric] chart type: ' + chartType);
+                  ' [rhqbar,area,line,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
 
             }
           }
