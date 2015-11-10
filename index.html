@@ -21,6 +21,13 @@
       margin-left: 40px;
     }
 
+    .optionsWrapper {
+      border: 1px solid lightgrey;
+      padding: 10px;
+      margin: 10px;
+      width: 700px;
+    }
+
     .chartWrapper {
       height: 250px;
     }
@@ -69,9 +76,14 @@
 
       });
 
+      $scope.toggleHighLow = function () {
+        console.log('h values' + $scope.hideHighLowValues);
+        $scope.hideHighLowValues = !$scope.hideHighLowValues;
+      };
+
       $scope.$watch('dataPoints', function (dataPoints) {
         if (dataPoints && $scope.originalData) {
-          console.log('dataPoints changed to: '+dataPoints);
+          console.log('dataPoints changed to: ' + dataPoints);
           $scope.myData = $scope.originalData.slice(0, dataPoints);
         }
       });
@@ -107,12 +119,12 @@
 <p>
   This page demonstrates the various types of Hawkular charts, and allows to change some of the properties to see how
   these chart types would look with various properties set.
-  </p>
+</p>
 <h4>Check out the following list for other examples:</h4>
 <ul>
-<li><a href="./avail-test.html">Availability Tester</a> </li>
-<li><a href="./metrics-chart-sample.html">Metrics Chart Sample</a> </li>
-<li><a href="./multi-chart-sample.html">Multi-Chart Sample</a> </li>
+  <li><a href="./avail-test.html">Availability Tester</a></li>
+  <li><a href="./metrics-chart-sample.html">Metrics Chart Sample</a></li>
+  <li><a href="./multi-chart-sample.html">Multi-Chart Sample</a></li>
 </ul>
 
 <p style="font-style: italic">
@@ -122,12 +134,21 @@
 
 <div ng-controller="ChartController">
 
-  <label for="alertValue">Alert Threshold: </label>
-  <input id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
-  <label for="dataPoints">Data Points: </label>
-  <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
-  <label for="highLowValues">Hide High/Low Values: </label>
-  <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"/>
+  <div class="optionsWrapper">
+
+    <div style="margin-bottom: 5px;">
+
+    <label for="alertValue">Alert Threshold: </label>
+    <input id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
+    <label for="dataPoints">Data Points: </label>
+    <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
+    <label for="highLowValues">Hide High/Low Values: </label>
+    <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"
+           ng-checked="hideHighLowValues"
+           ng-click="toggleHighLow();"/>
+    </div>
+
+  </div>
 
   <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: HawkularMetric:</span>
   </div>
@@ -175,7 +196,7 @@
       alert-value="{{alertThreshold}}"
       use-zero-min-value="true"
       hide-high-low-values="hideHighLowValues"
-      y-axis-units="Response Time (ms)" >
+      y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
 
