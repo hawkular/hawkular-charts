@@ -1409,9 +1409,26 @@ namespace Charts {
 
           function createScatterLineChart() {
 
-            svg.selectAll('.scatterline.top.stem')
-              .data(chartData)
-              .enter().append('line')
+            let lineScatterTopStem = svg.selectAll('.scatterLineTopStem').data(chartData);
+            // update existing
+            lineScatterTopStem.attr('class', 'scatterLineTopStem')
+              .attr('x1', (d) => {
+                return xMidPointStartPosition(d);
+              })
+              .attr('x2', (d) => {
+                return xMidPointStartPosition(d);
+              })
+              .attr('y1', (d) => {
+                return yScale(d.max);
+              })
+              .attr('y2', (d) => {
+                return yScale(d.avg);
+              })
+              .attr('stroke', (d) => {
+                return '#000';
+              });
+            // add new ones
+            lineScatterTopStem.enter().append('line')
               .attr('class', 'scatterLineTopStem')
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
@@ -1428,10 +1445,29 @@ namespace Charts {
               .attr('stroke', (d) => {
                 return '#000';
               });
+            // remove old ones
+            lineScatterTopStem.exit().remove();
 
-            svg.selectAll('.scatterline.bottom.stem')
-              .data(chartData)
-              .enter().append('line')
+            let lineScatterBottomStem = svg.selectAll('.scatterLineBottomStem').data(chartData);
+            // update existing
+            lineScatterBottomStem.attr('class', 'scatterLineBottomStem')
+              .attr('x1', (d) => {
+                return xMidPointStartPosition(d);
+              })
+              .attr('x2', (d) => {
+                return xMidPointStartPosition(d);
+              })
+              .attr('y1', (d) => {
+                return yScale(d.avg);
+              })
+              .attr('y2', (d) => {
+                return yScale(d.min);
+              })
+              .attr('stroke', (d) => {
+                return '#000';
+              });
+            // add new ones
+            lineScatterBottomStem.enter().append('line')
               .attr('class', 'scatterLineBottomStem')
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
@@ -1448,10 +1484,32 @@ namespace Charts {
               .attr('stroke', (d) => {
                 return '#000';
               });
+            // remove old ones
+            lineScatterBottomStem.exit().remove();
 
-            svg.selectAll('.scatterline.top.cross')
-              .data(chartData)
-              .enter().append('line')
+            let lineScatterTopCross = svg.selectAll('.scatterLineTopCross').data(chartData);
+            // update existing
+            lineScatterTopCross.attr('class', 'scatterLineTopCross')
+              .attr('x1', (d) => {
+                return xMidPointStartPosition(d) - 3;
+              })
+              .attr('x2', (d) => {
+                return xMidPointStartPosition(d) + 3;
+              })
+              .attr('y1', (d) => {
+                return yScale(d.max);
+              })
+              .attr('y2', (d) => {
+                return yScale(d.max);
+              })
+              .attr('stroke', (d) => {
+                return '#000';
+              })
+              .attr('stroke-width', (d) => {
+                return '0.5';
+              });
+            // add new ones
+            lineScatterTopCross.enter().append('line')
               .attr('class', 'scatterLineTopCross')
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
@@ -1471,10 +1529,32 @@ namespace Charts {
               .attr('stroke-width', (d) => {
                 return '0.5';
               });
+            // remove old ones
+            lineScatterTopCross.exit().remove();
 
-            svg.selectAll('.scatterline.bottom.cross')
-              .data(chartData)
-              .enter().append('line')
+            let lineScatterBottomCross = svg.selectAll('.scatterLineBottomCross').data(chartData);
+            // update existing
+            lineScatterBottomCross.attr('class', 'scatterLineBottomCross')
+              .attr('x1', (d) => {
+                return xMidPointStartPosition(d) - 3;
+              })
+              .attr('x2', (d) => {
+                return xMidPointStartPosition(d) + 3;
+              })
+              .attr('y1', (d) => {
+                return yScale(d.min);
+              })
+              .attr('y2', (d) => {
+                return yScale(d.min);
+              })
+              .attr('stroke', (d) => {
+                return '#000';
+              })
+              .attr('stroke-width', (d) => {
+                return '0.5';
+              });
+            // add new ones
+            lineScatterBottomCross.enter().append('line')
               .attr('class', 'scatterLineBottomCross')
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
@@ -1494,11 +1574,12 @@ namespace Charts {
               .attr('stroke-width', (d) => {
                 return '0.5';
               });
+            // remove old ones
+            lineScatterBottomCross.exit().remove();
 
-            svg.selectAll('.scatterDot')
-              .data(chartData)
-              .enter().append('circle')
-              .attr('class', 'avgDot')
+            let circleScatterDot = svg.selectAll('.scatterDot').data(chartData);
+            // update existing
+            circleScatterDot.attr('class', 'scatterDot')
               .attr('r', 3)
               .attr('cx', (d) => {
                 return xMidPointStartPosition(d);
@@ -1516,8 +1597,28 @@ namespace Charts {
               }).on('mouseout', () => {
                 tip.hide();
               });
-
-
+            // add new ones
+            circleScatterDot.enter().append('circle')
+              .attr('class', 'scatterDot')
+              .attr('r', 3)
+              .attr('cx', (d) => {
+                return xMidPointStartPosition(d);
+              })
+              .attr('cy', (d) => {
+                return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+              })
+              .style('fill', () => {
+                return '#70c4e2';
+              })
+              .style('opacity', () => {
+                return '1';
+              }).on('mouseover', (d, i) => {
+                tip.show(d, i);
+              }).on('mouseout', () => {
+                tip.hide();
+              });
+            // remove old ones
+            circleScatterDot.exit().remove();
           }
 
 
@@ -1609,10 +1710,16 @@ namespace Charts {
 
           function createAvgLines() {
             if (chartType === 'bar' || chartType === 'scatterline') {
-              svg.append('path')
-                .datum(chartData)
+              let pathAvgLine = svg.selectAll('.barAvgLine').data([chartData]);
+              // update existing
+              pathAvgLine.attr('class', 'barAvgLine')
+                .attr('d', createCenteredLine('monotone'));
+              // add new ones
+              pathAvgLine.enter().append('path')
                 .attr('class', 'barAvgLine')
                 .attr('d', createCenteredLine('monotone'));
+              // remove old ones
+              pathAvgLine.exit().remove();
             }
           }
 
