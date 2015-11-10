@@ -69,11 +69,6 @@
 
       });
 
-      $scope.toggleHighLow = function() {
-        console.log('h values'+$scope.hideHighLowValues);
-        $scope.hideHighLowValues = ! $scope.hideHighLowValues;
-      };
-
       $scope.$watch('dataPoints', function (dataPoints) {
         if (dataPoints && $scope.originalData) {
           console.log('dataPoints changed to: '+dataPoints);
@@ -132,9 +127,7 @@
   <label for="dataPoints">Data Points: </label>
   <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
   <label for="highLowValues">Hide High/Low Values: </label>
-  <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"
-         ng-checked="hideHighLowValues"
-         ng-click="toggleHighLow();"/>
+  <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"/>
 
   <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: HawkularMetric:</span>
   </div>
@@ -149,13 +142,12 @@
     </hawkular-chart>
   </div>
 
-  <!--
   <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: HawkularLine:</span>
   </div>
   <div class="chartWrapper">
     <hawkular-chart
       data="myData"
-      chart-type="hawkularline"
+      chart-type="line"
       alert-value="{{alertThreshold}}"
       use-zero-min-value="true"
       y-axis-units="Response Time (ms)" >
@@ -173,7 +165,6 @@
       y-axis-units="Response Time (ms)" >
     </hawkular-chart>
   </div>
-  -->
 
   <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: Histogram</span>
   </div>
@@ -188,7 +179,6 @@
     </hawkular-chart>
   </div>
 
-  <!--
   <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: RhqBar</span>
   </div>
   <div class="chartWrapper">
@@ -226,7 +216,6 @@
       y-axis-units="Response Time (ms)" >
     </hawkular-chart>
   </div>
--->
 
 </div>
 

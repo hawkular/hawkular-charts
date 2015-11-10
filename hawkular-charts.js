@@ -802,159 +802,11 @@ var Charts;
                         .attr('style', 'stroke:#ff8a9a; fill:none;')
                         .append('path').attr('d', 'M 0 0 6 0');
                 }
-                function createRhqStackedBars(lowBound, highBound) {
-                    // The gray bars at the bottom leading up
-                    svg.selectAll('rect.leaderBar')
-                        .data(chartData)
-                        .enter().append('rect')
-                        .attr('class', 'leaderBar')
-                        .attr('x', function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .attr('y', function (d) {
-                        if (!isEmptyDataBar(d)) {
-                            return yScale(d.min);
-                        }
-                        else {
-                            return 0;
-                        }
-                    })
-                        .attr('height', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return height - yScale(highBound);
-                        }
-                        else {
-                            return height - yScale(d.min);
-                        }
-                    })
-                        .attr('width', function () {
-                        return calcBarWidth();
-                    })
-                        .attr('opacity', '.6')
-                        .attr('fill', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return 'url(#noDataStripes)';
-                        }
-                        else {
-                            return '#d3d3d6';
-                        }
-                    }).on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                    // upper portion representing avg to high
-                    svg.selectAll('rect.high')
-                        .data(chartData)
-                        .enter().append('rect')
-                        .attr('class', 'high')
-                        .attr('x', function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .attr('y', function (d) {
-                        return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
-                    })
-                        .attr('height', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return 0;
-                        }
-                        else {
-                            return yScale(d.avg) - yScale(d.max);
-                        }
-                    })
-                        .attr('width', function () {
-                        return calcBarWidth();
-                    })
-                        .attr('data-rhq-value', function (d) {
-                        return d.max;
-                    })
-                        .attr('opacity', 0.9)
-                        .on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                    // lower portion representing avg to low
-                    svg.selectAll('rect.low')
-                        .data(chartData)
-                        .enter().append('rect')
-                        .attr('class', 'low')
-                        .attr('x', function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .attr('y', function (d) {
-                        return isNaN(d.avg) ? height : yScale(d.avg);
-                    })
-                        .attr('height', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return 0;
-                        }
-                        else {
-                            return yScale(d.min) - yScale(d.avg);
-                        }
-                    })
-                        .attr('width', function () {
-                        return calcBarWidth();
-                    })
-                        .attr('opacity', 0.9)
-                        .attr('data-rhq-value', function (d) {
-                        return d.min;
-                    })
-                        .on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                    // if high == low put a 'cap' on the bar to show raw value, non-aggregated bar
-                    svg.selectAll('rect.singleValue')
-                        .data(chartData)
-                        .enter().append('rect')
-                        .attr('class', 'singleValue')
-                        .attr('x', function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .attr('y', function (d) {
-                        return isNaN(d.value) ? height : yScale(d.value) - 2;
-                    })
-                        .attr('height', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return 0;
-                        }
-                        else {
-                            if (d.min === d.max) {
-                                return yScale(d.min) - yScale(d.value) + 2;
-                            }
-                            else {
-                                return 0;
-                            }
-                        }
-                    })
-                        .attr('width', function () {
-                        return calcBarWidth();
-                    })
-                        .attr('opacity', 0.9)
-                        .attr('data-rhq-value', function (d) {
-                        return d.value;
-                    })
-                        .attr('fill', function (d) {
-                        if (d.min === d.max) {
-                            return '#50505a';
-                        }
-                        else {
-                            return '#70c4e2';
-                        }
-                    }).on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                }
-                function createHistogramChart() {
-                    var strokeOpacity = '0.6';
-                    // upper portion representing avg to high
-                    var rectHistogram = svg.selectAll('rect.histogram').data(chartData);
+                function createHistogramChart(stacked) {
+                    var barClass = stacked ? 'leaderBar' : 'histogram';
+                    var rectHistogram = svg.selectAll('rect.' + barClass).data(chartData);
                     // update existing
-                    rectHistogram.attr('class', 'histogram')
+                    rectHistogram.attr('class', barClass)
                         .on('mouseover', function (d, i) {
                         tip.show(d, i);
                     }).on('mouseout', function () {
@@ -983,12 +835,13 @@ var Charts;
                             return height - yScale(d.avg);
                         }
                     })
+                        .attr('opacity', stacked ? '.6' : '1')
                         .attr('fill', function (d, i) {
                         if (isEmptyDataBar(d)) {
                             return 'url(#noDataStripes)';
                         }
                         else {
-                            return '#C0C0C0';
+                            return stacked ? '#D3D3D6' : '#C0C0C0';
                         }
                     })
                         .attr('stroke', function (d) {
@@ -1004,7 +857,7 @@ var Charts;
                     })
                         .attr('data-hawkular-value', function (d) {
                         return d.avg;
-                    }) /**/;
+                    });
                     // add new ones
                     rectHistogram.enter().append('rect')
                         .on('mouseover', function (d, i) {
@@ -1013,7 +866,7 @@ var Charts;
                         .on('mouseout', function () {
                         tip.hide();
                     })
-                        .attr('class', 'histogram')
+                        .attr('class', barClass)
                         .transition()
                         .attr('x', function (d) {
                         return timeScale(d.timestamp);
@@ -1037,12 +890,13 @@ var Charts;
                             return height - yScale(d.avg);
                         }
                     })
+                        .attr('opacity', stacked ? '.6' : '1')
                         .attr('fill', function (d, i) {
                         if (isEmptyDataBar(d)) {
                             return 'url(#noDataStripes)';
                         }
                         else {
-                            return '#C0C0C0';
+                            return stacked ? '#D3D3D6' : '#C0C0C0';
                         }
                     })
                         .attr('stroke', function (d) {
@@ -1062,9 +916,150 @@ var Charts;
                     // remove old ones
                     rectHistogram.exit().remove();
                     if (!hideHighLowValues) {
+                        createHistogramHighLowValues(stacked);
+                    }
+                    else {
+                        // we should hide high-low values.. or remove if existing
+                        svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').
+                            remove();
+                    }
+                }
+                function createHistogramHighLowValues(stacked) {
+                    if (stacked) {
+                        // upper portion representing avg to high
+                        var rectHigh = svg.selectAll('rect.high, rect.singleValue').data(chartData);
+                        // update existing
+                        rectHigh.attr('class', function (d) {
+                            return d.min === d.max ? 'singleValue' : 'high';
+                        })
+                            .attr('x', function (d) {
+                            return timeScale(d.timestamp);
+                        })
+                            .attr('y', function (d) {
+                            return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
+                        })
+                            .attr('height', function (d) {
+                            if (isEmptyDataBar(d)) {
+                                return 0;
+                            }
+                            else {
+                                return yScale(d.avg) - yScale(d.max) || 2;
+                            }
+                        })
+                            .attr('width', function () {
+                            return calcBarWidth();
+                        })
+                            .attr('data-rhq-value', function (d) {
+                            return d.max;
+                        })
+                            .attr('opacity', 0.9)
+                            .on('mouseover', function (d, i) {
+                            tip.show(d, i);
+                        }).on('mouseout', function () {
+                            tip.hide();
+                        });
+                        // add new ones
+                        rectHigh.enter().append('rect')
+                            .attr('class', function (d) {
+                            return d.min === d.max ? 'singleValue' : 'high';
+                        })
+                            .attr('x', function (d) {
+                            return timeScale(d.timestamp);
+                        })
+                            .attr('y', function (d) {
+                            return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
+                        })
+                            .attr('height', function (d) {
+                            if (isEmptyDataBar(d)) {
+                                return 0;
+                            }
+                            else {
+                                return yScale(d.avg) - yScale(d.max) || 2;
+                            }
+                        })
+                            .attr('width', function () {
+                            return calcBarWidth();
+                        })
+                            .attr('data-rhq-value', function (d) {
+                            return d.max;
+                        })
+                            .attr('opacity', 0.9)
+                            .on('mouseover', function (d, i) {
+                            tip.show(d, i);
+                        }).on('mouseout', function () {
+                            tip.hide();
+                        });
+                        // remove old ones
+                        rectHigh.exit().remove();
+                        // lower portion representing avg to low
+                        var rectLow = svg.selectAll('rect.low').data(chartData);
+                        // update existing
+                        rectLow.attr('class', 'low')
+                            .attr('x', function (d) {
+                            return timeScale(d.timestamp);
+                        })
+                            .attr('y', function (d) {
+                            return isNaN(d.avg) ? height : yScale(d.avg);
+                        })
+                            .attr('height', function (d) {
+                            if (isEmptyDataBar(d)) {
+                                return 0;
+                            }
+                            else {
+                                return yScale(d.min) - yScale(d.avg);
+                            }
+                        })
+                            .attr('width', function () {
+                            return calcBarWidth();
+                        })
+                            .attr('opacity', 0.9)
+                            .attr('data-rhq-value', function (d) {
+                            return d.min;
+                        })
+                            .on('mouseover', function (d, i) {
+                            tip.show(d, i);
+                        }).on('mouseout', function () {
+                            tip.hide();
+                        });
+                        rectLow.enter().append('rect')
+                            .attr('class', 'low')
+                            .attr('x', function (d) {
+                            return timeScale(d.timestamp);
+                        })
+                            .attr('y', function (d) {
+                            return isNaN(d.avg) ? height : yScale(d.avg);
+                        })
+                            .attr('height', function (d) {
+                            if (isEmptyDataBar(d)) {
+                                return 0;
+                            }
+                            else {
+                                return yScale(d.min) - yScale(d.avg);
+                            }
+                        })
+                            .attr('width', function () {
+                            return calcBarWidth();
+                        })
+                            .attr('opacity', 0.9)
+                            .attr('data-rhq-value', function (d) {
+                            return d.min;
+                        })
+                            .on('mouseover', function (d, i) {
+                            tip.show(d, i);
+                        }).on('mouseout', function () {
+                            tip.hide();
+                        });
+                        // remove old ones
+                        rectLow.exit().remove();
+                    }
+                    else {
+                        var strokeOpacity = '0.6';
                         var lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartData);
                         // update existing
                         lineHistoHighStem.attr('class', 'histogramTopStem')
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d);
                         })
@@ -1085,6 +1080,9 @@ var Charts;
                         });
                         // add new ones
                         lineHistoHighStem.enter().append('line')
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('class', 'histogramTopStem')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d);
@@ -1109,6 +1107,9 @@ var Charts;
                         var lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartData);
                         // update existing
                         lineHistoLowStem
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('class', 'histogramBottomStem')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d);
@@ -1129,6 +1130,9 @@ var Charts;
                         });
                         // add new ones
                         lineHistoLowStem.enter().append('line')
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('class', 'histogramBottomStem')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d);
@@ -1152,6 +1156,9 @@ var Charts;
                         var lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartData);
                         // update existing
                         lineHistoTopCross
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('class', 'histogramTopCross')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d) - 3;
@@ -1176,6 +1183,9 @@ var Charts;
                         });
                         // add new ones
                         lineHistoTopCross.enter().append('line')
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('class', 'histogramTopCross')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d) - 3;
@@ -1203,6 +1213,9 @@ var Charts;
                         var lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartData);
                         // update existing
                         lineHistoBottomCross
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('class', 'histogramBottomCross')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d) - 3;
@@ -1227,6 +1240,9 @@ var Charts;
                         });
                         // add new ones
                         lineHistoBottomCross.enter().append('line')
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('class', 'histogramBottomCross')
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d) - 3;
@@ -1252,29 +1268,6 @@ var Charts;
                         // remove old ones
                         lineHistoBottomCross.exit().remove();
                     }
-                    else {
-                        // we should hide high-low values.. or remove if existing
-                        svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').
-                            remove();
-                    }
-                }
-                function createHawkularLineChart() {
-                    var chartLine = d3.svg.line()
-                        .interpolate(interpolation)
-                        .defined(function (d) {
-                        return !d.empty;
-                    })
-                        .x(function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .y(function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                    });
-                    // Bar avg line
-                    svg.append('path')
-                        .datum(chartData)
-                        .attr('class', 'avgLine')
-                        .attr('d', chartLine);
                 }
                 function createHawkularMetricChart() {
                     var metricChartLine = d3.svg.line()
@@ -1436,10 +1429,32 @@ var Charts;
                     avgAreaPath.exit().remove();
                 }
                 function createScatterChart() {
-                    if (hideHighLowValues === false) {
-                        svg.selectAll('.highDot')
-                            .data(chartData)
-                            .enter().append('circle')
+                    if (!hideHighLowValues) {
+                        var highDotCircle = svg.selectAll('.highDot').data(chartData);
+                        // update existing
+                        highDotCircle.attr('class', 'highDot')
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
+                            .attr('r', 3)
+                            .attr('cx', function (d) {
+                            return xMidPointStartPosition(d);
+                        })
+                            .attr('cy', function (d) {
+                            return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+                        })
+                            .style('fill', function () {
+                            return '#ff1a13';
+                        }).on('mouseover', function (d, i) {
+                            tip.show(d, i);
+                        }).on('mouseout', function () {
+                            tip.hide();
+                        });
+                        // add new ones
+                        highDotCircle.enter().append('circle')
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('class', 'highDot')
                             .attr('r', 3)
                             .attr('cx', function (d) {
@@ -1455,9 +1470,33 @@ var Charts;
                         }).on('mouseout', function () {
                             tip.hide();
                         });
-                        svg.selectAll('.lowDot')
-                            .data(chartData)
-                            .enter().append('circle')
+                        // remove old ones
+                        highDotCircle.exit().remove();
+                        var lowDotCircle = svg.selectAll('.lowDot').data(chartData);
+                        // update existing
+                        lowDotCircle.attr('class', 'lowDot')
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
+                            .attr('r', 3)
+                            .attr('cx', function (d) {
+                            return xMidPointStartPosition(d);
+                        })
+                            .attr('cy', function (d) {
+                            return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+                        })
+                            .style('fill', function () {
+                            return '#70c4e2';
+                        }).on('mouseover', function (d, i) {
+                            tip.show(d, i);
+                        }).on('mouseout', function () {
+                            tip.hide();
+                        });
+                        // add new ones
+                        lowDotCircle.enter().append('circle')
+                            .filter(function (d) {
+                            return !isEmptyDataBar(d);
+                        })
                             .attr('class', 'lowDot')
                             .attr('r', 3)
                             .attr('cx', function (d) {
@@ -1473,10 +1512,38 @@ var Charts;
                         }).on('mouseout', function () {
                             tip.hide();
                         });
+                        // remove old ones
+                        lowDotCircle.exit().remove();
                     }
-                    svg.selectAll('.avgDot')
-                        .data(chartData)
-                        .enter().append('circle')
+                    else {
+                        // we should hide high-low values.. or remove if existing
+                        svg.selectAll('.highDot, .lowDot').remove();
+                    }
+                    var avgDotCircle = svg.selectAll('.avgDot').data(chartData);
+                    // update existing
+                    avgDotCircle.attr('class', 'avgDot')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
+                        .attr('r', 3)
+                        .attr('cx', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('cy', function (d) {
+                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                    })
+                        .style('fill', function () {
+                        return '#FFF';
+                    }).on('mouseover', function (d, i) {
+                        tip.show(d, i);
+                    }).on('mouseout', function () {
+                        tip.hide();
+                    });
+                    // add new ones
+                    avgDotCircle.enter().append('circle')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
                         .attr('class', 'avgDot')
                         .attr('r', 3)
                         .attr('cx', function (d) {
@@ -1492,11 +1559,36 @@ var Charts;
                     }).on('mouseout', function () {
                         tip.hide();
                     });
+                    // remove old ones
+                    avgDotCircle.exit().remove();
                 }
                 function createScatterLineChart() {
-                    svg.selectAll('.scatterline.top.stem')
-                        .data(chartData)
-                        .enter().append('line')
+                    var lineScatterTopStem = svg.selectAll('.scatterLineTopStem').data(chartData);
+                    // update existing
+                    lineScatterTopStem.attr('class', 'scatterLineTopStem')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
+                        .attr('x1', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('x2', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('y1', function (d) {
+                        return yScale(d.max);
+                    })
+                        .attr('y2', function (d) {
+                        return yScale(d.avg);
+                    })
+                        .attr('stroke', function (d) {
+                        return '#000';
+                    });
+                    // add new ones
+                    lineScatterTopStem.enter().append('line')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
                         .attr('class', 'scatterLineTopStem')
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d);
@@ -1513,9 +1605,34 @@ var Charts;
                         .attr('stroke', function (d) {
                         return '#000';
                     });
-                    svg.selectAll('.scatterline.bottom.stem')
-                        .data(chartData)
-                        .enter().append('line')
+                    // remove old ones
+                    lineScatterTopStem.exit().remove();
+                    var lineScatterBottomStem = svg.selectAll('.scatterLineBottomStem').data(chartData);
+                    // update existing
+                    lineScatterBottomStem.attr('class', 'scatterLineBottomStem')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
+                        .attr('x1', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('x2', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('y1', function (d) {
+                        return yScale(d.avg);
+                    })
+                        .attr('y2', function (d) {
+                        return yScale(d.min);
+                    })
+                        .attr('stroke', function (d) {
+                        return '#000';
+                    });
+                    // add new ones
+                    lineScatterBottomStem.enter().append('line')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
                         .attr('class', 'scatterLineBottomStem')
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d);
@@ -1532,9 +1649,37 @@ var Charts;
                         .attr('stroke', function (d) {
                         return '#000';
                     });
-                    svg.selectAll('.scatterline.top.cross')
-                        .data(chartData)
-                        .enter().append('line')
+                    // remove old ones
+                    lineScatterBottomStem.exit().remove();
+                    var lineScatterTopCross = svg.selectAll('.scatterLineTopCross').data(chartData);
+                    // update existing
+                    lineScatterTopCross.attr('class', 'scatterLineTopCross')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
+                        .attr('x1', function (d) {
+                        return xMidPointStartPosition(d) - 3;
+                    })
+                        .attr('x2', function (d) {
+                        return xMidPointStartPosition(d) + 3;
+                    })
+                        .attr('y1', function (d) {
+                        return yScale(d.max);
+                    })
+                        .attr('y2', function (d) {
+                        return yScale(d.max);
+                    })
+                        .attr('stroke', function (d) {
+                        return '#000';
+                    })
+                        .attr('stroke-width', function (d) {
+                        return '0.5';
+                    });
+                    // add new ones
+                    lineScatterTopCross.enter().append('line')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
                         .attr('class', 'scatterLineTopCross')
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d) - 3;
@@ -1554,9 +1699,37 @@ var Charts;
                         .attr('stroke-width', function (d) {
                         return '0.5';
                     });
-                    svg.selectAll('.scatterline.bottom.cross')
-                        .data(chartData)
-                        .enter().append('line')
+                    // remove old ones
+                    lineScatterTopCross.exit().remove();
+                    var lineScatterBottomCross = svg.selectAll('.scatterLineBottomCross').data(chartData);
+                    // update existing
+                    lineScatterBottomCross.attr('class', 'scatterLineBottomCross')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
+                        .attr('x1', function (d) {
+                        return xMidPointStartPosition(d) - 3;
+                    })
+                        .attr('x2', function (d) {
+                        return xMidPointStartPosition(d) + 3;
+                    })
+                        .attr('y1', function (d) {
+                        return yScale(d.min);
+                    })
+                        .attr('y2', function (d) {
+                        return yScale(d.min);
+                    })
+                        .attr('stroke', function (d) {
+                        return '#000';
+                    })
+                        .attr('stroke-width', function (d) {
+                        return '0.5';
+                    });
+                    // add new ones
+                    lineScatterBottomCross.enter().append('line')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
                         .attr('class', 'scatterLineBottomCross')
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d) - 3;
@@ -1576,10 +1749,14 @@ var Charts;
                         .attr('stroke-width', function (d) {
                         return '0.5';
                     });
-                    svg.selectAll('.scatterDot')
-                        .data(chartData)
-                        .enter().append('circle')
-                        .attr('class', 'avgDot')
+                    // remove old ones
+                    lineScatterBottomCross.exit().remove();
+                    var circleScatterDot = svg.selectAll('.scatterDot').data(chartData);
+                    // update existing
+                    circleScatterDot.attr('class', 'scatterDot')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
                         .attr('r', 3)
                         .attr('cx', function (d) {
                         return xMidPointStartPosition(d);
@@ -1597,6 +1774,31 @@ var Charts;
                     }).on('mouseout', function () {
                         tip.hide();
                     });
+                    // add new ones
+                    circleScatterDot.enter().append('circle')
+                        .filter(function (d) {
+                        return !isEmptyDataBar(d);
+                    })
+                        .attr('class', 'scatterDot')
+                        .attr('r', 3)
+                        .attr('cx', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('cy', function (d) {
+                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                    })
+                        .style('fill', function () {
+                        return '#70c4e2';
+                    })
+                        .style('opacity', function () {
+                        return '1';
+                    }).on('mouseover', function (d, i) {
+                        tip.show(d, i);
+                    }).on('mouseout', function () {
+                        tip.hide();
+                    });
+                    // remove old ones
+                    circleScatterDot.exit().remove();
                 }
                 function createYAxisGridLines() {
                     // create the y axis grid lines
@@ -1670,10 +1872,16 @@ var Charts;
                 }
                 function createAvgLines() {
                     if (chartType === 'bar' || chartType === 'scatterline') {
-                        svg.append('path')
-                            .datum(chartData)
+                        var pathAvgLine = svg.selectAll('.barAvgLine').data([chartData]);
+                        // update existing
+                        pathAvgLine.attr('class', 'barAvgLine')
+                            .attr('d', createCenteredLine('monotone'));
+                        // add new ones
+                        pathAvgLine.enter().append('path')
                             .attr('class', 'barAvgLine')
                             .attr('d', createCenteredLine('monotone'));
+                        // remove old ones
+                        pathAvgLine.exit().remove();
                     }
                 }
                 function createAlertLineDef(alertValue) {
@@ -1946,9 +2154,9 @@ var Charts;
                 scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'], function (chartAttrs) {
                     alertValue = chartAttrs[0] || alertValue;
                     chartType = chartAttrs[1] || chartType;
-                    hideHighLowValues = chartAttrs[2] || hideHighLowValues;
-                    useZeroMinValue = chartAttrs[3] || useZeroMinValue;
-                    showAvgLine = chartAttrs[4] || showAvgLine;
+                    hideHighLowValues = (typeof chartAttrs[2] !== 'undefined') ? chartAttrs[2] : hideHighLowValues;
+                    useZeroMinValue = (typeof chartAttrs[3] !== 'undefined') ? chartAttrs[3] : useZeroMinValue;
+                    showAvgLine = (typeof chartAttrs[4] !== 'undefined') ? chartAttrs[4] : showAvgLine;
                     scope.render(processedNewData, processedPreviousRangeData);
                 });
                 function loadStandAloneMetricsTimeRangeFromNow() {
@@ -1983,14 +2191,13 @@ var Charts;
                 function determineChartType(chartType) {
                     switch (chartType) {
                         case 'rhqbar':
-                            createRhqStackedBars(lowBound, highBound);
+                            createHistogramChart(true);
                             break;
                         case 'histogram':
-                            createHistogramChart();
+                            createHistogramChart(false);
                             break;
+                        case 'line':
                         case 'hawkularline':
-                            createHawkularLineChart();
-                            break;
                         case 'hawkularmetric':
                             createHawkularMetricChart();
                             break;
@@ -2008,7 +2215,7 @@ var Charts;
                             break;
                         default:
                             $log.warn('chart-type is not valid. Must be in' +
-                                ' [rhqbar,histogram,area,line,scatter,histogram,hawkularline,hawkularmetric] chart type: ' + chartType);
+                                ' [rhqbar,area,line,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
                     }
                 }
                 // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
