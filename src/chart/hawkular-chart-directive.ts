@@ -1292,11 +1292,27 @@ namespace Charts {
           }
 
           function createScatterChart() {
-            if (hideHighLowValues === false) {
+            if (!hideHighLowValues) {
 
-              svg.selectAll('.highDot')
-                .data(chartData)
-                .enter().append('circle')
+              let highDotCircle = svg.selectAll('.highDot').data(chartData);
+              // update existing
+              highDotCircle.attr('class', 'highDot')
+                .attr('r', 3)
+                .attr('cx', (d) => {
+                  return xMidPointStartPosition(d);
+                })
+                .attr('cy', (d) => {
+                  return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+                })
+                .style('fill', () => {
+                  return '#ff1a13';
+                }).on('mouseover', (d, i) => {
+                  tip.show(d, i);
+                }).on('mouseout', () => {
+                  tip.hide();
+                });
+              // add new ones
+              highDotCircle.enter().append('circle')
                 .attr('class', 'highDot')
                 .attr('r', 3)
                 .attr('cx', (d) => {
@@ -1312,11 +1328,28 @@ namespace Charts {
                 }).on('mouseout', () => {
                   tip.hide();
                 });
+              // remove old ones
+              highDotCircle.exit().remove();
 
-
-              svg.selectAll('.lowDot')
-                .data(chartData)
-                .enter().append('circle')
+              let lowDotCircle = svg.selectAll('.lowDot').data(chartData);
+              // update existing
+              lowDotCircle.attr('class', 'lowDot')
+                .attr('r', 3)
+                .attr('cx', (d) => {
+                  return xMidPointStartPosition(d);
+                })
+                .attr('cy', (d) => {
+                  return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+                })
+                .style('fill', () => {
+                  return '#70c4e2';
+                }).on('mouseover', (d, i) => {
+                  tip.show(d, i);
+                }).on('mouseout', () => {
+                  tip.hide();
+                });
+              // add new ones
+              lowDotCircle.enter().append('circle')
                 .attr('class', 'lowDot')
                 .attr('r', 3)
                 .attr('cx', (d) => {
@@ -1332,11 +1365,29 @@ namespace Charts {
                 }).on('mouseout', () => {
                   tip.hide();
                 });
+              // remove old ones
+              lowDotCircle.exit().remove();
             }
 
-            svg.selectAll('.avgDot')
-              .data(chartData)
-              .enter().append('circle')
+            let avgDotCircle = svg.selectAll('.avgDot').data(chartData);
+            // update existing
+            avgDotCircle.attr('class', 'avgDot')
+              .attr('r', 3)
+              .attr('cx', (d) => {
+                return xMidPointStartPosition(d);
+              })
+              .attr('cy', (d) => {
+                return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+              })
+              .style('fill', () => {
+                return '#FFF';
+              }).on('mouseover', (d, i) => {
+                tip.show(d, i);
+              }).on('mouseout', () => {
+                tip.hide();
+              });
+            // add new ones
+            avgDotCircle.enter().append('circle')
               .attr('class', 'avgDot')
               .attr('r', 3)
               .attr('cx', (d) => {
@@ -1352,6 +1403,8 @@ namespace Charts {
               }).on('mouseout', () => {
                 tip.hide();
               });
+            // remove old ones
+            avgDotCircle.exit().remove();
           }
 
           function createScatterLineChart() {
