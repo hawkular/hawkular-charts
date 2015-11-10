@@ -641,171 +641,13 @@ namespace Charts {
 
           }
 
+          function createHistogramChart(stacked?: boolean) {
 
-          function createRhqStackedBars(lowBound:number, highBound:number) {
+            let barClass = stacked ? 'leaderBar' : 'histogram';
 
-            // The gray bars at the bottom leading up
-            svg.selectAll('rect.leaderBar')
-              .data(chartData)
-              .enter().append('rect')
-              .attr('class', 'leaderBar')
-              .attr('x', (d) => {
-                return timeScale(d.timestamp);
-              })
-              .attr('y', (d) => {
-                if (!isEmptyDataBar(d)) {
-                  return yScale(d.min);
-                }
-                else {
-                  return 0;
-                }
-              })
-              .attr('height', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return height - yScale(highBound);
-                }
-                else {
-                  return height - yScale(d.min);
-                }
-              })
-              .attr('width', () => {
-                return calcBarWidth();
-              })
-
-              .attr('opacity', '.6')
-              .attr('fill', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return 'url(#noDataStripes)';
-                }
-                else {
-                  return '#d3d3d6';
-                }
-              }).on('mouseover', (d, i) => {
-                tip.show(d, i);
-              }).on('mouseout', () => {
-                tip.hide();
-              });
-
-
-            // upper portion representing avg to high
-            svg.selectAll('rect.high')
-              .data(chartData)
-              .enter().append('rect')
-              .attr('class', 'high')
-              .attr('x', (d) => {
-                return timeScale(d.timestamp);
-              })
-              .attr('y', (d) => {
-                return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
-              })
-              .attr('height', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return 0;
-                }
-                else {
-                  return yScale(d.avg) - yScale(d.max);
-                }
-              })
-              .attr('width', () => {
-                return calcBarWidth();
-              })
-              .attr('data-rhq-value', (d) => {
-                return d.max;
-              })
-              .attr('opacity', 0.9)
-              .on('mouseover', (d, i) => {
-                tip.show(d, i);
-              }).on('mouseout', () => {
-                tip.hide();
-              });
-
-
-            // lower portion representing avg to low
-            svg.selectAll('rect.low')
-              .data(chartData)
-              .enter().append('rect')
-              .attr('class', 'low')
-              .attr('x', (d) => {
-                return timeScale(d.timestamp);
-              })
-              .attr('y', (d) => {
-                return isNaN(d.avg) ? height : yScale(d.avg);
-              })
-              .attr('height', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return 0;
-                }
-                else {
-                  return yScale(d.min) - yScale(d.avg);
-                }
-              })
-              .attr('width', () => {
-                return calcBarWidth();
-              })
-              .attr('opacity', 0.9)
-              .attr('data-rhq-value', (d) => {
-                return d.min;
-              })
-              .on('mouseover', (d, i) => {
-                tip.show(d, i);
-              }).on('mouseout', () => {
-                tip.hide();
-              });
-
-            // if high == low put a 'cap' on the bar to show raw value, non-aggregated bar
-            svg.selectAll('rect.singleValue')
-              .data(chartData)
-              .enter().append('rect')
-              .attr('class', 'singleValue')
-              .attr('x', (d) => {
-                return timeScale(d.timestamp);
-              })
-              .attr('y', (d) => {
-                return isNaN(d.value) ? height : yScale(d.value) - 2;
-              })
-              .attr('height', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return 0;
-                }
-                else {
-                  if (d.min === d.max) {
-                    return yScale(d.min) - yScale(d.value) + 2;
-                  }
-                  else {
-                    return 0;
-                  }
-                }
-              })
-              .attr('width', () => {
-                return calcBarWidth();
-              })
-              .attr('opacity', 0.9)
-              .attr('data-rhq-value', (d) => {
-                return d.value;
-              })
-              .attr('fill', (d) => {
-                if (d.min === d.max) {
-                  return '#50505a';
-                }
-                else {
-                  return '#70c4e2';
-                }
-              }).on('mouseover', (d, i) => {
-                tip.show(d, i);
-              }).on('mouseout', () => {
-                tip.hide();
-              });
-          }
-
-
-          function createHistogramChart() {
-            let strokeOpacity = '0.6';
-
-            // upper portion representing avg to high
-            let rectHistogram = svg.selectAll('rect.histogram').data(chartData);
-
+            let rectHistogram = svg.selectAll('rect.' + barClass).data(chartData);
             // update existing
-            rectHistogram.attr('class', 'histogram')
+            rectHistogram.attr('class', barClass)
               .on('mouseover', (d, i) => {
                 tip.show(d, i);
               }).on('mouseout', () => {
@@ -834,12 +676,13 @@ namespace Charts {
                   return height - yScale(d.avg);
                 }
               })
+              .attr('opacity', stacked ? '.6' : '1')
               .attr('fill', (d, i) => {
                 if (isEmptyDataBar(d)) {
                   return 'url(#noDataStripes)';
                 }
                 else {
-                  return '#C0C0C0';
+                  return stacked ? '#D3D3D6' : '#C0C0C0';
                 }
               })
               .attr('stroke', (d) => {
@@ -855,7 +698,7 @@ namespace Charts {
               })
               .attr('data-hawkular-value', (d) => {
                 return d.avg;
-              })/**/;
+              });
             // add new ones
             rectHistogram.enter().append('rect')
               .on('mouseover', (d, i) => {
@@ -864,7 +707,7 @@ namespace Charts {
               .on('mouseout', () => {
                 tip.hide();
               })
-              .attr('class', 'histogram')
+              .attr('class', barClass)
               .transition()
               .attr('x', (d) => {
                 return timeScale(d.timestamp);
@@ -888,12 +731,13 @@ namespace Charts {
                   return height - yScale(d.avg);
                 }
               })
+              .attr('opacity', stacked ? '.6' : '1')
               .attr('fill', (d, i) => {
                 if (isEmptyDataBar(d)) {
                   return 'url(#noDataStripes)';
                 }
                 else {
-                  return '#C0C0C0';
+                  return stacked ? '#D3D3D6' : '#C0C0C0';
                 }
               })
               .attr('stroke', (d) => {
@@ -914,10 +758,155 @@ namespace Charts {
             rectHistogram.exit().remove();
 
             if (!hideHighLowValues) {
+              createHistogramHighLowValues(stacked);
+            }
+            else {
+              // we should hide high-low values.. or remove if existing
+              svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').
+                remove();
+            }
+
+          }
+
+          function createHistogramHighLowValues(stacked?: boolean) {
+            if (stacked) {
+              // upper portion representing avg to high
+              let rectHigh = svg.selectAll('rect.high, rect.singleValue').data(chartData);
+              // update existing
+              rectHigh.attr('class', (d) => {
+                  return d.min === d.max ? 'singleValue' : 'high';
+                })
+                .attr('x', (d) => {
+                  return timeScale(d.timestamp);
+                })
+                .attr('y', (d) => {
+                  return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
+                })
+                .attr('height', (d) => {
+                  if (isEmptyDataBar(d)) {
+                    return 0;
+                  }
+                  else {
+                    return yScale(d.avg) - yScale(d.max) || 2;
+                  }
+                })
+                .attr('width', () => {
+                  return calcBarWidth();
+                })
+                .attr('data-rhq-value', (d) => {
+                  return d.max;
+                })
+                .attr('opacity', 0.9)
+                .on('mouseover', (d, i) => {
+                  tip.show(d, i);
+                }).on('mouseout', () => {
+                  tip.hide();
+                });
+              // add new ones
+              rectHigh.enter().append('rect')
+                .attr('class', (d) => {
+                  return d.min === d.max ? 'singleValue' : 'high';
+                })
+                .attr('x', (d) => {
+                  return timeScale(d.timestamp);
+                })
+                .attr('y', (d) => {
+                  return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
+                })
+                .attr('height', (d) => {
+                  if (isEmptyDataBar(d)) {
+                    return 0;
+                  }
+                  else {
+                    return yScale(d.avg) - yScale(d.max) || 2;
+                  }
+                })
+                .attr('width', () => {
+                  return calcBarWidth();
+                })
+                .attr('data-rhq-value', (d) => {
+                  return d.max;
+                })
+                .attr('opacity', 0.9)
+                .on('mouseover', (d, i) => {
+                  tip.show(d, i);
+                }).on('mouseout', () => {
+                  tip.hide();
+                })
+              // remove old ones
+              rectHigh.exit().remove();
+
+
+              // lower portion representing avg to low
+              let rectLow = svg.selectAll('rect.low').data(chartData)
+              // update existing
+              rectLow.attr('class', 'low')
+                .attr('x', (d) => {
+                  return timeScale(d.timestamp);
+                })
+                .attr('y', (d) => {
+                  return isNaN(d.avg) ? height : yScale(d.avg);
+                })
+                .attr('height', (d) => {
+                  if (isEmptyDataBar(d)) {
+                    return 0;
+                  }
+                  else {
+                    return yScale(d.min) - yScale(d.avg);
+                  }
+                })
+                .attr('width', () => {
+                  return calcBarWidth();
+                })
+                .attr('opacity', 0.9)
+                .attr('data-rhq-value', (d) => {
+                  return d.min;
+                })
+                .on('mouseover', (d, i) => {
+                  tip.show(d, i);
+                }).on('mouseout', () => {
+                  tip.hide();
+                });
+              rectLow.enter().append('rect')
+                .attr('class', 'low')
+                .attr('x', (d) => {
+                  return timeScale(d.timestamp);
+                })
+                .attr('y', (d) => {
+                  return isNaN(d.avg) ? height : yScale(d.avg);
+                })
+                .attr('height', (d) => {
+                  if (isEmptyDataBar(d)) {
+                    return 0;
+                  }
+                  else {
+                    return yScale(d.min) - yScale(d.avg);
+                  }
+                })
+                .attr('width', () => {
+                  return calcBarWidth();
+                })
+                .attr('opacity', 0.9)
+                .attr('data-rhq-value', (d) => {
+                  return d.min;
+                })
+                .on('mouseover', (d, i) => {
+                  tip.show(d, i);
+                }).on('mouseout', () => {
+                  tip.hide();
+                });
+              // remove old ones
+              rectLow.exit().remove();
+            }
+            else {
+              let strokeOpacity = '0.6';
 
               let lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartData);
               // update existing
               lineHistoHighStem.attr('class', 'histogramTopStem')
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('x1', (d) => {
                   return xMidPointStartPosition(d);
                 })
@@ -938,6 +927,9 @@ namespace Charts {
                 });
               // add new ones
               lineHistoHighStem.enter().append('line')
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('class', 'histogramTopStem')
                 .attr('x1', (d) => {
                   return xMidPointStartPosition(d);
@@ -963,6 +955,9 @@ namespace Charts {
               let lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartData);
               // update existing
               lineHistoLowStem
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('class', 'histogramBottomStem')
                 .attr('x1', (d) => {
                   return xMidPointStartPosition(d);
@@ -983,6 +978,9 @@ namespace Charts {
                 });
               // add new ones
               lineHistoLowStem.enter().append('line')
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('class', 'histogramBottomStem')
                 .attr('x1', (d) => {
                   return xMidPointStartPosition(d);
@@ -1008,6 +1006,9 @@ namespace Charts {
               let lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartData);
               // update existing
               lineHistoTopCross
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('class', 'histogramTopCross')
                 .attr('x1', function (d) {
                   return xMidPointStartPosition(d) - 3;
@@ -1032,6 +1033,9 @@ namespace Charts {
                 });
               // add new ones
               lineHistoTopCross.enter().append('line')
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('class', 'histogramTopCross')
                 .attr('x1', function (d) {
                   return xMidPointStartPosition(d) - 3;
@@ -1060,6 +1064,9 @@ namespace Charts {
               let lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartData);
               // update existing
               lineHistoBottomCross
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('class', 'histogramBottomCross')
                 .attr('x1', function (d) {
                   return xMidPointStartPosition(d) - 3;
@@ -1084,6 +1091,9 @@ namespace Charts {
                 });
               // add new ones
               lineHistoBottomCross.enter().append('line')
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('class', 'histogramBottomCross')
                 .attr('x1', function (d) {
                   return xMidPointStartPosition(d) - 3;
@@ -1108,14 +1118,7 @@ namespace Charts {
                 });
               // remove old ones
               lineHistoBottomCross.exit().remove();
-
             }
-            else {
-              // we should hide high-low values.. or remove if existing
-              svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').
-                remove();
-            }
-
           }
 
           function createHawkularMetricChart() {
@@ -1297,6 +1300,9 @@ namespace Charts {
               let highDotCircle = svg.selectAll('.highDot').data(chartData);
               // update existing
               highDotCircle.attr('class', 'highDot')
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('r', 3)
                 .attr('cx', (d) => {
                   return xMidPointStartPosition(d);
@@ -1313,6 +1319,9 @@ namespace Charts {
                 });
               // add new ones
               highDotCircle.enter().append('circle')
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('class', 'highDot')
                 .attr('r', 3)
                 .attr('cx', (d) => {
@@ -1334,6 +1343,9 @@ namespace Charts {
               let lowDotCircle = svg.selectAll('.lowDot').data(chartData);
               // update existing
               lowDotCircle.attr('class', 'lowDot')
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('r', 3)
                 .attr('cx', (d) => {
                   return xMidPointStartPosition(d);
@@ -1350,6 +1362,9 @@ namespace Charts {
                 });
               // add new ones
               lowDotCircle.enter().append('circle')
+                .filter((d) => {
+                  return !isEmptyDataBar(d);
+                })
                 .attr('class', 'lowDot')
                 .attr('r', 3)
                 .attr('cx', (d) => {
@@ -1368,10 +1383,17 @@ namespace Charts {
               // remove old ones
               lowDotCircle.exit().remove();
             }
+            else {
+              // we should hide high-low values.. or remove if existing
+              svg.selectAll('.highDot, .lowDot').remove();
+            }
 
             let avgDotCircle = svg.selectAll('.avgDot').data(chartData);
             // update existing
             avgDotCircle.attr('class', 'avgDot')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('r', 3)
               .attr('cx', (d) => {
                 return xMidPointStartPosition(d);
@@ -1388,6 +1410,9 @@ namespace Charts {
               });
             // add new ones
             avgDotCircle.enter().append('circle')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('class', 'avgDot')
               .attr('r', 3)
               .attr('cx', (d) => {
@@ -1412,6 +1437,9 @@ namespace Charts {
             let lineScatterTopStem = svg.selectAll('.scatterLineTopStem').data(chartData);
             // update existing
             lineScatterTopStem.attr('class', 'scatterLineTopStem')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
               })
@@ -1429,6 +1457,9 @@ namespace Charts {
               });
             // add new ones
             lineScatterTopStem.enter().append('line')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('class', 'scatterLineTopStem')
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
@@ -1451,6 +1482,9 @@ namespace Charts {
             let lineScatterBottomStem = svg.selectAll('.scatterLineBottomStem').data(chartData);
             // update existing
             lineScatterBottomStem.attr('class', 'scatterLineBottomStem')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
               })
@@ -1468,6 +1502,9 @@ namespace Charts {
               });
             // add new ones
             lineScatterBottomStem.enter().append('line')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('class', 'scatterLineBottomStem')
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
@@ -1490,6 +1527,9 @@ namespace Charts {
             let lineScatterTopCross = svg.selectAll('.scatterLineTopCross').data(chartData);
             // update existing
             lineScatterTopCross.attr('class', 'scatterLineTopCross')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
               })
@@ -1510,6 +1550,9 @@ namespace Charts {
               });
             // add new ones
             lineScatterTopCross.enter().append('line')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('class', 'scatterLineTopCross')
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
@@ -1535,6 +1578,9 @@ namespace Charts {
             let lineScatterBottomCross = svg.selectAll('.scatterLineBottomCross').data(chartData);
             // update existing
             lineScatterBottomCross.attr('class', 'scatterLineBottomCross')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
               })
@@ -1555,6 +1601,9 @@ namespace Charts {
               });
             // add new ones
             lineScatterBottomCross.enter().append('line')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('class', 'scatterLineBottomCross')
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
@@ -1580,6 +1629,9 @@ namespace Charts {
             let circleScatterDot = svg.selectAll('.scatterDot').data(chartData);
             // update existing
             circleScatterDot.attr('class', 'scatterDot')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('r', 3)
               .attr('cx', (d) => {
                 return xMidPointStartPosition(d);
@@ -1599,6 +1651,9 @@ namespace Charts {
               });
             // add new ones
             circleScatterDot.enter().append('circle')
+              .filter((d) => {
+                return !isEmptyDataBar(d);
+              })
               .attr('class', 'scatterDot')
               .attr('r', 3)
               .attr('cx', (d) => {
@@ -2044,9 +2099,9 @@ namespace Charts {
             (chartAttrs) => {
               alertValue = chartAttrs[0] || alertValue;
               chartType = chartAttrs[1] || chartType;
-              hideHighLowValues = chartAttrs[2] || hideHighLowValues;
-              useZeroMinValue = chartAttrs[3] || useZeroMinValue;
-              showAvgLine = chartAttrs[4] || showAvgLine;
+              hideHighLowValues = (typeof chartAttrs[2] !== 'undefined') ? chartAttrs[2] : hideHighLowValues;
+              useZeroMinValue = (typeof chartAttrs[3] !== 'undefined') ? chartAttrs[3] : useZeroMinValue;
+              showAvgLine = (typeof chartAttrs[4] !== 'undefined') ? chartAttrs[4] : showAvgLine;
               scope.render(processedNewData, processedPreviousRangeData);
             });
 
@@ -2090,10 +2145,10 @@ namespace Charts {
           function determineChartType(chartType:string) {
             switch (chartType) {
               case 'rhqbar' :
-                createRhqStackedBars(lowBound, highBound);
+                createHistogramChart(true);
                 break;
               case 'histogram' :
-                createHistogramChart();
+                createHistogramChart(false);
                 break;
               case 'line' :
               case 'hawkularline' :
