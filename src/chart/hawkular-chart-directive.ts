@@ -186,7 +186,7 @@ namespace Charts {
           let startIntervalPromise;
 
           function xMidPointStartPosition(d) {
-            return timeScale(d.timestamp) + (calcBarWidth() / 2);
+            return timeScale(d.timestamp);
           }
 
           function getChartWidth():number {
@@ -309,7 +309,7 @@ namespace Charts {
               setupFilteredData(dataPoints);
 
               calcBarWidth = () => {
-                return (width / chartData.length - barOffset  );
+                return (width / chartData.length - barOffset);
               };
 
               yScale = d3.scale.linear()
@@ -654,11 +654,11 @@ namespace Charts {
                 tip.hide();
               })
               .transition()
-              .attr('x', (d) => {
-                return timeScale(d.timestamp);
+              .attr('x', (d, i) => {
+                return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
               })
-              .attr('width', () => {
-                return calcBarWidth();
+              .attr('width', (d, i) => {
+                return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
               })
               .attr('y', (d) => {
                 if (!isEmptyDataBar(d)) {
@@ -709,11 +709,11 @@ namespace Charts {
               })
               .attr('class', barClass)
               .transition()
-              .attr('x', (d) => {
-                return timeScale(d.timestamp);
+              .attr('x', (d, i) => {
+                return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
               })
-              .attr('width', () => {
-                return calcBarWidth();
+              .attr('width', (d, i) => {
+                return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
               })
               .attr('y', (d) => {
                 if (!isEmptyDataBar(d)) {
@@ -776,8 +776,8 @@ namespace Charts {
               rectHigh.attr('class', (d) => {
                   return d.min === d.max ? 'singleValue' : 'high';
                 })
-                .attr('x', (d) => {
-                  return timeScale(d.timestamp);
+                .attr('x', (d, i) => {
+                  return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
                 })
                 .attr('y', (d) => {
                   return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
@@ -790,8 +790,8 @@ namespace Charts {
                     return yScale(d.avg) - yScale(d.max) || 2;
                   }
                 })
-                .attr('width', () => {
-                  return calcBarWidth();
+                .attr('width', (d, i) => {
+                  return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
                 })
                 .attr('data-rhq-value', (d) => {
                   return d.max;
@@ -807,8 +807,8 @@ namespace Charts {
                 .attr('class', (d) => {
                   return d.min === d.max ? 'singleValue' : 'high';
                 })
-                .attr('x', (d) => {
-                  return timeScale(d.timestamp);
+                .attr('x', (d,i) => {
+                  return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
                 })
                 .attr('y', (d) => {
                   return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
@@ -821,8 +821,8 @@ namespace Charts {
                     return yScale(d.avg) - yScale(d.max) || 2;
                   }
                 })
-                .attr('width', () => {
-                  return calcBarWidth();
+                .attr('width', (d, i) => {
+                  return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
                 })
                 .attr('data-rhq-value', (d) => {
                   return d.max;
@@ -841,8 +841,8 @@ namespace Charts {
               let rectLow = svg.selectAll('rect.low').data(chartData)
               // update existing
               rectLow.attr('class', 'low')
-                .attr('x', (d) => {
-                  return timeScale(d.timestamp);
+                .attr('x', (d, i) => {
+                  return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
                 })
                 .attr('y', (d) => {
                   return isNaN(d.avg) ? height : yScale(d.avg);
@@ -855,8 +855,8 @@ namespace Charts {
                     return yScale(d.min) - yScale(d.avg);
                   }
                 })
-                .attr('width', () => {
-                  return calcBarWidth();
+                .attr('width', (d, i) => {
+                  return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
                 })
                 .attr('opacity', 0.9)
                 .attr('data-rhq-value', (d) => {
@@ -867,10 +867,11 @@ namespace Charts {
                 }).on('mouseout', () => {
                   tip.hide();
                 });
+              // add new ones
               rectLow.enter().append('rect')
                 .attr('class', 'low')
-                .attr('x', (d) => {
-                  return timeScale(d.timestamp);
+                .attr('x', (d, i) => {
+                  return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
                 })
                 .attr('y', (d) => {
                   return isNaN(d.avg) ? height : yScale(d.avg);
@@ -883,8 +884,8 @@ namespace Charts {
                     return yScale(d.min) - yScale(d.avg);
                   }
                 })
-                .attr('width', () => {
-                  return calcBarWidth();
+                .attr('width', (d, i) => {
+                  return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
                 })
                 .attr('opacity', 0.9)
                 .attr('data-rhq-value', (d) => {
@@ -1737,7 +1738,7 @@ namespace Charts {
                   return !d.empty;
                 })
                 .x((d) => {
-                  return timeScale(d.timestamp) + (calcBarWidth() / 2)
+                  return timeScale(d.timestamp);
                 })
                 .y((d)=> {
                   return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
