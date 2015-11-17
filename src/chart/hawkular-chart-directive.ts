@@ -152,6 +152,8 @@ namespace Charts {
             barOffset = 2,
             chartData,
             calcBarWidth,
+            calcBarWidthAdjusted,
+            calcBarXPos,
             yScale,
             timeScale,
             yAxis,
@@ -245,11 +247,11 @@ namespace Charts {
 
               multiChartOverlayData.forEach((series) => {
                 currentMax = d3.max(series.map((d) => {
-                  return !d.empty ? (d.avg || d.value) : 0;
+                  return !isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
                 }));
                 maxList.push(currentMax);
                 currentMin = d3.min(series.map((d) => {
-                  return !d.empty ? (d.avg || d.value) : Number.MAX_VALUE;
+                  return !isEmptyDataPoint(d) ? (d.avg || d.value) : Number.MAX_VALUE;
                 }));
                 minList.push(currentMin);
 
@@ -268,11 +270,11 @@ namespace Charts {
 
             if (dataPoints) {
               peak = d3.max(dataPoints.map((d) => {
-                return !d.empty ? (d.avg || d.value) : 0;
+                return !isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
               }));
 
               min = d3.min(dataPoints.map((d)  => {
-                return !d.empty ? (d.avg || d.value) : undefined;
+                return !isEmptyDataPoint(d) ? (d.avg || d.value) : undefined;
               }));
             }
 
@@ -311,6 +313,18 @@ namespace Charts {
               calcBarWidth = () => {
                 return (width / chartData.length - barOffset);
               };
+
+              // Calculates the bar width adjusted so that the first and last are half-width of the others
+              // see https://issues.jboss.org/browse/HAWKULAR-809 for info on why this is needed
+              calcBarWidthAdjusted = (i) => {
+                return (i === 0  || i === chartData.length-1) ? calcBarWidth() / 2 : calcBarWidth();
+              };
+
+              // Calculates the bar X position. When using calcBarWidthAdjusted, it is required to push bars
+              // other than the first half bar to the left, to make up for the first being just half width
+              calcBarXPos = (d, i) => {
+                return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
+              }
 
               yScale = d3.scale.linear()
                 .clamp(true)
@@ -371,11 +385,11 @@ namespace Charts {
 
               multiDataPoints.forEach((series) => {
                 currentMax = d3.max(series.values.map((d) => {
-                  return !d.empty ? d.avg : 0;
+                  return isEmptyDataPoint(d) ? 0 : d.avg;
                 }));
                 maxList.push(currentMax);
                 currentMin = d3.min(series.values.map((d) => {
-                  return !d.empty ? d.avg : Number.MAX_VALUE;
+                  return !isEmptyDataPoint(d) ? d.avg : Number.MAX_VALUE;
                 }));
                 minList.push(currentMin);
 
@@ -520,11 +534,11 @@ namespace Charts {
 
 
           /**
-           * An empty value overrides any other values.
+           * An empty datapoint has 'empty' attribute set to true. Used to distinguish from real 0 values.
            * @param d
-           * @returns {boolean|any|function(): JQueryCallback|function(): JQuery|function(): void|function(): boolean}
+           * @returns {boolean}
            */
-          function isEmptyDataBar(d:IChartDataPoint):boolean {
+          function isEmptyDataPoint(d: IChartDataPoint): boolean {
             return d.empty;
           }
 
@@ -536,7 +550,6 @@ namespace Charts {
           function isRawMetric(d:IChartDataPoint):boolean {
             return typeof d.avg === 'undefined';
           }
-
 
           function buildHover(d:IChartDataPoint, i:number) {
             let hover,
@@ -550,7 +563,7 @@ namespace Charts {
               barDuration = moment(currentTimestamp).from(moment(prevTimestamp), true);
             }
 
-            if (isEmptyDataBar(d)) {
+            if (isEmptyDataPoint(d)) {
               // nodata
               hover = `<div class='chartHover'>
                 <small class='chartHoverLabel'>${noDataLabel}</small>
@@ -655,46 +668,26 @@ namespace Charts {
               })
               .transition()
               .attr('x', (d, i) => {
-                return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
+                return calcBarXPos(d, i);
               })
               .attr('width', (d, i) => {
-                return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
+                return calcBarWidthAdjusted(i);
               })
               .attr('y', (d) => {
-                if (!isEmptyDataBar(d)) {
-                  return yScale(d.avg);
-                }
-                else {
-                  return 0;
-                }
+                return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
               })
               .attr('height', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return height - yScale(highBound);
-                }
-                else {
-                  return height - yScale(d.avg);
-                }
+                return height - yScale(isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
               })
               .attr('opacity', stacked ? '.6' : '1')
               .attr('fill', (d, i) => {
-                if (isEmptyDataBar(d)) {
-                  return 'url(#noDataStripes)';
-                }
-                else {
-                  return stacked ? '#D3D3D6' : '#C0C0C0';
-                }
+                return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
               })
               .attr('stroke', (d) => {
                 return '#777';
               })
               .attr('stroke-width', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return '0';
-                }
-                else {
-                  return '0';
-                }
+                return '0';
               })
               .attr('data-hawkular-value', (d) => {
                 return d.avg;
@@ -710,46 +703,26 @@ namespace Charts {
               .attr('class', barClass)
               .transition()
               .attr('x', (d, i) => {
-                return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
+                return calcBarXPos(d, i);
               })
               .attr('width', (d, i) => {
-                return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
+                return calcBarWidthAdjusted(i);
               })
               .attr('y', (d) => {
-                if (!isEmptyDataBar(d)) {
-                  return yScale(d.avg);
-                }
-                else {
-                  return 0;
-                }
+                return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
               })
               .attr('height', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return height - yScale(highBound);
-                }
-                else {
-                  return height - yScale(d.avg);
-                }
+                return height - yScale(isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
               })
               .attr('opacity', stacked ? '.6' : '1')
               .attr('fill', (d, i) => {
-                if (isEmptyDataBar(d)) {
-                  return 'url(#noDataStripes)';
-                }
-                else {
-                  return stacked ? '#D3D3D6' : '#C0C0C0';
-                }
+                return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
               })
               .attr('stroke', (d) => {
                 return '#777';
               })
               .attr('stroke-width', (d) => {
-                if (isEmptyDataBar(d)) {
-                  return '0';
-                }
-                else {
-                  return '0';
-                }
+                return '0';
               })
               .attr('data-hawkular-value', (d) => {
                 return d.avg;
@@ -777,21 +750,16 @@ namespace Charts {
                   return d.min === d.max ? 'singleValue' : 'high';
                 })
                 .attr('x', (d, i) => {
-                  return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
+                  return calcBarXPos(d, i);
                 })
                 .attr('y', (d) => {
                   return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
                 })
                 .attr('height', (d) => {
-                  if (isEmptyDataBar(d)) {
-                    return 0;
-                  }
-                  else {
-                    return yScale(d.avg) - yScale(d.max) || 2;
-                  }
+                  return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
                 })
                 .attr('width', (d, i) => {
-                  return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
+                  return calcBarWidthAdjusted(i);
                 })
                 .attr('data-rhq-value', (d) => {
                   return d.max;
@@ -808,21 +776,16 @@ namespace Charts {
                   return d.min === d.max ? 'singleValue' : 'high';
                 })
                 .attr('x', (d,i) => {
-                  return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
+                  return calcBarXPos(d, i);
                 })
                 .attr('y', (d) => {
                   return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
                 })
                 .attr('height', (d) => {
-                  if (isEmptyDataBar(d)) {
-                    return 0;
-                  }
-                  else {
-                    return yScale(d.avg) - yScale(d.max) || 2;
-                  }
+                  return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
                 })
                 .attr('width', (d, i) => {
-                  return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
+                  return calcBarWidthAdjusted(i);
                 })
                 .attr('data-rhq-value', (d) => {
                   return d.max;
@@ -842,21 +805,16 @@ namespace Charts {
               // update existing
               rectLow.attr('class', 'low')
                 .attr('x', (d, i) => {
-                  return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
+                  return calcBarXPos(d, i);
                 })
                 .attr('y', (d) => {
                   return isNaN(d.avg) ? height : yScale(d.avg);
                 })
                 .attr('height', (d) => {
-                  if (isEmptyDataBar(d)) {
-                    return 0;
-                  }
-                  else {
-                    return yScale(d.min) - yScale(d.avg);
-                  }
+                  return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
                 })
                 .attr('width', (d, i) => {
-                  return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
+                  return calcBarWidthAdjusted(i);
                 })
                 .attr('opacity', 0.9)
                 .attr('data-rhq-value', (d) => {
@@ -871,21 +829,16 @@ namespace Charts {
               rectLow.enter().append('rect')
                 .attr('class', 'low')
                 .attr('x', (d, i) => {
-                  return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
+                  return calcBarXPos(d, i);
                 })
                 .attr('y', (d) => {
                   return isNaN(d.avg) ? height : yScale(d.avg);
                 })
                 .attr('height', (d) => {
-                  if (isEmptyDataBar(d)) {
-                    return 0;
-                  }
-                  else {
-                    return yScale(d.min) - yScale(d.avg);
-                  }
+                  return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
                 })
                 .attr('width', (d, i) => {
-                  return calcBarWidth() / (i === 0  || i === chartData.length-1 ? 2 : 1);
+                  return calcBarWidthAdjusted(i);
                 })
                 .attr('opacity', 0.9)
                 .attr('data-rhq-value', (d) => {
@@ -906,7 +859,7 @@ namespace Charts {
               // update existing
               lineHistoHighStem.attr('class', 'histogramTopStem')
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('x1', (d) => {
                   return xMidPointStartPosition(d);
@@ -929,7 +882,7 @@ namespace Charts {
               // add new ones
               lineHistoHighStem.enter().append('line')
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('class', 'histogramTopStem')
                 .attr('x1', (d) => {
@@ -957,7 +910,7 @@ namespace Charts {
               // update existing
               lineHistoLowStem
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('class', 'histogramBottomStem')
                 .attr('x1', (d) => {
@@ -980,7 +933,7 @@ namespace Charts {
               // add new ones
               lineHistoLowStem.enter().append('line')
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('class', 'histogramBottomStem')
                 .attr('x1', (d) => {
@@ -1008,7 +961,7 @@ namespace Charts {
               // update existing
               lineHistoTopCross
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('class', 'histogramTopCross')
                 .attr('x1', function (d) {
@@ -1035,7 +988,7 @@ namespace Charts {
               // add new ones
               lineHistoTopCross.enter().append('line')
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('class', 'histogramTopCross')
                 .attr('x1', function (d) {
@@ -1066,7 +1019,7 @@ namespace Charts {
               // update existing
               lineHistoBottomCross
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('class', 'histogramBottomCross')
                 .attr('x1', function (d) {
@@ -1093,7 +1046,7 @@ namespace Charts {
               // add new ones
               lineHistoBottomCross.enter().append('line')
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('class', 'histogramBottomCross')
                 .attr('x1', function (d) {
@@ -1127,7 +1080,7 @@ namespace Charts {
             let metricChartLine = d3.svg.line()
               .interpolate(interpolation)
               .defined((d) => {
-                return !d.empty;
+                return !isEmptyDataPoint(d);
               })
               .x((d) => {
                 return timeScale(d.timestamp);
@@ -1178,11 +1131,7 @@ namespace Charts {
                     .attr('class', 'multiLine')
                     .attr('fill', 'none')
                     .attr('stroke', () => {
-                      if (singleChartData.color) {
-                        return singleChartData.color;
-                      } else {
-                        return colorScale(g++);
-                      }
+                      return singleChartData.color || colorScale(g++);
                     })
                     .transition()
                     .attr('d', createLine('linear'));
@@ -1214,7 +1163,7 @@ namespace Charts {
             let highArea = d3.svg.area()
                 .interpolate(interpolation)
                 .defined((d) => {
-                  return !d.empty;
+                  return !isEmptyDataPoint(d);
                 })
                 .x((d) => {
                   return xMidPointStartPosition(d);
@@ -1229,7 +1178,7 @@ namespace Charts {
               avgArea = d3.svg.area()
                 .interpolate(interpolation)
                 .defined((d) => {
-                  return !d.empty;
+                  return !isEmptyDataPoint(d);
                 })
                 .x((d) => {
                   return xMidPointStartPosition(d);
@@ -1244,7 +1193,7 @@ namespace Charts {
               lowArea = d3.svg.area()
                 .interpolate(interpolation)
                 .defined((d) => {
-                  return !d.empty;
+                  return !isEmptyDataPoint(d);
                 })
                 .x((d) => {
                   return xMidPointStartPosition(d);
@@ -1302,7 +1251,7 @@ namespace Charts {
               // update existing
               highDotCircle.attr('class', 'highDot')
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('r', 3)
                 .attr('cx', (d) => {
@@ -1321,7 +1270,7 @@ namespace Charts {
               // add new ones
               highDotCircle.enter().append('circle')
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('class', 'highDot')
                 .attr('r', 3)
@@ -1345,7 +1294,7 @@ namespace Charts {
               // update existing
               lowDotCircle.attr('class', 'lowDot')
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('r', 3)
                 .attr('cx', (d) => {
@@ -1364,7 +1313,7 @@ namespace Charts {
               // add new ones
               lowDotCircle.enter().append('circle')
                 .filter((d) => {
-                  return !isEmptyDataBar(d);
+                  return !isEmptyDataPoint(d);
                 })
                 .attr('class', 'lowDot')
                 .attr('r', 3)
@@ -1393,7 +1342,7 @@ namespace Charts {
             // update existing
             avgDotCircle.attr('class', 'avgDot')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('r', 3)
               .attr('cx', (d) => {
@@ -1412,7 +1361,7 @@ namespace Charts {
             // add new ones
             avgDotCircle.enter().append('circle')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('class', 'avgDot')
               .attr('r', 3)
@@ -1439,7 +1388,7 @@ namespace Charts {
             // update existing
             lineScatterTopStem.attr('class', 'scatterLineTopStem')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
@@ -1459,7 +1408,7 @@ namespace Charts {
             // add new ones
             lineScatterTopStem.enter().append('line')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('class', 'scatterLineTopStem')
               .attr('x1', (d) => {
@@ -1484,7 +1433,7 @@ namespace Charts {
             // update existing
             lineScatterBottomStem.attr('class', 'scatterLineBottomStem')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d);
@@ -1504,7 +1453,7 @@ namespace Charts {
             // add new ones
             lineScatterBottomStem.enter().append('line')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('class', 'scatterLineBottomStem')
               .attr('x1', (d) => {
@@ -1529,7 +1478,7 @@ namespace Charts {
             // update existing
             lineScatterTopCross.attr('class', 'scatterLineTopCross')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
@@ -1552,7 +1501,7 @@ namespace Charts {
             // add new ones
             lineScatterTopCross.enter().append('line')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('class', 'scatterLineTopCross')
               .attr('x1', (d) => {
@@ -1580,7 +1529,7 @@ namespace Charts {
             // update existing
             lineScatterBottomCross.attr('class', 'scatterLineBottomCross')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('x1', (d) => {
                 return xMidPointStartPosition(d) - 3;
@@ -1603,7 +1552,7 @@ namespace Charts {
             // add new ones
             lineScatterBottomCross.enter().append('line')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('class', 'scatterLineBottomCross')
               .attr('x1', (d) => {
@@ -1631,7 +1580,7 @@ namespace Charts {
             // update existing
             circleScatterDot.attr('class', 'scatterDot')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('r', 3)
               .attr('cx', (d) => {
@@ -1653,7 +1602,7 @@ namespace Charts {
             // add new ones
             circleScatterDot.enter().append('circle')
               .filter((d) => {
-                return !isEmptyDataBar(d);
+                return !isEmptyDataPoint(d);
               })
               .attr('class', 'scatterDot')
               .attr('r', 3)
@@ -1735,7 +1684,7 @@ namespace Charts {
               line = d3.svg.line()
                 .interpolate(interpolate)
                 .defined((d) => {
-                  return !d.empty;
+                  return !isEmptyDataPoint(d);
                 })
                 .x((d) => {
                   return timeScale(d.timestamp);
@@ -1752,7 +1701,7 @@ namespace Charts {
               line = d3.svg.line()
                 .interpolate(interpolate)
                 .defined((d) => {
-                  return !d.empty;
+                  return !isEmptyDataPoint(d);
                 })
                 .x((d) => {
                   return timeScale(d.timestamp);
@@ -2189,7 +2138,7 @@ namespace Charts {
 
           scope.render = (dataPoints, previousRangeDataPoints) => {
             // if we don't have data, don't bother..
-            if(!dataPoints && !multiDataPoints) {
+            if (!dataPoints && !multiDataPoints) {
               return;
             }
 
