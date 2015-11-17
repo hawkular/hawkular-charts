@@ -208,8 +208,18 @@ rect.low {
   stroke-opacity: 0.9;
 }
 
-
-
+/* Context Chart */
+.contextArea{
+  fill: #EDF7FF;
+  stroke: #3F8CE5;
+  stroke-width: 0;
+  opacity: .8;
+}
+.contextLine{
+  fill: none;
+  stroke: #2e376a;
+  stroke-width: 2;
+}
 
 /* Tooltip */
 .d3-tip {
@@ -258,7 +268,7 @@ rect.low {
 .highArea {
   fill: #202fff;
   opacity: 0.7;
-  stroke-width: 0.5;
+  stroke-width: 1;
   stroke: #000;
 }
 

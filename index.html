@@ -3,9 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Hawkular Chart Tester</title>
+  <title>Hawkular Interactive Chart Example</title>
   <meta name="description"
-        content="Hawkular Charts Standalone Chart Example. An example how to use the hawkular-charts in a sample page.">
+        content="Hawkular Interactive Charts Example. An example how to use the hawkular-charts and play around with
+        some of its functionality. Includes the ability to change the alert threshold and see how the chart looks
+        with varying number of datapoints.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/hawkular-charts.css">
   <style>
@@ -31,6 +33,11 @@
     .chartWrapper {
       height: 250px;
     }
+
+    .contextChartWrapper {
+      height: 250px;
+      width: 750px;
+    }
   </style>
 
   <!-- build:js scripts/vendor.js -->
@@ -50,8 +57,9 @@
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
 
-    app.controller('ChartController', function ($scope) {
+    app.controller('ChartController', function ($scope,$rootScope) {
 
+      $scope.timerange = {};
       // set the alert threshold to whatever
       $scope.alertThreshold = 2000;
       $scope.dataPoints = 120;
@@ -69,15 +77,15 @@
         });
 
         // set our initial timerange based on the data bounds
-        $scope.startTimestamp = myTimeRange[0];
-        $scope.endTimestamp = myTimeRange[1];
+        $scope.timerange.startTimestamp = myTimeRange[0];
+        $scope.timerange.endTimestamp = myTimeRange[1];
         console.info('Starting time range values: ' + new Date(myTimeRange[0]) + ' - ' + new Date(myTimeRange[1]));
         $scope.refreshChartWithDateRange();
 
       });
 
       $scope.toggleHighLow = function () {
-        console.log('h values' + $scope.hideHighLowValues);
+        console.log('hideHighLowValues: ' + $scope.hideHighLowValues);
         $scope.hideHighLowValues = !$scope.hideHighLowValues;
       };
 
@@ -89,21 +97,29 @@
       });
 
       $scope.refreshChartWithDateRange = function () {
-        console.info('RefreshChart');
+        console.info('refreshChartWithDateRange');
         // we already have the data, but perhaps the data is stale and you want to requery
         // also, by just changing the data the charts will automatically update themselves
-        $scope.myData = $scope.myData.filter(function (value) {
-          return value.timestamp >= $scope.startTimestamp && value.timestamp <= $scope.endTimestamp;
+        $scope.myData = $scope.originalData.filter(function (value) {
+          return value.timestamp >= $scope.timerange.startTimestamp && value.timestamp <= $scope.timerange.endTimestamp;
         });
         $scope.$digest();
 
       };
 
+      // Drag event on a normal chart
       $scope.$on('ChartTimeRangeChanged', function (event, data) {
-        console.info('Received ChartTimeRangeChanged: ' + data[0] + ' - ' + data[1]);
-        $scope.startTimestamp = data[0];
-        $scope.endTimestamp = data[1];
+        console.info('Received ChartTimeRangeChanged event: ' + data[0] + ' - ' + data[1]);
+        $scope.timerange.startTimestamp = data[0];
+        $scope.timerange.endTimestamp = data[1];
         $scope.refreshChartWithDateRange();
+        $scope.$digest();
+      });
+
+      // Drag event on a context chart
+      $scope.$on('ContextChartTimeRangeChanged', function (event, data) {
+        console.info('Received ContextChartTimeRangeChanged event: ' + data[0] + ' - ' + data[1]);
+        $rootScope.$broadcast('ChartTimeRangeChanged', data);
       });
     });
 
@@ -128,29 +144,35 @@
 </ul>
 
 <p style="font-style: italic">
-  Also, be sure to drag on the chart to select interesting areas to zoom in on. This example has all of charts
-  responding to the change in zoom area.
+  Be sure to drag on the chart to select interesting areas to zoom in on. This example has all of charts
+  responding to the change in zoom area. Altering the number of data points can have a positive or negative effect
+  on the way a chart looks.
 </p>
 
 <div ng-controller="ChartController">
 
   <div class="optionsWrapper">
-
     <div style="margin-bottom: 5px;">
 
-    <label for="alertValue">Alert Threshold: </label>
-    <input id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
-    <label for="dataPoints">Data Points: </label>
-    <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
-    <label for="highLowValues">Hide High/Low Values: </label>
-    <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"
-           ng-checked="hideHighLowValues"
-           ng-click="toggleHighLow();"/>
+      <label for="alertValue">Alert Threshold: </label>
+      <input id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
+      <label for="dataPoints">Data Points: </label>
+      <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
+      <label for="highLowValues">Hide High/Low Values: </label>
+      <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"
+             ng-checked="hideHighLowValues"
+             ng-click="toggleHighLow();"/>
     </div>
-
   </div>
 
-  <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: HawkularMetric:</span>
+  <div class="metricIdHeader"><span class="metricIdLabel"> Context Chart</span>
+  </div>
+  <div class="contextChartWrapper">
+    <context-chart data="originalData">
+    </context-chart>
+  </div>
+
+  <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: HawkularMetric</span>
   </div>
   <div class="chartWrapper">
     <hawkular-chart
@@ -163,15 +185,14 @@
     </hawkular-chart>
   </div>
 
-  <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: HawkularLine:</span>
+  <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: Line</span>
   </div>
   <div class="chartWrapper">
     <hawkular-chart
       data="myData"
       chart-type="line"
       alert-value="{{alertThreshold}}"
-      use-zero-min-value="true"
-      y-axis-units="Response Time (ms)" >
+      y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
 
@@ -182,8 +203,7 @@
       data="myData"
       chart-type="area"
       alert-value="{{alertThreshold}}"
-      use-zero-min-value="true"
-      y-axis-units="Response Time (ms)" >
+      y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
 
@@ -194,7 +214,6 @@
       data="myData"
       chart-type="histogram"
       alert-value="{{alertThreshold}}"
-      use-zero-min-value="true"
       hide-high-low-values="hideHighLowValues"
       y-axis-units="Response Time (ms)">
     </hawkular-chart>
@@ -207,8 +226,7 @@
       data="myData"
       chart-type="rhqbar"
       alert-value="{{alertThreshold}}"
-      use-zero-min-value="true"
-      y-axis-units="Response Time (ms)" >
+      y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
 
@@ -219,9 +237,8 @@
       data="myData"
       chart-type="scatter"
       alert-value="{{alertThreshold}}"
-      use-zero-min-value="true"
       hide-high-low-values="hideHighLowValues"
-      y-axis-units="Response Time (ms)" >
+      y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
 
@@ -232,9 +249,8 @@
       data="myData"
       chart-type="scatterline"
       alert-value="{{alertThreshold}}"
-      use-zero-min-value="true"
       hide-high-low-values="hideHighLowValues"
-      y-axis-units="Response Time (ms)" >
+      y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
 
