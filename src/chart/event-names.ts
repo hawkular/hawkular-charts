@@ -24,8 +24,7 @@ namespace Charts {
 
     public static CHART_TIMERANGE_CHANGED = new EventNames('ChartTimeRangeChanged');
     public static AVAIL_CHART_TIMERANGE_CHANGED = new EventNames('AvailChartTimeRangeChanged');
-    public static REFRESH_CHART = new EventNames('RefreshChart');
-    public static REFRESH_AVAIL_CHART = new EventNames('RefreshAvailabilityChart');
+    public static CONTEXT_CHART_TIMERANGE_CHANGED = new EventNames('ContextChartTimeRangeChanged');
 
 
     constructor(public value:string) {
