@@ -382,6 +382,199 @@ var Charts;
     _module.directive('availabilityChart', AvailabilityChartDirective.Factory());
 })(Charts || (Charts = {}));
 
+/// <reference path='../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
+    var _module = angular.module('hawkular.charts');
+    var ContextChartDirective = (function () {
+        function ContextChartDirective($rootScope) {
+            var _this = this;
+            this.restrict = 'E';
+            this.replace = true;
+            // Can't use 1.4 directive controllers because we need to support 1.3+
+            this.scope = {
+                data: '='
+            };
+            this.link = function (scope, element, attrs) {
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 };
+                // data specific vars
+                var chartHeight = +attrs.chartHeight || ContextChartDirective._CHART_HEIGHT, width = ContextChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, brush, brushGroup, chart, chartParent, svg;
+                function setup() {
+                    // destroy any previous charts
+                    if (chart) {
+                        chartParent.selectAll('*').remove();
+                    }
+                    chartParent = d3.select(element[0]);
+                    chart = chartParent.append('svg')
+                        .attr('viewBox', '0 0 750 100').attr('preserveAspectRatio', 'xMinYMin meet');
+                    svg = chart.append('g')
+                        .attr('width', width + margin.left + margin.right)
+                        .attr('height', innerChartHeight)
+                        .attr('transform', 'translate(' + margin.left + ',' + height + ')');
+                }
+                function createContextChart(dataPoints) {
+                    console.log('dataPoints.length: ' + dataPoints.length);
+                    timeScale = d3.time.scale()
+                        .range([0, width - 10])
+                        .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
+                    xAxis = d3.svg.axis()
+                        .scale(timeScale)
+                        .ticks(10)
+                        .tickSize(4, 0)
+                        .orient('bottom');
+                    svg.selectAll('g.axis').remove();
+                    xAxisGroup = svg.append('g')
+                        .attr('class', 'x axis')
+                        .attr('transform', 'translate(0,' + height + ')')
+                        .call(xAxis);
+                    var yMin = d3.min(dataPoints, function (d) {
+                        return d.avg;
+                    });
+                    var yMax = d3.max(dataPoints, function (d) {
+                        return d.avg;
+                    });
+                    // give a pad of % to min/max so we are not against x-axis
+                    yMax = yMax + (yMax * 0.03);
+                    yMin = yMin - (yMin * 0.05);
+                    yScale = d3.scale.linear()
+                        .rangeRound([90, 0])
+                        .domain([yMin, yMax]);
+                    yAxis = d3.svg.axis()
+                        .scale(yScale)
+                        .ticks(3)
+                        .tickSize(4, 0)
+                        .orient("left");
+                    yAxisGroup = svg.append('g')
+                        .attr('class', 'y axis')
+                        .call(yAxis);
+                    var area = d3.svg.area()
+                        .interpolate('cardinal')
+                        .defined(function (d) {
+                        return !d.empty;
+                    })
+                        .x(function (d) {
+                        return timeScale(d.timestamp);
+                    })
+                        .y0(function (d) {
+                        return height;
+                    })
+                        .y1(function (d) {
+                        return yScale(d.avg);
+                    });
+                    var contextLine = d3.svg.line()
+                        .interpolate('cardinal')
+                        .defined(function (d) {
+                        return !d.empty;
+                    })
+                        .x(function (d) {
+                        return timeScale(d.timestamp);
+                    })
+                        .y(function (d) {
+                        return yScale(d.avg);
+                    });
+                    var pathContextLine = svg.selectAll('path.contextLine').data([dataPoints]);
+                    // update existing
+                    pathContextLine.attr('class', 'contextLine')
+                        .transition()
+                        .attr('d', contextLine);
+                    // add new ones
+                    pathContextLine.enter().append('path')
+                        .attr('class', 'contextLine')
+                        .transition()
+                        .attr('d', contextLine);
+                    // remove old ones
+                    pathContextLine.exit().remove();
+                    var contextArea = svg.append("g")
+                        .attr("class", "context");
+                    contextArea.append("path")
+                        .datum(dataPoints)
+                        .transition()
+                        .duration(500)
+                        .attr("class", "contextArea")
+                        .attr("d", area);
+                }
+                function createXAxisBrush() {
+                    brush = d3.svg.brush()
+                        .x(timeScale)
+                        .on('brushstart', contextBrushStart)
+                        .on('brushend', contextBrushEnd);
+                    xAxisGroup.append('g')
+                        .selectAll('rect')
+                        .attr('y', 0)
+                        .attr('height', height - 10);
+                    brushGroup = svg.append('g')
+                        .attr('class', 'brush')
+                        .call(brush);
+                    brushGroup.selectAll('.resize').append('path');
+                    brushGroup.selectAll('rect')
+                        .attr('height', 85);
+                    function contextBrushStart() {
+                        svg.classed('selecting', true);
+                    }
+                    function contextBrushEnd() {
+                        var brushExtent = brush.extent(), startTime = Math.round(brushExtent[0].getTime()), endTime = Math.round(brushExtent[1].getTime()), dragSelectionDelta = endTime - startTime;
+                        /// We ignore drag selections under a minute
+                        if (dragSelectionDelta >= 60000) {
+                            console.log('Drag: ContextChartTimeRangeChanged:' + brushExtent);
+                            $rootScope.$broadcast(Charts.EventNames.CONTEXT_CHART_TIMERANGE_CHANGED.toString(), brushExtent);
+                        }
+                        //brushGroup.call(brush.clear());
+                    }
+                }
+                scope.$watchCollection('data', function (newData) {
+                    console.log('Context Chart Data Changed');
+                    if (newData) {
+                        _this.dataPoints = formatBucketedChartOutput(angular.fromJson(newData));
+                        scope.render(_this.dataPoints);
+                    }
+                });
+                function formatBucketedChartOutput(response) {
+                    //  The schema is different for bucketed output
+                    if (response) {
+                        return response.map(function (point) {
+                            var timestamp = point.timestamp || (point.start + (point.end - point.start) / 2);
+                            return {
+                                timestamp: timestamp,
+                                //date: new Date(timestamp),
+                                value: !angular.isNumber(point.value) ? undefined : point.value,
+                                avg: (point.empty) ? undefined : point.avg,
+                                min: !angular.isNumber(point.min) ? undefined : point.min,
+                                max: !angular.isNumber(point.max) ? undefined : point.max,
+                                empty: point.empty
+                            };
+                        });
+                    }
+                }
+                scope.render = function (dataPoints) {
+                    if (dataPoints && dataPoints.length > 0) {
+                        console.group('Render Context Chart');
+                        console.time('contextChartRender');
+                        ///NOTE: layering order is important!
+                        setup();
+                        createContextChart(dataPoints);
+                        createXAxisBrush();
+                        console.timeEnd('contextChartRender');
+                        console.groupEnd();
+                    }
+                };
+            };
+        }
+        ContextChartDirective.Factory = function () {
+            var directive = function ($rootScope) {
+                return new ContextChartDirective($rootScope);
+            };
+            directive['$inject'] = ['$rootScope'];
+            return directive;
+        };
+        ContextChartDirective._CHART_WIDTH = 750;
+        ContextChartDirective._CHART_HEIGHT = 100;
+        return ContextChartDirective;
+    })();
+    Charts.ContextChartDirective = ContextChartDirective;
+    _module.directive('contextChart', ContextChartDirective.Factory());
+})(Charts || (Charts = {}));
+
 ///
 /// Copyright 2015 Red Hat, Inc. and/or its affiliates
 /// and other contributors as indicated by the @author tags.
@@ -412,8 +605,7 @@ var Charts;
         };
         EventNames.CHART_TIMERANGE_CHANGED = new EventNames('ChartTimeRangeChanged');
         EventNames.AVAIL_CHART_TIMERANGE_CHANGED = new EventNames('AvailChartTimeRangeChanged');
-        EventNames.REFRESH_CHART = new EventNames('RefreshChart');
-        EventNames.REFRESH_AVAIL_CHART = new EventNames('RefreshAvailabilityChart');
+        EventNames.CONTEXT_CHART_TIMERANGE_CHANGED = new EventNames('ContextChartTimeRangeChanged');
         return EventNames;
     })();
     Charts.EventNames = EventNames;
@@ -455,7 +647,7 @@ var Charts;
                 // data specific vars
                 var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, calcBarWidthAdjusted, calcBarXPos, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
                 var hasInit = false;
                 dataPoints = attrs.data;
                 showDataPoints = attrs.showDataPoints;
@@ -465,7 +657,7 @@ var Charts;
                 contextData = attrs.contextData;
                 var startIntervalPromise;
                 function xMidPointStartPosition(d) {
-                    return timeScale(d.timestamp) + (calcBarWidth() / 2);
+                    return timeScale(d.timestamp);
                 }
                 function getChartWidth() {
                     //return angular.element('#' + chartContext.chartHandle).width();
@@ -504,11 +696,11 @@ var Charts;
                         var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
                         multiChartOverlayData.forEach(function (series) {
                             currentMax = d3.max(series.map(function (d) {
-                                return !d.empty ? (d.avg || d.value) : 0;
+                                return !isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
                             }));
                             maxList.push(currentMax);
                             currentMin = d3.min(series.map(function (d) {
-                                return !d.empty ? (d.avg || d.value) : Number.MAX_VALUE;
+                                return !isEmptyDataPoint(d) ? (d.avg || d.value) : Number.MAX_VALUE;
                             }));
                             minList.push(currentMin);
                         });
@@ -523,10 +715,10 @@ var Charts;
                     }
                     if (dataPoints) {
                         peak = d3.max(dataPoints.map(function (d) {
-                            return !d.empty ? (d.avg || d.value) : 0;
+                            return !isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
                         }));
                         min = d3.min(dataPoints.map(function (d) {
-                            return !d.empty ? (d.avg || d.value) : undefined;
+                            return !isEmptyDataPoint(d) ? (d.avg || d.value) : undefined;
                         }));
                     }
                     lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
@@ -559,6 +751,16 @@ var Charts;
                         setupFilteredData(dataPoints);
                         calcBarWidth = function () {
                             return (width / chartData.length - barOffset);
+                        };
+                        // Calculates the bar width adjusted so that the first and last are half-width of the others
+                        // see https://issues.jboss.org/browse/HAWKULAR-809 for info on why this is needed
+                        calcBarWidthAdjusted = function (i) {
+                            return (i === 0 || i === chartData.length - 1) ? calcBarWidth() / 2 : calcBarWidth();
+                        };
+                        // Calculates the bar X position. When using calcBarWidthAdjusted, it is required to push bars
+                        // other than the first half bar to the left, to make up for the first being just half width
+                        calcBarXPos = function (d, i) {
+                            return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth() / 2);
                         };
                         yScale = d3.scale.linear()
                             .clamp(true)
@@ -602,11 +804,11 @@ var Charts;
                         var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
                         multiDataPoints.forEach(function (series) {
                             currentMax = d3.max(series.values.map(function (d) {
-                                return !d.empty ? d.avg : 0;
+                                return isEmptyDataPoint(d) ? 0 : d.avg;
                             }));
                             maxList.push(currentMax);
                             currentMin = d3.min(series.values.map(function (d) {
-                                return !d.empty ? d.avg : Number.MAX_VALUE;
+                                return !isEmptyDataPoint(d) ? d.avg : Number.MAX_VALUE;
                             }));
                             minList.push(currentMin);
                         });
@@ -719,11 +921,11 @@ var Charts;
                     }
                 }
                 /**
-                 * An empty value overrides any other values.
+                 * An empty datapoint has 'empty' attribute set to true. Used to distinguish from real 0 values.
                  * @param d
-                 * @returns {boolean|any|function(): JQueryCallback|function(): JQuery|function(): void|function(): boolean}
+                 * @returns {boolean}
                  */
-                function isEmptyDataBar(d) {
+                function isEmptyDataPoint(d) {
                     return d.empty;
                 }
                 /**
@@ -740,7 +942,7 @@ var Charts;
                         prevTimestamp = chartData[i - 1].timestamp;
                         barDuration = moment(currentTimestamp).from(moment(prevTimestamp), true);
                     }
-                    if (isEmptyDataBar(d)) {
+                    if (isEmptyDataPoint(d)) {
                         // nodata
                         hover = "<div class='chartHover'>\n                <small class='chartHoverLabel'>" + noDataLabel + "</small>\n                <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                <hr/>\n                <div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>\n                </div>";
                     }
@@ -813,47 +1015,27 @@ var Charts;
                         tip.hide();
                     })
                         .transition()
-                        .attr('x', function (d) {
-                        return timeScale(d.timestamp);
+                        .attr('x', function (d, i) {
+                        return calcBarXPos(d, i);
                     })
-                        .attr('width', function () {
-                        return calcBarWidth();
+                        .attr('width', function (d, i) {
+                        return calcBarWidthAdjusted(i);
                     })
                         .attr('y', function (d) {
-                        if (!isEmptyDataBar(d)) {
-                            return yScale(d.avg);
-                        }
-                        else {
-                            return 0;
-                        }
+                        return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
                     })
                         .attr('height', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return height - yScale(highBound);
-                        }
-                        else {
-                            return height - yScale(d.avg);
-                        }
+                        return height - yScale(isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
                     })
                         .attr('opacity', stacked ? '.6' : '1')
                         .attr('fill', function (d, i) {
-                        if (isEmptyDataBar(d)) {
-                            return 'url(#noDataStripes)';
-                        }
-                        else {
-                            return stacked ? '#D3D3D6' : '#C0C0C0';
-                        }
+                        return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
                     })
                         .attr('stroke', function (d) {
                         return '#777';
                     })
                         .attr('stroke-width', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return '0';
-                        }
-                        else {
-                            return '0';
-                        }
+                        return '0';
                     })
                         .attr('data-hawkular-value', function (d) {
                         return d.avg;
@@ -868,47 +1050,27 @@ var Charts;
                     })
                         .attr('class', barClass)
                         .transition()
-                        .attr('x', function (d) {
-                        return timeScale(d.timestamp);
+                        .attr('x', function (d, i) {
+                        return calcBarXPos(d, i);
                     })
-                        .attr('width', function () {
-                        return calcBarWidth();
+                        .attr('width', function (d, i) {
+                        return calcBarWidthAdjusted(i);
                     })
                         .attr('y', function (d) {
-                        if (!isEmptyDataBar(d)) {
-                            return yScale(d.avg);
-                        }
-                        else {
-                            return 0;
-                        }
+                        return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
                     })
                         .attr('height', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return height - yScale(highBound);
-                        }
-                        else {
-                            return height - yScale(d.avg);
-                        }
+                        return height - yScale(isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
                     })
                         .attr('opacity', stacked ? '.6' : '1')
                         .attr('fill', function (d, i) {
-                        if (isEmptyDataBar(d)) {
-                            return 'url(#noDataStripes)';
-                        }
-                        else {
-                            return stacked ? '#D3D3D6' : '#C0C0C0';
-                        }
+                        return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
                     })
                         .attr('stroke', function (d) {
                         return '#777';
                     })
                         .attr('stroke-width', function (d) {
-                        if (isEmptyDataBar(d)) {
-                            return '0';
-                        }
-                        else {
-                            return '0';
-                        }
+                        return '0';
                     })
                         .attr('data-hawkular-value', function (d) {
                         return d.avg;
@@ -932,22 +1094,17 @@ var Charts;
                         rectHigh.attr('class', function (d) {
                             return d.min === d.max ? 'singleValue' : 'high';
                         })
-                            .attr('x', function (d) {
-                            return timeScale(d.timestamp);
+                            .attr('x', function (d, i) {
+                            return calcBarXPos(d, i);
                         })
                             .attr('y', function (d) {
                             return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
                         })
                             .attr('height', function (d) {
-                            if (isEmptyDataBar(d)) {
-                                return 0;
-                            }
-                            else {
-                                return yScale(d.avg) - yScale(d.max) || 2;
-                            }
+                            return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
                         })
-                            .attr('width', function () {
-                            return calcBarWidth();
+                            .attr('width', function (d, i) {
+                            return calcBarWidthAdjusted(i);
                         })
                             .attr('data-rhq-value', function (d) {
                             return d.max;
@@ -963,22 +1120,17 @@ var Charts;
                             .attr('class', function (d) {
                             return d.min === d.max ? 'singleValue' : 'high';
                         })
-                            .attr('x', function (d) {
-                            return timeScale(d.timestamp);
+                            .attr('x', function (d, i) {
+                            return calcBarXPos(d, i);
                         })
                             .attr('y', function (d) {
                             return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
                         })
                             .attr('height', function (d) {
-                            if (isEmptyDataBar(d)) {
-                                return 0;
-                            }
-                            else {
-                                return yScale(d.avg) - yScale(d.max) || 2;
-                            }
+                            return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
                         })
-                            .attr('width', function () {
-                            return calcBarWidth();
+                            .attr('width', function (d, i) {
+                            return calcBarWidthAdjusted(i);
                         })
                             .attr('data-rhq-value', function (d) {
                             return d.max;
@@ -995,22 +1147,17 @@ var Charts;
                         var rectLow = svg.selectAll('rect.low').data(chartData);
                         // update existing
                         rectLow.attr('class', 'low')
-                            .attr('x', function (d) {
-                            return timeScale(d.timestamp);
+                            .attr('x', function (d, i) {
+                            return calcBarXPos(d, i);
                         })
                             .attr('y', function (d) {
                             return isNaN(d.avg) ? height : yScale(d.avg);
                         })
                             .attr('height', function (d) {
-                            if (isEmptyDataBar(d)) {
-                                return 0;
-                            }
-                            else {
-                                return yScale(d.min) - yScale(d.avg);
-                            }
+                            return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
                         })
-                            .attr('width', function () {
-                            return calcBarWidth();
+                            .attr('width', function (d, i) {
+                            return calcBarWidthAdjusted(i);
                         })
                             .attr('opacity', 0.9)
                             .attr('data-rhq-value', function (d) {
@@ -1021,24 +1168,20 @@ var Charts;
                         }).on('mouseout', function () {
                             tip.hide();
                         });
+                        // add new ones
                         rectLow.enter().append('rect')
                             .attr('class', 'low')
-                            .attr('x', function (d) {
-                            return timeScale(d.timestamp);
+                            .attr('x', function (d, i) {
+                            return calcBarXPos(d, i);
                         })
                             .attr('y', function (d) {
                             return isNaN(d.avg) ? height : yScale(d.avg);
                         })
                             .attr('height', function (d) {
-                            if (isEmptyDataBar(d)) {
-                                return 0;
-                            }
-                            else {
-                                return yScale(d.min) - yScale(d.avg);
-                            }
+                            return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
                         })
-                            .attr('width', function () {
-                            return calcBarWidth();
+                            .attr('width', function (d, i) {
+                            return calcBarWidthAdjusted(i);
                         })
                             .attr('opacity', 0.9)
                             .attr('data-rhq-value', function (d) {
@@ -1058,7 +1201,7 @@ var Charts;
                         // update existing
                         lineHistoHighStem.attr('class', 'histogramTopStem')
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('x1', function (d) {
                             return xMidPointStartPosition(d);
@@ -1081,7 +1224,7 @@ var Charts;
                         // add new ones
                         lineHistoHighStem.enter().append('line')
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('class', 'histogramTopStem')
                             .attr('x1', function (d) {
@@ -1108,7 +1251,7 @@ var Charts;
                         // update existing
                         lineHistoLowStem
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('class', 'histogramBottomStem')
                             .attr('x1', function (d) {
@@ -1131,7 +1274,7 @@ var Charts;
                         // add new ones
                         lineHistoLowStem.enter().append('line')
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('class', 'histogramBottomStem')
                             .attr('x1', function (d) {
@@ -1157,7 +1300,7 @@ var Charts;
                         // update existing
                         lineHistoTopCross
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('class', 'histogramTopCross')
                             .attr('x1', function (d) {
@@ -1184,7 +1327,7 @@ var Charts;
                         // add new ones
                         lineHistoTopCross.enter().append('line')
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('class', 'histogramTopCross')
                             .attr('x1', function (d) {
@@ -1214,7 +1357,7 @@ var Charts;
                         // update existing
                         lineHistoBottomCross
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('class', 'histogramBottomCross')
                             .attr('x1', function (d) {
@@ -1241,7 +1384,7 @@ var Charts;
                         // add new ones
                         lineHistoBottomCross.enter().append('line')
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('class', 'histogramBottomCross')
                             .attr('x1', function (d) {
@@ -1273,7 +1416,7 @@ var Charts;
                     var metricChartLine = d3.svg.line()
                         .interpolate(interpolation)
                         .defined(function (d) {
-                        return !d.empty;
+                        return !isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return timeScale(d.timestamp);
@@ -1319,12 +1462,7 @@ var Charts;
                                     .attr('class', 'multiLine')
                                     .attr('fill', 'none')
                                     .attr('stroke', function () {
-                                    if (singleChartData.color) {
-                                        return singleChartData.color;
-                                    }
-                                    else {
-                                        return colorScale(g++);
-                                    }
+                                    return singleChartData.color || colorScale(g++);
                                 })
                                     .transition()
                                     .attr('d', createLine('linear'));
@@ -1356,7 +1494,7 @@ var Charts;
                     var highArea = d3.svg.area()
                         .interpolate(interpolation)
                         .defined(function (d) {
-                        return !d.empty;
+                        return !isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return xMidPointStartPosition(d);
@@ -1369,7 +1507,7 @@ var Charts;
                     }), avgArea = d3.svg.area()
                         .interpolate(interpolation)
                         .defined(function (d) {
-                        return !d.empty;
+                        return !isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return xMidPointStartPosition(d);
@@ -1382,7 +1520,7 @@ var Charts;
                     }), lowArea = d3.svg.area()
                         .interpolate(interpolation)
                         .defined(function (d) {
-                        return !d.empty;
+                        return !isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return xMidPointStartPosition(d);
@@ -1434,7 +1572,7 @@ var Charts;
                         // update existing
                         highDotCircle.attr('class', 'highDot')
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('r', 3)
                             .attr('cx', function (d) {
@@ -1453,7 +1591,7 @@ var Charts;
                         // add new ones
                         highDotCircle.enter().append('circle')
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('class', 'highDot')
                             .attr('r', 3)
@@ -1476,7 +1614,7 @@ var Charts;
                         // update existing
                         lowDotCircle.attr('class', 'lowDot')
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('r', 3)
                             .attr('cx', function (d) {
@@ -1495,7 +1633,7 @@ var Charts;
                         // add new ones
                         lowDotCircle.enter().append('circle')
                             .filter(function (d) {
-                            return !isEmptyDataBar(d);
+                            return !isEmptyDataPoint(d);
                         })
                             .attr('class', 'lowDot')
                             .attr('r', 3)
@@ -1523,7 +1661,7 @@ var Charts;
                     // update existing
                     avgDotCircle.attr('class', 'avgDot')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('r', 3)
                         .attr('cx', function (d) {
@@ -1542,7 +1680,7 @@ var Charts;
                     // add new ones
                     avgDotCircle.enter().append('circle')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('class', 'avgDot')
                         .attr('r', 3)
@@ -1567,7 +1705,7 @@ var Charts;
                     // update existing
                     lineScatterTopStem.attr('class', 'scatterLineTopStem')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d);
@@ -1587,7 +1725,7 @@ var Charts;
                     // add new ones
                     lineScatterTopStem.enter().append('line')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterLineTopStem')
                         .attr('x1', function (d) {
@@ -1611,7 +1749,7 @@ var Charts;
                     // update existing
                     lineScatterBottomStem.attr('class', 'scatterLineBottomStem')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d);
@@ -1631,7 +1769,7 @@ var Charts;
                     // add new ones
                     lineScatterBottomStem.enter().append('line')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterLineBottomStem')
                         .attr('x1', function (d) {
@@ -1655,7 +1793,7 @@ var Charts;
                     // update existing
                     lineScatterTopCross.attr('class', 'scatterLineTopCross')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d) - 3;
@@ -1678,7 +1816,7 @@ var Charts;
                     // add new ones
                     lineScatterTopCross.enter().append('line')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterLineTopCross')
                         .attr('x1', function (d) {
@@ -1705,7 +1843,7 @@ var Charts;
                     // update existing
                     lineScatterBottomCross.attr('class', 'scatterLineBottomCross')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d) - 3;
@@ -1728,7 +1866,7 @@ var Charts;
                     // add new ones
                     lineScatterBottomCross.enter().append('line')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterLineBottomCross')
                         .attr('x1', function (d) {
@@ -1755,7 +1893,7 @@ var Charts;
                     // update existing
                     circleScatterDot.attr('class', 'scatterDot')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('r', 3)
                         .attr('cx', function (d) {
@@ -1777,7 +1915,7 @@ var Charts;
                     // add new ones
                     circleScatterDot.enter().append('circle')
                         .filter(function (d) {
-                        return !isEmptyDataBar(d);
+                        return !isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterDot')
                         .attr('r', 3)
@@ -1846,10 +1984,10 @@ var Charts;
                     var interpolate = newInterpolation || 'monotone', line = d3.svg.line()
                         .interpolate(interpolate)
                         .defined(function (d) {
-                        return !d.empty;
+                        return !isEmptyDataPoint(d);
                     })
                         .x(function (d) {
-                        return timeScale(d.timestamp) + (calcBarWidth() / 2);
+                        return timeScale(d.timestamp);
                     })
                         .y(function (d) {
                         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -1860,7 +1998,7 @@ var Charts;
                     var interpolate = newInterpolation || 'monotone', line = d3.svg.line()
                         .interpolate(interpolate)
                         .defined(function (d) {
-                        return !d.empty;
+                        return !isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return timeScale(d.timestamp);
