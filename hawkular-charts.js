@@ -361,8 +361,8 @@ var Charts;
                         oneTimeChartSetup();
                         determineAvailScale(transformedAvailDataPoint);
                         createXandYAxes();
-                        createAvailabilityChart(transformedAvailDataPoint);
                         createXAxisBrush();
+                        createAvailabilityChart(transformedAvailDataPoint);
                         console.timeEnd('availChartRender');
                         console.groupEnd();
                     }
