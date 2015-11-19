@@ -400,6 +400,24 @@ namespace Charts {
               tip.show(d, i);
             }).on('mouseout', () => {
               tip.hide();
+            })
+            .on('mousedown', () => {
+              let brushElem = svg.select(".brush").node();
+              let clickEvent: any = new Event('mousedown');
+              clickEvent.pageX = d3.event.pageX;
+              clickEvent.clientX = d3.event.clientX;
+              clickEvent.pageY = d3.event.pageY;
+              clickEvent.clientY = d3.event.clientY;
+              brushElem.dispatchEvent(clickEvent);
+            })
+            .on('mouseup', () => {
+              let brushElem = svg.select(".brush").node();
+              let clickEvent: any = new Event('mouseup');
+              clickEvent.pageX = d3.event.pageX;
+              clickEvent.clientX = d3.event.clientX;
+              clickEvent.pageY = d3.event.pageY;
+              clickEvent.clientY = d3.event.clientY;
+              brushElem.dispatchEvent(clickEvent);
             });
 
           // The bottom line of the availability chart
