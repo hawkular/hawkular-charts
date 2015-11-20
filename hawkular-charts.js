@@ -287,6 +287,24 @@ var Charts;
                         tip.show(d, i);
                     }).on('mouseout', function () {
                         tip.hide();
+                    })
+                        .on('mousedown', function () {
+                        var brushElem = svg.select(".brush").node();
+                        var clickEvent = new Event('mousedown');
+                        clickEvent.pageX = d3.event.pageX;
+                        clickEvent.clientX = d3.event.clientX;
+                        clickEvent.pageY = d3.event.pageY;
+                        clickEvent.clientY = d3.event.clientY;
+                        brushElem.dispatchEvent(clickEvent);
+                    })
+                        .on('mouseup', function () {
+                        var brushElem = svg.select(".brush").node();
+                        var clickEvent = new Event('mouseup');
+                        clickEvent.pageX = d3.event.pageX;
+                        clickEvent.clientX = d3.event.clientX;
+                        clickEvent.pageY = d3.event.pageY;
+                        clickEvent.clientY = d3.event.clientY;
+                        brushElem.dispatchEvent(clickEvent);
                     });
                     // The bottom line of the availability chart
                     svg.append('line')
@@ -314,12 +332,6 @@ var Charts;
                         .x(timeScale)
                         .on('brushstart', brushStart)
                         .on('brushend', brushEnd);
-                    xAxisGroup.append('g')
-                        .attr('class', 'x brush')
-                        .call(brush)
-                        .selectAll('rect')
-                        .attr('y', 0)
-                        .attr('height', 70);
                     brushGroup = svg.append('g')
                         .attr('class', 'brush')
                         .call(brush);
@@ -2460,4 +2472,170 @@ var Charts;
             };
         }
     ]);
+})(Charts || (Charts = {}));
+
+/// <reference path='../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
+    var _module = angular.module('hawkular.charts');
+    var SparklineChartDirective = (function () {
+        function SparklineChartDirective($rootScope) {
+            var _this = this;
+            this.restrict = 'E';
+            this.replace = true;
+            this.scope = {
+                data: '='
+            };
+            this.link = function (scope, element, attrs) {
+                var margin = { top: 10, right: 5, bottom: 5, left: 50 };
+                // data specific vars
+                var chartHeight = +attrs.chartHeight || SparklineChartDirective._CHART_HEIGHT, width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, chart, chartParent, svg;
+                function setup() {
+                    // destroy any previous charts
+                    if (chart) {
+                        chartParent.selectAll('*').remove();
+                    }
+                    chartParent = d3.select(element[0]);
+                    chart = chartParent.append('svg');
+                    //.attr('viewBox', '0 0 240 80').attr('preserveAspectRatio', 'xMinYMin meet');
+                    svg = chart.append('g')
+                        .attr('width', width + margin.left + margin.right)
+                        .attr('height', innerChartHeight)
+                        .attr('transform', 'translate(' + margin.left + ',' + height + ')');
+                }
+                function createSparklineChart(dataPoints) {
+                    console.log('dataPoints.length: ' + dataPoints.length);
+                    timeScale = d3.time.scale()
+                        .range([0, width - 10])
+                        .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
+                    xAxis = d3.svg.axis()
+                        .scale(timeScale)
+                        .ticks(5)
+                        .tickSize(4, 0)
+                        .orient('bottom');
+                    svg.selectAll('g.axis').remove();
+                    xAxisGroup = svg.append('g')
+                        .attr('class', 'x axis')
+                        .attr('transform', 'translate(0,' + height + ')')
+                        .call(xAxis);
+                    var yMin = d3.min(dataPoints, function (d) {
+                        return d.avg;
+                    });
+                    var yMax = d3.max(dataPoints, function (d) {
+                        return d.avg;
+                    });
+                    // give a pad of % to min/max so we are not against x-axis
+                    yMax = yMax + (yMax * 0.03);
+                    yMin = yMin - (yMin * 0.05);
+                    yScale = d3.scale.linear()
+                        .rangeRound([SparklineChartDirective._CHART_HEIGHT, 0])
+                        .domain([yMin, yMax]);
+                    yAxis = d3.svg.axis()
+                        .scale(yScale)
+                        .ticks(0)
+                        .tickSize(4, 0)
+                        .orient("left");
+                    yAxisGroup = svg.append('g')
+                        .attr('class', 'y axis')
+                        .call(yAxis);
+                    var interpolationType = 'basis';
+                    var area = d3.svg.area()
+                        .interpolate(interpolationType)
+                        .defined(function (d) {
+                        return !d.empty;
+                    })
+                        .x(function (d) {
+                        return timeScale(d.timestamp);
+                    })
+                        .y0(function (d) {
+                        return SparklineChartDirective._CHART_HEIGHT - 15;
+                    })
+                        .y1(function (d) {
+                        return yScale(d.avg);
+                    });
+                    // this is the line that caps the area
+                    var sparklineLine = d3.svg.line()
+                        .interpolate(interpolationType)
+                        .defined(function (d) {
+                        return !d.empty;
+                    })
+                        .x(function (d) {
+                        return timeScale(d.timestamp);
+                    })
+                        .y(function (d) {
+                        return yScale(d.avg);
+                    });
+                    var pathSparklineLine = svg.selectAll('path.sparklineLine')
+                        .data([dataPoints]);
+                    // update existing
+                    pathSparklineLine.attr('class', 'sparklineLine')
+                        .transition()
+                        .attr('d', sparklineLine);
+                    // add new ones
+                    pathSparklineLine.enter().append('path')
+                        .attr('class', 'sparklineLine')
+                        .transition()
+                        .attr('d', sparklineLine);
+                    // remove old ones
+                    pathSparklineLine.exit().remove();
+                    var sparklineArea = svg.append("g")
+                        .attr("class", "sparkline");
+                    sparklineArea.append("path")
+                        .datum(dataPoints)
+                        .transition()
+                        .duration(500)
+                        .attr("class", "sparklineArea")
+                        .attr("d", area);
+                }
+                scope.$watchCollection('data', function (newData) {
+                    console.log('Sparkline Chart Data Changed');
+                    if (newData) {
+                        _this.dataPoints = formatBucketedChartOutput(angular.fromJson(newData));
+                        scope.render(_this.dataPoints);
+                    }
+                });
+                function formatBucketedChartOutput(response) {
+                    //  The schema is different for bucketed output
+                    if (response) {
+                        return response.map(function (point) {
+                            var timestamp = point.timestamp || (point.start + (point.end - point.start) / 2);
+                            return {
+                                timestamp: timestamp,
+                                //date: new Date(timestamp),
+                                value: !angular.isNumber(point.value) ? undefined : point.value,
+                                avg: (point.empty) ? undefined : point.avg,
+                                min: !angular.isNumber(point.min) ? undefined : point.min,
+                                max: !angular.isNumber(point.max) ? undefined : point.max,
+                                empty: point.empty
+                            };
+                        });
+                    }
+                }
+                scope.render = function (dataPoints) {
+                    if (dataPoints && dataPoints.length > 0) {
+                        console.group('Render Sparkline Chart');
+                        console.time('SparklineChartRender');
+                        ///NOTE: layering order is important!
+                        setup();
+                        createSparklineChart(dataPoints);
+                        console.timeEnd('SparklineChartRender');
+                        console.groupEnd();
+                    }
+                };
+            };
+        }
+        SparklineChartDirective.Factory = function () {
+            var directive = function ($rootScope) {
+                return new SparklineChartDirective($rootScope);
+            };
+            directive['$inject'] = ['$rootScope'];
+            return directive;
+        };
+        SparklineChartDirective._CHART_WIDTH = 300;
+        SparklineChartDirective._CHART_HEIGHT = 80;
+        return SparklineChartDirective;
+    })();
+    Charts.SparklineChartDirective = SparklineChartDirective;
+    _module.directive('hawkularSparklineChart', SparklineChartDirective.Factory());
 })(Charts || (Charts = {}));
