@@ -39,6 +39,11 @@
       height: 250px;
       width: 750px;
     }
+
+    .sparklineChartWrapper {
+      height: 80px;
+      width: 240px;
+    }
   </style>
 
   <!-- build:js scripts/vendor.js -->
@@ -166,11 +171,21 @@
     </div>
   </div>
 
+
+
   <div class="metricIdHeader"><span class="metricIdLabel"> Context Chart</span>
   </div>
   <div class="contextChartWrapper">
     <context-chart data="originalData">
     </context-chart>
+  </div>
+
+
+  <div class="metricIdHeader"><span class="metricIdLabel">Sparkline Chart</span>
+  </div>
+  <div class="sparkLineChartWrapper">
+    <hawkular-sparkline-chart data="myData">
+    </hawkular-sparkline-chart>
   </div>
 
   <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: HawkularMetric</span>
