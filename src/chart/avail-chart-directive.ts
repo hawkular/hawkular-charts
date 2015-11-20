@@ -456,13 +456,6 @@ namespace Charts {
             .on('brushstart', brushStart)
             .on('brushend', brushEnd);
 
-          xAxisGroup.append('g')
-            .attr('class', 'x brush')
-            .call(brush)
-            .selectAll('rect')
-            .attr('y', 0)
-            .attr('height', 70);
-
           brushGroup = svg.append('g')
             .attr('class', 'brush')
             .call(brush);
