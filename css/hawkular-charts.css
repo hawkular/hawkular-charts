@@ -211,13 +211,27 @@ rect.low {
 /* Context Chart */
 .contextArea{
   fill: #EDF7FF;
-  stroke: #3F8CE5;
+  stroke: #CCE7F5;
   stroke-width: 0;
   opacity: .8;
 }
 .contextLine{
   fill: none;
-  stroke: #2e376a;
+  stroke: #0088CE;
+  stroke-width: 2;
+}
+
+/* Sparkline Chart */
+.sparklineArea{
+  fill: #EDF7FF;
+  stroke: #CCE7F5;
+  stroke-width: 0;
+  opacity: .8;
+}
+
+.sparklineLine{
+  fill: none;
+  stroke: #0088CE;
   stroke-width: 2;
 }
 
@@ -266,22 +280,22 @@ rect.low {
 
 /* Area Chart */
 .highArea {
-  fill: #202fff;
-  opacity: 0.7;
+  fill: #004368;
+  opacity: 0.85;
   stroke-width: 1;
   stroke: #000;
 }
 
 .avgArea {
-  fill: #2c6eff;
-  opacity: 0.7;
+  fill: #0088ce;
+  opacity: 0.85;
   stroke-width: 0.5;
   stroke: none;
 }
 
 .lowArea {
-  fill: #EDF7FF;
-  opacity: 0.7;
+  fill: #bee1f4;
+  opacity: 0.85;
   stroke-width: 0.5;
   stroke: none;
 }

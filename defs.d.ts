@@ -3,3 +3,4 @@
 /// <reference path="d.ts/chart/context-directive.d.ts"/>
 /// <reference path="d.ts/chart/event-names.d.ts"/>
 /// <reference path="d.ts/chart/hawkular-chart-directive.d.ts"/>
+/// <reference path="d.ts/chart/sparkline-chart-directive.d.ts"/>
