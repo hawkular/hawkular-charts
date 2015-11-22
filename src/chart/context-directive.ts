@@ -269,7 +269,7 @@ namespace Charts {
 
   }
 
-  _module.directive('contextChart', ContextChartDirective.Factory());
+  _module.directive('hawkularContextChart', ContextChartDirective.Factory());
 }
 
 
