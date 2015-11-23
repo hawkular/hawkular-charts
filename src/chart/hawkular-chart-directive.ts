@@ -2087,8 +2087,6 @@ namespace Charts {
               case 'histogram' :
                 createHistogramChart(false);
                 break;
-              case 'line' :
-              case 'hawkularline' :
               case 'hawkularmetric' :
                 createHawkularMetricChart();
                 break;
@@ -2106,7 +2104,7 @@ namespace Charts {
                 break;
               default:
                 $log.warn('chart-type is not valid. Must be in' +
-                  ' [rhqbar,area,line,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
+                  ' [rhqbar,area,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
 
             }
           }
