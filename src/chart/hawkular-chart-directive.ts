@@ -134,14 +134,10 @@ namespace Charts {
             showDataPoints = false,
             hideHighLowValues = false,
             useZeroMinValue = false,
-            chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y',
-            chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p',
             buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
 
           // chart specific vars
           let margin = {top: 10, right: 5, bottom: 5, left: 90},
-            contextMargin = {top: 150, right: 5, bottom: 5, left: 90},
-            xAxisContextMargin = {top: 190, right: 5, bottom: 5, left: 90},
             width = 750 - margin.left - margin.right,
             adjustedChartHeight = chartHeight - 50,
             height = adjustedChartHeight - margin.top - margin.bottom,
@@ -165,8 +161,6 @@ namespace Charts {
             timeScaleForContext,
             chart,
             chartParent,
-            context,
-            contextArea,
             svg,
             lowBound,
             highBound,
@@ -290,7 +284,7 @@ namespace Charts {
           }
 
           function determineScale(dataPoints:IChartDataPoint[]) {
-            let xTicks, xTickSubDivide, numberOfBarsForSmallGraph = 20;
+            let xTicks,  numberOfBarsForSmallGraph = 20;
 
             if (dataPoints.length > 0) {
 
@@ -298,13 +292,11 @@ namespace Charts {
               if (useSmallCharts()) {
                 width = 250;
                 xTicks = 3;
-                xTickSubDivide = 2;
                 chartData = dataPoints.slice(dataPoints.length - numberOfBarsForSmallGraph, dataPoints.length);
               }
               else {
                 //  we use the width already defined above
                 xTicks = 9;
-                xTickSubDivide = 5;
                 chartData = dataPoints;
               }
 
@@ -324,7 +316,7 @@ namespace Charts {
               // other than the first half bar to the left, to make up for the first being just half width
               calcBarXPos = (d, i) => {
                 return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth()/2);
-              }
+              };
 
               yScale = d3.scale.linear()
                 .clamp(true)
@@ -371,9 +363,7 @@ namespace Charts {
 
           function setupFilteredMultiData(multiDataPoints:IMultiDataPoint[]):any {
             let alertPeak:number,
-              highPeak:number,
-              highbound:number,
-              lowbound:number;
+              highPeak:number;
 
             function determineMultiDataMinMax() {
               let currentMax:number,
@@ -418,10 +408,7 @@ namespace Charts {
 
 
           function determineMultiScale(multiDataPoints:IMultiDataPoint[]) {
-            const xTicks = 9,
-              xTickSubDivide = 5;
-
-            let firstDataArray;
+            const xTicks = 9;
 
             if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
 
