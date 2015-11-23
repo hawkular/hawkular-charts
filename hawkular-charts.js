@@ -2343,8 +2343,6 @@ var Charts;
                         case 'histogram':
                             createHistogramChart(false);
                             break;
-                        case 'line':
-                        case 'hawkularline':
                         case 'hawkularmetric':
                             createHawkularMetricChart();
                             break;
@@ -2362,7 +2360,7 @@ var Charts;
                             break;
                         default:
                             $log.warn('chart-type is not valid. Must be in' +
-                                ' [rhqbar,area,line,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
+                                ' [rhqbar,area,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
                     }
                 }
                 // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
