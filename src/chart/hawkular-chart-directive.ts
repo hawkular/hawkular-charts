@@ -99,6 +99,10 @@ namespace Charts {
 
         function link(scope, element, attrs) {
 
+          const CHART_HEIGHT =  250,
+            CHART_WIDTH = 750,
+            HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
+
           // data specific vars
           let dataPoints:IChartDataPoint[] = [],
             multiDataPoints:IMultiDataPoint[],
@@ -116,15 +120,9 @@ namespace Charts {
             annotationData = [],
             contextData = [],
             multiChartOverlayData = [],
-            chartHeight = +attrs.chartHeight || 250,
             chartType = attrs.chartType || 'hawkularline',
-            timeLabel = attrs.timeLabel || 'Time',
-            dateLabel = attrs.dateLabel || 'Date',
             singleValueLabel = attrs.singleValueLabel || 'Raw Value',
             noDataLabel = attrs.noDataLabel || 'No Data',
-            aggregateLabel = attrs.aggregateLabel || 'Aggregate',
-            startLabel = attrs.startLabel || 'Start',
-            endLabel = attrs.endLabel || 'End',
             durationLabel = attrs.durationLabel || 'Interval',
             minLabel = attrs.minLabel || 'Min',
             maxLabel = attrs.maxLabel || 'Max',
@@ -133,13 +131,12 @@ namespace Charts {
             showAvgLine = true,
             showDataPoints = false,
             hideHighLowValues = false,
-            useZeroMinValue = false,
-            buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
+            useZeroMinValue = false;
 
           // chart specific vars
           let margin = {top: 10, right: 5, bottom: 5, left: 90},
-            width = 750 - margin.left - margin.right,
-            adjustedChartHeight = chartHeight - 50,
+            width = CHART_WIDTH - margin.left - margin.right,
+            adjustedChartHeight = CHART_HEIGHT - 50,
             height = adjustedChartHeight - margin.top - margin.bottom,
             smallChartThresholdInPixels = 600,
             titleHeight = 30, titleSpace = 10,
@@ -187,7 +184,7 @@ namespace Charts {
 
           function getChartWidth():number {
             //return angular.element('#' + chartContext.chartHandle).width();
-            return 760;
+            return CHART_WIDTH;
           }
 
           function useSmallCharts():boolean {
@@ -202,7 +199,7 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
             chart = chartParent.append('svg')
-              .attr('viewBox', '0 0 760 ' + (chartHeight + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
+              .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
 
             createSvgDefs(chart);
 
@@ -456,11 +453,7 @@ namespace Charts {
                                                      startTimestamp:TimeInMillis,
                                                      endTimestamp:TimeInMillis,
                                                      buckets = 60) {
-            ///$log.debug('-- Retrieving metrics data for urlData: ' + metricId);
-            ///$log.debug('-- Date Range: ' + new Date(startTimestamp) + ' - ' + new Date(endTimestamp));
-            ///$log.debug('-- TenantId: ' + metricTenantId);
 
-            //let numBuckets = buckets || 60;
             let requestConfig:ng.IRequestConfig = <any> {
               headers: {
                 'Hawkular-Tenant': metricTenantId
@@ -543,7 +536,7 @@ namespace Charts {
               prevTimestamp,
               currentTimestamp = d.timestamp,
               barDuration,
-              formattedDateTime = moment(d.timestamp).format(buttonBarDateTimeFormat);
+              formattedDateTime = moment(d.timestamp).format(HOVER_DATE_TIME_FORMAT);
 
             if (i > 0) {
               prevTimestamp = chartData[i - 1].timestamp;
@@ -782,7 +775,7 @@ namespace Charts {
                   tip.show(d, i);
                 }).on('mouseout', () => {
                   tip.hide();
-                })
+                });
               // remove old ones
               rectHigh.exit().remove();
 
@@ -1109,7 +1102,7 @@ namespace Charts {
                 }
               });
 
-              multiDataPoints.forEach((singleChartData, idx) => {
+              multiDataPoints.forEach((singleChartData) => {
                 if (singleChartData && singleChartData.values) {
                   singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
                   let pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash).data([singleChartData.values]);
@@ -1659,7 +1652,7 @@ namespace Charts {
                 .call(yAxis)
                 .append('text')
                 .attr('transform', 'rotate(-90),translate(0,-50)')
-                .attr('x',-chartHeight/2)
+                .attr('x',-CHART_HEIGHT/2)
                 .style('text-anchor', 'start')
                 .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits);
             }
@@ -2195,28 +2188,20 @@ namespace Charts {
             alertValue: '@',
             interpolation: '@',
             multiChartOverlayData: '@',
-            chartHeight: '@',
             chartType: '@',
             yAxisUnits: '@',
             useZeroMinValue: '=',
-            buttonbarDatetimeFormat: '@',
-            timeLabel: '@',
-            dateLabel: '@',
             chartHoverDateFormat: '@',
             chartHoverTimeFormat: '@',
             singleValueLabel: '@',
             noDataLabel: '@',
-            aggregateLabel: '@',
-            startLabel: '@',
-            endLabel: '@',
             durationLabel: '@',
             minLabel: '@',
             maxLabel: '@',
             avgLabel: '@',
             timestampLabel: '@',
             showAvgLine: '=',
-            hideHighLowValues: '=',
-            chartTitle: '@'
+            hideHighLowValues: '='
           }
         };
       }
