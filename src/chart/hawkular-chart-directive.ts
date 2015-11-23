@@ -118,7 +118,6 @@ namespace Charts {
             startTimestamp:TimeInMillis = endTimestamp - timeRangeInSeconds,
             previousRangeDataPoints = [],
             annotationData = [],
-            contextData = [],
             chartType = attrs.chartType || 'hawkularline',
             singleValueLabel = attrs.singleValueLabel || 'Raw Value',
             noDataLabel = attrs.noDataLabel || 'No Data',
@@ -154,7 +153,6 @@ namespace Charts {
             brush,
             brushGroup,
             timeScaleForBrush,
-            timeScaleForContext,
             chart,
             chartParent,
             svg,
@@ -172,7 +170,6 @@ namespace Charts {
           showDataPoints = attrs.showDataPoints;
           previousRangeDataPoints = attrs.previousRangeData;
           annotationData = attrs.annotationData;
-          contextData = attrs.contextData;
 
           let startIntervalPromise;
 
@@ -299,20 +296,13 @@ namespace Charts {
                   return d.timestamp;
                 }));
 
-              if (contextData) {
-                timeScaleForContext = d3.time.scale()
-                  .range([0, width])
-                  .domain(d3.extent(contextData, (d:IChartDataPoint) => {
-                    return d.timestamp;
-                  }));
-              } else {
-                timeScaleForBrush = d3.time.scale()
+
+              timeScaleForBrush = d3.time.scale()
                   .range([0, width])
                   .domain(d3.extent(chartData, (d:IChartDataPoint) => {
                     return d.timestamp;
                   }));
 
-              }
 
               xAxis = d3.svg.axis()
                 .scale(timeScale)
@@ -1947,14 +1937,6 @@ namespace Charts {
             }
           }, true);
 
-
-          scope.$watch('contextData', (newContextData) => {
-            if (newContextData) {
-              contextData = angular.fromJson(newContextData);
-              scope.render(processedNewData, processedPreviousRangeData);
-            }
-          }, true);
-
           scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'],
             (chartAttrs) => {
               alertValue = chartAttrs[0] || alertValue;
@@ -2112,7 +2094,6 @@ namespace Charts {
             refreshIntervalInSeconds: '@',
             previousRangeData: '@',
             annotationData: '@',
-            contextData: '@',
             showDataPoints: '=',
             alertValue: '@',
             interpolation: '@',
