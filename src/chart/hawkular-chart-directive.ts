@@ -119,7 +119,6 @@ namespace Charts {
             previousRangeDataPoints = [],
             annotationData = [],
             contextData = [],
-            multiChartOverlayData = [],
             chartType = attrs.chartType || 'hawkularline',
             singleValueLabel = attrs.singleValueLabel || 'Raw Value',
             noDataLabel = attrs.noDataLabel || 'No Data',
@@ -172,7 +171,6 @@ namespace Charts {
           dataPoints = attrs.data;
           showDataPoints = attrs.showDataPoints;
           previousRangeDataPoints = attrs.previousRangeData;
-          multiChartOverlayData = attrs.multiChartOverlayData;
           annotationData = attrs.annotationData;
           contextData = attrs.contextData;
 
@@ -227,37 +225,6 @@ namespace Charts {
           function setupFilteredData(dataPoints:IChartDataPoint[]):void {
             let alertPeak:number,
               highPeak:number;
-
-            function determineMultiMetricMinMax() {
-              let currentMax:number,
-                currentMin:number,
-                seriesMax:number,
-                seriesMin:number,
-                maxList = [],
-                minList = [];
-
-              multiChartOverlayData.forEach((series) => {
-                currentMax = d3.max(series.map((d) => {
-                  return !isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
-                }));
-                maxList.push(currentMax);
-                currentMin = d3.min(series.map((d) => {
-                  return !isEmptyDataPoint(d) ? (d.avg || d.value) : Number.MAX_VALUE;
-                }));
-                minList.push(currentMin);
-
-              });
-              seriesMax = d3.max(maxList);
-              seriesMin = d3.min(minList);
-              return [seriesMin, seriesMax];
-            }
-
-
-            if (multiChartOverlayData) {
-              let minMax = determineMultiMetricMinMax();
-              peak = minMax[1];
-              min = minMax[0];
-            }
 
             if (dataPoints) {
               peak = d3.max(dataPoints.map((d) => {
@@ -1891,32 +1858,6 @@ namespace Charts {
 
           }
 
-          function createMultiMetricOverlay() {
-            let colorScale = d3.scale.category20();
-
-            if (multiChartOverlayData) {
-              $log.log('Running MultiChartOverlay for %i metrics', multiChartOverlayData.length);
-
-              multiChartOverlayData.forEach((singleChartData) => {
-
-                svg.append('path')
-                  .datum(singleChartData)
-                  .attr('class', 'multiLine')
-                  .attr('fill', (d, i) => {
-                    return colorScale(i);
-                  })
-                  .attr('stroke', (d, i) => {
-                    return colorScale(i);
-                  })
-                  .attr('stroke-width', '1')
-                  .attr('stroke-opacity', '.8')
-                  .attr('d', createCenteredLine('linear'));
-              });
-            }
-
-          }
-
-
           function annotateChart(annotationData) {
             if (annotationData) {
               svg.selectAll('.annotationDot')
@@ -2013,17 +1954,6 @@ namespace Charts {
               scope.render(processedNewData, processedPreviousRangeData);
             }
           }, true);
-
-          scope.$on('MultiChartOverlayDataChanged', (event, newMultiChartData) => {
-            $log.log('Handling MultiChartOverlayDataChanged in Chart Directive');
-            if (newMultiChartData) {
-              multiChartOverlayData = angular.fromJson(newMultiChartData);
-            } else {
-              // same event is sent with no data to clear it
-              multiChartOverlayData = [];
-            }
-            scope.render(processedNewData, processedPreviousRangeData);
-          });
 
           scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'],
             (chartAttrs) => {
@@ -2147,7 +2077,6 @@ namespace Charts {
               createDataPoints(chartData);
             }
             createPreviousRangeOverlay(previousRangeDataPoints);
-            createMultiMetricOverlay();
             createXandYAxes();
             if (showAvgLine) {
               createAvgLines();
@@ -2187,7 +2116,6 @@ namespace Charts {
             showDataPoints: '=',
             alertValue: '@',
             interpolation: '@',
-            multiChartOverlayData: '@',
             chartType: '@',
             yAxisUnits: '@',
             useZeroMinValue: '=',
