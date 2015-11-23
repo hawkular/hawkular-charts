@@ -99,6 +99,10 @@ namespace Charts {
 
         function link(scope, element, attrs) {
 
+          const CHART_HEIGHT =  250,
+            CHART_WIDTH = 750,
+            HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
+
           // data specific vars
           let dataPoints:IChartDataPoint[] = [],
             multiDataPoints:IMultiDataPoint[],
@@ -114,17 +118,9 @@ namespace Charts {
             startTimestamp:TimeInMillis = endTimestamp - timeRangeInSeconds,
             previousRangeDataPoints = [],
             annotationData = [],
-            contextData = [],
-            multiChartOverlayData = [],
-            chartHeight = +attrs.chartHeight || 250,
             chartType = attrs.chartType || 'hawkularline',
-            timeLabel = attrs.timeLabel || 'Time',
-            dateLabel = attrs.dateLabel || 'Date',
             singleValueLabel = attrs.singleValueLabel || 'Raw Value',
             noDataLabel = attrs.noDataLabel || 'No Data',
-            aggregateLabel = attrs.aggregateLabel || 'Aggregate',
-            startLabel = attrs.startLabel || 'Start',
-            endLabel = attrs.endLabel || 'End',
             durationLabel = attrs.durationLabel || 'Interval',
             minLabel = attrs.minLabel || 'Min',
             maxLabel = attrs.maxLabel || 'Max',
@@ -133,13 +129,12 @@ namespace Charts {
             showAvgLine = true,
             showDataPoints = false,
             hideHighLowValues = false,
-            useZeroMinValue = false,
-            buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
+            useZeroMinValue = false;
 
           // chart specific vars
           let margin = {top: 10, right: 5, bottom: 5, left: 90},
-            width = 750 - margin.left - margin.right,
-            adjustedChartHeight = chartHeight - 50,
+            width = CHART_WIDTH - margin.left - margin.right,
+            adjustedChartHeight = CHART_HEIGHT - 50,
             height = adjustedChartHeight - margin.top - margin.bottom,
             smallChartThresholdInPixels = 600,
             titleHeight = 30, titleSpace = 10,
@@ -158,7 +153,6 @@ namespace Charts {
             brush,
             brushGroup,
             timeScaleForBrush,
-            timeScaleForContext,
             chart,
             chartParent,
             svg,
@@ -175,9 +169,7 @@ namespace Charts {
           dataPoints = attrs.data;
           showDataPoints = attrs.showDataPoints;
           previousRangeDataPoints = attrs.previousRangeData;
-          multiChartOverlayData = attrs.multiChartOverlayData;
           annotationData = attrs.annotationData;
-          contextData = attrs.contextData;
 
           let startIntervalPromise;
 
@@ -187,7 +179,7 @@ namespace Charts {
 
           function getChartWidth():number {
             //return angular.element('#' + chartContext.chartHandle).width();
-            return 760;
+            return CHART_WIDTH;
           }
 
           function useSmallCharts():boolean {
@@ -202,7 +194,7 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
             chart = chartParent.append('svg')
-              .attr('viewBox', '0 0 760 ' + (chartHeight + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
+              .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
 
             createSvgDefs(chart);
 
@@ -230,37 +222,6 @@ namespace Charts {
           function setupFilteredData(dataPoints:IChartDataPoint[]):void {
             let alertPeak:number,
               highPeak:number;
-
-            function determineMultiMetricMinMax() {
-              let currentMax:number,
-                currentMin:number,
-                seriesMax:number,
-                seriesMin:number,
-                maxList = [],
-                minList = [];
-
-              multiChartOverlayData.forEach((series) => {
-                currentMax = d3.max(series.map((d) => {
-                  return !isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
-                }));
-                maxList.push(currentMax);
-                currentMin = d3.min(series.map((d) => {
-                  return !isEmptyDataPoint(d) ? (d.avg || d.value) : Number.MAX_VALUE;
-                }));
-                minList.push(currentMin);
-
-              });
-              seriesMax = d3.max(maxList);
-              seriesMin = d3.min(minList);
-              return [seriesMin, seriesMax];
-            }
-
-
-            if (multiChartOverlayData) {
-              let minMax = determineMultiMetricMinMax();
-              peak = minMax[1];
-              min = minMax[0];
-            }
 
             if (dataPoints) {
               peak = d3.max(dataPoints.map((d) => {
@@ -335,20 +296,13 @@ namespace Charts {
                   return d.timestamp;
                 }));
 
-              if (contextData) {
-                timeScaleForContext = d3.time.scale()
-                  .range([0, width])
-                  .domain(d3.extent(contextData, (d:IChartDataPoint) => {
-                    return d.timestamp;
-                  }));
-              } else {
-                timeScaleForBrush = d3.time.scale()
+
+              timeScaleForBrush = d3.time.scale()
                   .range([0, width])
                   .domain(d3.extent(chartData, (d:IChartDataPoint) => {
                     return d.timestamp;
                   }));
 
-              }
 
               xAxis = d3.svg.axis()
                 .scale(timeScale)
@@ -456,11 +410,7 @@ namespace Charts {
                                                      startTimestamp:TimeInMillis,
                                                      endTimestamp:TimeInMillis,
                                                      buckets = 60) {
-            ///$log.debug('-- Retrieving metrics data for urlData: ' + metricId);
-            ///$log.debug('-- Date Range: ' + new Date(startTimestamp) + ' - ' + new Date(endTimestamp));
-            ///$log.debug('-- TenantId: ' + metricTenantId);
 
-            //let numBuckets = buckets || 60;
             let requestConfig:ng.IRequestConfig = <any> {
               headers: {
                 'Hawkular-Tenant': metricTenantId
@@ -543,7 +493,7 @@ namespace Charts {
               prevTimestamp,
               currentTimestamp = d.timestamp,
               barDuration,
-              formattedDateTime = moment(d.timestamp).format(buttonBarDateTimeFormat);
+              formattedDateTime = moment(d.timestamp).format(HOVER_DATE_TIME_FORMAT);
 
             if (i > 0) {
               prevTimestamp = chartData[i - 1].timestamp;
@@ -782,7 +732,7 @@ namespace Charts {
                   tip.show(d, i);
                 }).on('mouseout', () => {
                   tip.hide();
-                })
+                });
               // remove old ones
               rectHigh.exit().remove();
 
@@ -1109,7 +1059,7 @@ namespace Charts {
                 }
               });
 
-              multiDataPoints.forEach((singleChartData, idx) => {
+              multiDataPoints.forEach((singleChartData) => {
                 if (singleChartData && singleChartData.values) {
                   singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
                   let pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash).data([singleChartData.values]);
@@ -1659,7 +1609,7 @@ namespace Charts {
                 .call(yAxis)
                 .append('text')
                 .attr('transform', 'rotate(-90),translate(0,-50)')
-                .attr('x',-chartHeight/2)
+                .attr('x',-CHART_HEIGHT/2)
                 .style('text-anchor', 'start')
                 .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits);
             }
@@ -1898,32 +1848,6 @@ namespace Charts {
 
           }
 
-          function createMultiMetricOverlay() {
-            let colorScale = d3.scale.category20();
-
-            if (multiChartOverlayData) {
-              $log.log('Running MultiChartOverlay for %i metrics', multiChartOverlayData.length);
-
-              multiChartOverlayData.forEach((singleChartData) => {
-
-                svg.append('path')
-                  .datum(singleChartData)
-                  .attr('class', 'multiLine')
-                  .attr('fill', (d, i) => {
-                    return colorScale(i);
-                  })
-                  .attr('stroke', (d, i) => {
-                    return colorScale(i);
-                  })
-                  .attr('stroke-width', '1')
-                  .attr('stroke-opacity', '.8')
-                  .attr('d', createCenteredLine('linear'));
-              });
-            }
-
-          }
-
-
           function annotateChart(annotationData) {
             if (annotationData) {
               svg.selectAll('.annotationDot')
@@ -2012,25 +1936,6 @@ namespace Charts {
               scope.render(processedNewData, processedPreviousRangeData);
             }
           }, true);
-
-
-          scope.$watch('contextData', (newContextData) => {
-            if (newContextData) {
-              contextData = angular.fromJson(newContextData);
-              scope.render(processedNewData, processedPreviousRangeData);
-            }
-          }, true);
-
-          scope.$on('MultiChartOverlayDataChanged', (event, newMultiChartData) => {
-            $log.log('Handling MultiChartOverlayDataChanged in Chart Directive');
-            if (newMultiChartData) {
-              multiChartOverlayData = angular.fromJson(newMultiChartData);
-            } else {
-              // same event is sent with no data to clear it
-              multiChartOverlayData = [];
-            }
-            scope.render(processedNewData, processedPreviousRangeData);
-          });
 
           scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'],
             (chartAttrs) => {
@@ -2154,7 +2059,6 @@ namespace Charts {
               createDataPoints(chartData);
             }
             createPreviousRangeOverlay(previousRangeDataPoints);
-            createMultiMetricOverlay();
             createXandYAxes();
             if (showAvgLine) {
               createAvgLines();
@@ -2190,33 +2094,23 @@ namespace Charts {
             refreshIntervalInSeconds: '@',
             previousRangeData: '@',
             annotationData: '@',
-            contextData: '@',
             showDataPoints: '=',
             alertValue: '@',
             interpolation: '@',
-            multiChartOverlayData: '@',
-            chartHeight: '@',
             chartType: '@',
             yAxisUnits: '@',
             useZeroMinValue: '=',
-            buttonbarDatetimeFormat: '@',
-            timeLabel: '@',
-            dateLabel: '@',
             chartHoverDateFormat: '@',
             chartHoverTimeFormat: '@',
             singleValueLabel: '@',
             noDataLabel: '@',
-            aggregateLabel: '@',
-            startLabel: '@',
-            endLabel: '@',
             durationLabel: '@',
             minLabel: '@',
             maxLabel: '@',
             avgLabel: '@',
             timestampLabel: '@',
             showAvgLine: '=',
-            hideHighLowValues: '=',
-            chartTitle: '@'
+            hideHighLowValues: '='
           }
         };
       }
