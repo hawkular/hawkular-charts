@@ -12,8 +12,22 @@
   <link rel="stylesheet" href="css/hawkular-charts.css">
   <style>
 
+    .contextChartSection {
+      background-color: #fafafa;
+      border: 1px solid lightgrey;
+      margin: 20px;
+    }
+
+    #alertValue {
+      width: 50px;
+    }
+
     .metricIdLabel {
       color: #1008a9;
+    }
+
+    .contextIdLabel {
+      color: #1794BC;
     }
 
     .metricIdHeader {
@@ -27,8 +41,13 @@
     .optionsWrapper {
       border: 1px solid lightgrey;
       padding: 10px;
-      margin: 10px;
+      margin: 20px;
       width: 700px;
+    }
+
+    .narrative {
+      margin: 20px;
+      font-style: italic;
     }
 
     .chartWrapper {
@@ -36,7 +55,7 @@
     }
 
     .contextChartWrapper {
-      height: 250px;
+      height: 200px;
       width: 750px;
     }
 
@@ -44,6 +63,8 @@
       height: 80px;
       width: 240px;
     }
+
+
   </style>
 
   <!-- build:js scripts/vendor.js -->
@@ -63,7 +84,7 @@
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
 
-    app.controller('ChartController', function ($scope,$rootScope) {
+    app.controller('ChartController', function ($scope, $rootScope) {
 
       $scope.timerange = {};
       // set the alert threshold to whatever
@@ -149,36 +170,39 @@
   <li><a href="./multi-chart-sample.html">Multi-Chart Sample</a></li>
 </ul>
 
-<p style="font-style: italic">
-  Be sure to drag on the chart to select interesting areas to zoom in on. This example has all of charts
-  responding to the change in zoom area. Altering the number of data points can have a positive or negative effect
-  on the way a chart looks.
+<p class="narrative">
+  Drag on the charts (and context chart) to select interesting areas to zoom in on. This example has all of
+  charts
+  responding to the change in z oom area. Altering the number of data points can have a positive or negative effect
+  on the way a chart looks. Experiment!
 </p>
 
 <div ng-controller="ChartController">
 
-  <div class="optionsWrapper">
-    <div style="margin-bottom: 5px;">
 
-      <label for="alertValue">Alert Threshold: </label>
-      <input id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
-      <label for="dataPoints">Data Points: </label>
-      <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
-      <label for="highLowValues">Hide High/Low Values: </label>
-      <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"
-             ng-checked="hideHighLowValues"
-             ng-click="toggleHighLow();"/>
+  <div class="contextChartSection">
+    <div class="metricIdHeader"><span class="contextIdLabel"> Context Chart</span>
     </div>
+    <div class="contextChartWrapper">
+      <hawkular-context-chart data="originalData">
+      </hawkular-context-chart>
+    </div>
+
   </div>
 
+  <form name="optonsForm">
 
-
-  <div class="metricIdHeader"><span class="metricIdLabel"> Context Chart</span>
-  </div>
-  <div class="contextChartWrapper">
-    <context-chart data="originalData">
-    </context-chart>
-  </div>
+    <div class="optionsWrapper">
+      <div style="margin-bottom: 5px;">
+        <label for="alertValue">Alert Threshold: </label>
+        <input id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
+        <label for="dataPoints">Data Points: </label>
+        <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
+        <label for="highLowValues">Hide High/Low Values: </label>
+        <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"/>
+      </div>
+    </div>
+  </form>
 
 
   <div class="metricIdHeader"><span class="metricIdLabel">Sparkline Chart</span>
@@ -197,7 +221,7 @@
       alert-value="{{alertThreshold}}"
       show-data-points="true"
       y-axis-units="Response Time (ms)"
-      >
+    >
     </hawkular-chart>
   </div>
 
@@ -242,6 +266,7 @@
       data="myData"
       chart-type="rhqbar"
       alert-value="{{alertThreshold}}"
+      hide-high-low-values="hideHighLowValues"
       y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>

@@ -584,7 +584,7 @@ var Charts;
         return ContextChartDirective;
     })();
     Charts.ContextChartDirective = ContextChartDirective;
-    _module.directive('contextChart', ContextChartDirective.Factory());
+    _module.directive('hawkularContextChart', ContextChartDirective.Factory());
 })(Charts || (Charts = {}));
 
 ///
@@ -657,9 +657,9 @@ var Charts;
             var BASE_URL = '/hawkular/metrics';
             function link(scope, element, attrs) {
                 // data specific vars
-                var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false, chartHoverDateFormat = attrs.chartHoverDateFormat || '%m/%d/%y', chartHoverTimeFormat = attrs.chartHoverTimeFormat || '%I:%M:%S %p', buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
+                var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false, buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, contextMargin = { top: 150, right: 5, bottom: 5, left: 90 }, xAxisContextMargin = { top: 190, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, calcBarWidthAdjusted, calcBarXPos, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, context, contextArea, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, calcBarWidthAdjusted, calcBarXPos, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
                 var hasInit = false;
                 dataPoints = attrs.data;
                 showDataPoints = attrs.showDataPoints;
@@ -745,19 +745,17 @@ var Charts;
                     highBound = !!!highBound && !!!lowBound ? DEFAULT_Y_SCALE : highBound;
                 }
                 function determineScale(dataPoints) {
-                    var xTicks, xTickSubDivide, numberOfBarsForSmallGraph = 20;
+                    var xTicks, numberOfBarsForSmallGraph = 20;
                     if (dataPoints.length > 0) {
                         // if window is too small server up small chart
                         if (useSmallCharts()) {
                             width = 250;
                             xTicks = 3;
-                            xTickSubDivide = 2;
                             chartData = dataPoints.slice(dataPoints.length - numberOfBarsForSmallGraph, dataPoints.length);
                         }
                         else {
                             //  we use the width already defined above
                             xTicks = 9;
-                            xTickSubDivide = 5;
                             chartData = dataPoints;
                         }
                         setupFilteredData(dataPoints);
@@ -811,7 +809,7 @@ var Charts;
                     }
                 }
                 function setupFilteredMultiData(multiDataPoints) {
-                    var alertPeak, highPeak, highbound, lowbound;
+                    var alertPeak, highPeak;
                     function determineMultiDataMinMax() {
                         var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
                         multiDataPoints.forEach(function (series) {
@@ -843,8 +841,7 @@ var Charts;
                     return [lowBound, !!!highBound && !!!lowBound ? DEFAULT_Y_SCALE : highBound];
                 }
                 function determineMultiScale(multiDataPoints) {
-                    var xTicks = 9, xTickSubDivide = 5;
-                    var firstDataArray;
+                    var xTicks = 9;
                     if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
                         var lowHigh = setupFilteredMultiData(multiDataPoints);
                         lowBound = lowHigh[0];
