@@ -1693,11 +1693,8 @@ namespace Charts {
 
 
           function extractAlertRanges(chartData:IChartDataPoint[], threshold:AlertThreshold):AlertBound[] {
-            let alertBoundAreaItem:AlertBound;
             let alertBoundAreaItems:AlertBound[];
             let startPoints:number[];
-            let firstChartPoint:IChartDataPoint = chartData[0];
-            let lastChartPoint:IChartDataPoint = chartData[chartData.length - 1];
 
             function findStartPoints(chartData:IChartDataPoint[], threshold:AlertThreshold) {
               let startPoints = [];
@@ -1996,6 +1993,9 @@ namespace Charts {
                 createHawkularMetricChart();
                 break;
               case 'hawkularmetric':
+                console.info('DEPRECATION WARNING: The chart type hawkularmetric has been deprecated and will be' +
+                  ' removed in a future' +
+                  ' release. Please use the line chart type in its place');
                 createHawkularMetricChart();
                 break;
               case 'multiline' :
@@ -2012,7 +2012,7 @@ namespace Charts {
                 break;
               default:
                 $log.warn('chart-type is not valid. Must be in' +
-                  ' [rhqbar,area,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
+                  ' [rhqbar,line,area,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
 
             }
           }
