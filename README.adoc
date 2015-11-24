@@ -1,5 +1,7 @@
 = http://github.com/hawkular/hawkular-charts[Hawkular Charting Directives]
 
+__"Legos of Metrics Visualizations"__
+
 This project provides AngularJS directives for displaying custom visual representations of time series data as charts.
 It uses http://d3js.org[D3] as its charting toolkit and tries to simplify creating advanced metrics visualizations
 with Angular.js.
@@ -44,11 +46,10 @@ Please see https://github.com/hawkular/hawkular/tree/master/console for more rea
 Chart types are set via the *chart-type* attribute of the *hawkular-chart* directive.
 The following chart types are available:
 
+* *hawkularmetric:* specifically tailored toward Single Metrics Display (default if you don't specify) __DEPRECATION WARNING: this will be replaced with *line* in the future__
 * *histogram:* histogram bar chart (used in Hawkular GC chart)
 * *area:* standard area chart with hawkular extensions
 * *scatter:* regular scatter plot supporting avg/high/low
-* *hawkularline:* line chart with settings defaulted to hawkular project
-* *hawkularmetric:* specifically tailored toward Single Metrics Display
 * *multiline:* specifically made for display multiple metrics in a singe graph
 * *rhqbar:* http://rhq-project.github.io/rhq/[RHQ/JON] style graphs https://docs.jboss.org/author/display/RHQ/d3+Charts
 
@@ -66,11 +67,10 @@ _Sample code for this chart:_
     data="dataPoints"
     chart-type="hawkularmetric"
     alert-value="{{threshold}}"
-    y-axis-units="Response Time (ms)"
-    chart-height="250">
+    y-axis-units="Response Time (ms)">
 </hawkular-chart>
 ----
-Want to update the chart, no problem, just alter the dataPoints array with new data and the chart will re-render itself.
+Need to update the chart? No problem, just alter the dataPoints array with new data and the chart will re-render itself.
 Through custom attributes it is very easy to configure a custom chart just the way you want using advanced
 capabilities that standard charting libraries don't provide.
 Need to change the threshold alert value or chart-type just use Angular's two way binding to bind to a field on the
@@ -122,8 +122,7 @@ Bind to a javascript array of metrics:
 ----
  <hawkular-chart
      data="vm.getChartDataFor(selectedMetric)"
-     chart-type="{{selectedChart.chartType}}"
-     chart-height="250">
+     chart-type="{{selectedChart.chartType}}">
  </hawkular-chart>
 ----
 
@@ -137,10 +136,8 @@ This results in less code and more productivity.
 
 All that's left to do now is select the chart type and bind the _data_ attribute on the __<hawkular-chart>__ directive.
 
-
 === Stand Alone Live Updating Tag Example
 __Quickly and easily add some dynamically updating charts to your own pages__
-
 
 The stand alone version of the tag allows for linking to hawkular-metrics servers (or any supplier of formatted metric data) without any dependencies except for a few js libs and 2 lines of script to setup an Angular app.
 
@@ -153,8 +150,7 @@ The stand alone version of the tag allows for linking to hawkular-metrics server
         metric-tenant-id="myTenant"
         metric-url="http://127.0.0.1:8080/hawkular/metrics"
         time-range-in-seconds="86400002"
-        refresh-interval-in-seconds="30"
-        chart-height="250" >
+        refresh-interval-in-seconds="30" >
 </hawkular-chart>
 ----
 
@@ -265,8 +261,7 @@ _Aggregate Metrics Example:_
       }];
 ----
 
-TIP: If you don't have aggregate values then just populate the *avg* value with the desired metric value. Min, Max
-and Empty are optional.
+TIP: If you don't have aggregate values (maybe you aren't using Hawkular Metrics) then just populate the *avg* value with the desired metric value. Min, Max and Empty are optional.
 
 NOTE: Everything ends up being an aggregated value in time (usually after 8 hours). This is due to needing a
 consistently representable dataset that charts nicely. Raw datasets can easily become bottlenecks to the clients
@@ -287,9 +282,6 @@ _Example:_
   {"key" : "amazon", "values" : amazonData }
  ];
 ----
-
-
-
 
 
 == Chart Customization
@@ -316,20 +308,11 @@ change: `gulp watch`
 The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
 
-
-
 == Consuming Hawkular Charts from Hawkular Project
 
 Easily setup bower linking so that changes to the charts are instantly reflected in Hawkular console...
 
 http://www.hawkular.org/docs/dev/ui-dev.html[Integrating with Hawkular]
-
-== Next Steps
-
-* Interactive Hovers: https://issues.jboss.org/browse/HAWKULAR-355
-* Visual Alert Markers (and annotation markers in general): https://issues.jboss.org/browse/HAWKULAR-344
-* Automatically Scale Units for Human Readability: https://issues.jboss.org/browse/HAWKULAR-535
-* Add Gauge Chart type: https://issues.jboss.org/browse/HAWKULAR-378
 
 == Hawkular UI Services
 
