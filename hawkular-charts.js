@@ -2025,11 +2025,8 @@ var Charts;
                     pathAlertLine.exit().remove();
                 }
                 function extractAlertRanges(chartData, threshold) {
-                    var alertBoundAreaItem;
                     var alertBoundAreaItems;
                     var startPoints;
-                    var firstChartPoint = chartData[0];
-                    var lastChartPoint = chartData[chartData.length - 1];
                     function findStartPoints(chartData, threshold) {
                         var startPoints = [];
                         var prevItem;
@@ -2280,6 +2277,9 @@ var Charts;
                             createHawkularMetricChart();
                             break;
                         case 'hawkularmetric':
+                            console.info('DEPRECATION WARNING: The chart type hawkularmetric has been deprecated and will be' +
+                                ' removed in a future' +
+                                ' release. Please use the line chart type in its place');
                             createHawkularMetricChart();
                             break;
                         case 'multiline':
@@ -2296,7 +2296,7 @@ var Charts;
                             break;
                         default:
                             $log.warn('chart-type is not valid. Must be in' +
-                                ' [rhqbar,area,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
+                                ' [rhqbar,line,area,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
                     }
                 }
                 // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
