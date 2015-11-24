@@ -16,6 +16,7 @@
       background-color: #fafafa;
       border: 1px solid lightgrey;
       margin: 20px;
+      width:840px;
     }
 
     #alertValue {
@@ -55,8 +56,8 @@
     }
 
     .contextChartWrapper {
-      height: 200px;
-      width: 750px;
+      height: 220px;
+      width: 820px;
     }
 
     .sparklineChartWrapper {
@@ -184,7 +185,9 @@
     <div class="metricIdHeader"><span class="contextIdLabel"> Context Chart</span>
     </div>
     <div class="contextChartWrapper">
-      <hawkular-context-chart data="originalData">
+      <hawkular-context-chart
+        data="originalData"
+        show-y-axis-values="true">
       </hawkular-context-chart>
     </div>
 
@@ -208,16 +211,19 @@
   <div class="metricIdHeader"><span class="metricIdLabel">Sparkline Chart</span>
   </div>
   <div class="sparkLineChartWrapper">
-    <hawkular-sparkline-chart data="myData">
+    <hawkular-sparkline-chart
+      data="myData"
+      show-x-axis-values="false"
+      show-y-axis-values="false">
     </hawkular-sparkline-chart>
   </div>
 
-  <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: HawkularMetric</span>
+  <div class="metricIdHeader"><span class="metricIdLabel"> ChartType: Line</span>
   </div>
   <div class="chartWrapper">
     <hawkular-chart
       data="myData"
-      chart-type="hawkularmetric"
+      chart-type="line"
       alert-value="{{alertThreshold}}"
       show-data-points="true"
       y-axis-units="Response Time (ms)"
@@ -233,6 +239,7 @@
       data="myData"
       chart-type="area"
       alert-value="{{alertThreshold}}"
+      show-data-points="true"
       y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
