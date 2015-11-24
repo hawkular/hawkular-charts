@@ -21,7 +21,9 @@ namespace Charts {
     public replace = true;
 
     public scope = {
-      data: '='
+      data: '=',
+      showYAxisValues: '=',
+      showXAxisValues: '='
     };
 
     public link:(scope:any, element:ng.IAugmentedJQuery, attrs:any) => void;
@@ -39,6 +41,8 @@ namespace Charts {
           width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right,
           height = chartHeight - margin.top - margin.bottom,
           innerChartHeight = height + margin.top,
+          showXAxisValues:boolean,
+          showYAxisValues:boolean,
           yScale,
           yAxis,
           yAxisGroup,
@@ -48,6 +52,14 @@ namespace Charts {
           chart,
           chartParent,
           svg;
+
+        if(typeof attrs.showXAxisValues != 'undefined'){
+          showXAxisValues = attrs.showXAxisValues === 'true';
+        }
+
+        if(typeof attrs.showYAxisValues != 'undefined'){
+          showYAxisValues = attrs.showYAxisValues === 'true';
+        }
 
 
         function setup():void {
@@ -74,9 +86,12 @@ namespace Charts {
             .range([0, width - 10])
             .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
 
+
+          let numberOfXTicks = showXAxisValues ? 5 : 0;
+
           xAxis = d3.svg.axis()
             .scale(timeScale)
-            .ticks(5)
+            .ticks(numberOfXTicks)
             .tickSize(4, 0)
             .orient('bottom');
 
@@ -103,9 +118,11 @@ namespace Charts {
             .rangeRound([SparklineChartDirective._CHART_HEIGHT, 0])
             .domain([yMin, yMax]);
 
+          let numberOfYTicks = showYAxisValues ? 3 : 0;
+
           yAxis = d3.svg.axis()
             .scale(yScale)
-            .ticks(0)
+            .ticks(numberOfYTicks)
             .tickSize(4, 0)
             .orient("left");
 

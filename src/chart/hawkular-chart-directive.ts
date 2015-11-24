@@ -1992,7 +1992,10 @@ namespace Charts {
               case 'histogram' :
                 createHistogramChart(false);
                 break;
-              case 'hawkularmetric' :
+              case 'line':
+                createHawkularMetricChart();
+                break;
+              case 'hawkularmetric':
                 createHawkularMetricChart();
                 break;
               case 'multiline' :

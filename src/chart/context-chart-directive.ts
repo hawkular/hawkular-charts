@@ -22,7 +22,8 @@ namespace Charts {
 
     // Can't use 1.4 directive controllers because we need to support 1.3+
     public scope = {
-      data: '='
+      data: '=',
+      showYAxisValues: '='
     };
 
     public link:(scope:any, element:ng.IAugmentedJQuery, attrs:any) => void;
@@ -36,10 +37,11 @@ namespace Charts {
         const margin = {top: 10, right: 5, bottom: 5, left: 90};
 
         // data specific vars
-        let chartHeight = +attrs.chartHeight || ContextChartDirective._CHART_HEIGHT,
+        let chartHeight = ContextChartDirective._CHART_HEIGHT,
           width = ContextChartDirective._CHART_WIDTH - margin.left - margin.right,
           height = chartHeight - margin.top - margin.bottom,
           innerChartHeight = height + margin.top,
+          showYAxisValues:boolean,
           yScale,
           yAxis,
           yAxisGroup,
@@ -51,6 +53,10 @@ namespace Charts {
           chart,
           chartParent,
           svg;
+
+        if(typeof attrs.showYAxisValues != 'undefined'){
+          showYAxisValues = attrs.showYAxisValues === 'true';
+        }
 
 
         function setup():void {
@@ -106,9 +112,12 @@ namespace Charts {
             .rangeRound([90, 0])
             .domain([yMin, yMax]);
 
+
+          let numberOfTicks = showYAxisValues ? 3 : 0;
+
           yAxis = d3.svg.axis()
             .scale(yScale)
-            .ticks(3)
+            .ticks(numberOfTicks)
             .tickSize(4, 0)
             .orient("left");
 
