@@ -406,12 +406,16 @@ var Charts;
             this.replace = true;
             // Can't use 1.4 directive controllers because we need to support 1.3+
             this.scope = {
-                data: '='
+                data: '=',
+                showYAxisValues: '='
             };
             this.link = function (scope, element, attrs) {
                 var margin = { top: 10, right: 5, bottom: 5, left: 90 };
                 // data specific vars
-                var chartHeight = +attrs.chartHeight || ContextChartDirective._CHART_HEIGHT, width = ContextChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, brush, brushGroup, chart, chartParent, svg;
+                var chartHeight = ContextChartDirective._CHART_HEIGHT, width = ContextChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, showYAxisValues, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, brush, brushGroup, chart, chartParent, svg;
+                if (typeof attrs.showYAxisValues != 'undefined') {
+                    showYAxisValues = attrs.showYAxisValues === 'true';
+                }
                 function setup() {
                     // destroy any previous charts
                     if (chart) {
@@ -452,9 +456,10 @@ var Charts;
                     yScale = d3.scale.linear()
                         .rangeRound([90, 0])
                         .domain([yMin, yMax]);
+                    var numberOfTicks = showYAxisValues ? 3 : 0;
                     yAxis = d3.svg.axis()
                         .scale(yScale)
-                        .ticks(3)
+                        .ticks(numberOfTicks)
                         .tickSize(4, 0)
                         .orient("left");
                     yAxisGroup = svg.append('g')
@@ -656,24 +661,23 @@ var Charts;
             /// only for the stand alone charts
             var BASE_URL = '/hawkular/metrics';
             function link(scope, element, attrs) {
+                var CHART_HEIGHT = 250, CHART_WIDTH = 750, HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
                 // data specific vars
-                var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], contextData = [], multiChartOverlayData = [], chartHeight = +attrs.chartHeight || 250, chartType = attrs.chartType || 'hawkularline', timeLabel = attrs.timeLabel || 'Time', dateLabel = attrs.dateLabel || 'Date', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', aggregateLabel = attrs.aggregateLabel || 'Aggregate', startLabel = attrs.startLabel || 'Start', endLabel = attrs.endLabel || 'End', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false, buttonBarDateTimeFormat = attrs.buttonbarDatetimeFormat || 'MM/DD/YYYY h:mm a';
+                var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], chartType = attrs.chartType || 'hawkularline', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false;
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, calcBarWidthAdjusted, calcBarXPos, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, timeScaleForContext, chart, chartParent, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = CHART_WIDTH - margin.left - margin.right, adjustedChartHeight = CHART_HEIGHT - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, calcBarWidthAdjusted, calcBarXPos, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, chart, chartParent, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
                 var hasInit = false;
                 dataPoints = attrs.data;
                 showDataPoints = attrs.showDataPoints;
                 previousRangeDataPoints = attrs.previousRangeData;
-                multiChartOverlayData = attrs.multiChartOverlayData;
                 annotationData = attrs.annotationData;
-                contextData = attrs.contextData;
                 var startIntervalPromise;
                 function xMidPointStartPosition(d) {
                     return timeScale(d.timestamp);
                 }
                 function getChartWidth() {
                     //return angular.element('#' + chartContext.chartHandle).width();
-                    return 760;
+                    return CHART_WIDTH;
                 }
                 function useSmallCharts() {
                     return getChartWidth() <= smallChartThresholdInPixels;
@@ -685,7 +689,7 @@ var Charts;
                     }
                     chartParent = d3.select(element[0]);
                     chart = chartParent.append('svg')
-                        .attr('viewBox', '0 0 760 ' + (chartHeight + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
+                        .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
                     createSvgDefs(chart);
                     svg = chart.append('g')
                         .attr('width', width + margin.left + margin.right)
@@ -704,27 +708,6 @@ var Charts;
                 }
                 function setupFilteredData(dataPoints) {
                     var alertPeak, highPeak;
-                    function determineMultiMetricMinMax() {
-                        var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
-                        multiChartOverlayData.forEach(function (series) {
-                            currentMax = d3.max(series.map(function (d) {
-                                return !isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
-                            }));
-                            maxList.push(currentMax);
-                            currentMin = d3.min(series.map(function (d) {
-                                return !isEmptyDataPoint(d) ? (d.avg || d.value) : Number.MAX_VALUE;
-                            }));
-                            minList.push(currentMin);
-                        });
-                        seriesMax = d3.max(maxList);
-                        seriesMin = d3.min(minList);
-                        return [seriesMin, seriesMax];
-                    }
-                    if (multiChartOverlayData) {
-                        var minMax = determineMultiMetricMinMax();
-                        peak = minMax[1];
-                        min = minMax[0];
-                    }
                     if (dataPoints) {
                         peak = d3.max(dataPoints.map(function (d) {
                             return !isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
@@ -786,20 +769,11 @@ var Charts;
                             .domain(d3.extent(chartData, function (d) {
                             return d.timestamp;
                         }));
-                        if (contextData) {
-                            timeScaleForContext = d3.time.scale()
-                                .range([0, width])
-                                .domain(d3.extent(contextData, function (d) {
-                                return d.timestamp;
-                            }));
-                        }
-                        else {
-                            timeScaleForBrush = d3.time.scale()
-                                .range([0, width])
-                                .domain(d3.extent(chartData, function (d) {
-                                return d.timestamp;
-                            }));
-                        }
+                        timeScaleForBrush = d3.time.scale()
+                            .range([0, width])
+                            .domain(d3.extent(chartData, function (d) {
+                            return d.timestamp;
+                        }));
                         xAxis = d3.svg.axis()
                             .scale(timeScale)
                             .ticks(xTicks)
@@ -876,11 +850,7 @@ var Charts;
                  * @param buckets
                  */
                 function loadStandAloneMetricsForTimeRange(url, metricId, startTimestamp, endTimestamp, buckets) {
-                    ///$log.debug('-- Retrieving metrics data for urlData: ' + metricId);
-                    ///$log.debug('-- Date Range: ' + new Date(startTimestamp) + ' - ' + new Date(endTimestamp));
-                    ///$log.debug('-- TenantId: ' + metricTenantId);
                     if (buckets === void 0) { buckets = 60; }
-                    //let numBuckets = buckets || 60;
                     var requestConfig = {
                         headers: {
                             'Hawkular-Tenant': metricTenantId
@@ -946,7 +916,7 @@ var Charts;
                     return typeof d.avg === 'undefined';
                 }
                 function buildHover(d, i) {
-                    var hover, prevTimestamp, currentTimestamp = d.timestamp, barDuration, formattedDateTime = moment(d.timestamp).format(buttonBarDateTimeFormat);
+                    var hover, prevTimestamp, currentTimestamp = d.timestamp, barDuration, formattedDateTime = moment(d.timestamp).format(HOVER_DATE_TIME_FORMAT);
                     if (i > 0) {
                         prevTimestamp = chartData[i - 1].timestamp;
                         barDuration = moment(currentTimestamp).from(moment(prevTimestamp), true);
@@ -1462,7 +1432,7 @@ var Charts;
                                 existingPath.remove();
                             }
                         });
-                        multiDataPoints.forEach(function (singleChartData, idx) {
+                        multiDataPoints.forEach(function (singleChartData) {
                             if (singleChartData && singleChartData.values) {
                                 singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
                                 var pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash).data([singleChartData.values]);
@@ -1984,7 +1954,7 @@ var Charts;
                             .call(yAxis)
                             .append('text')
                             .attr('transform', 'rotate(-90),translate(0,-50)')
-                            .attr('x', -chartHeight / 2)
+                            .attr('x', -CHART_HEIGHT / 2)
                             .style('text-anchor', 'start')
                             .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits);
                     }
@@ -2177,26 +2147,6 @@ var Charts;
                             .attr('d', createCenteredLine('linear'));
                     }
                 }
-                function createMultiMetricOverlay() {
-                    var colorScale = d3.scale.category20();
-                    if (multiChartOverlayData) {
-                        $log.log('Running MultiChartOverlay for %i metrics', multiChartOverlayData.length);
-                        multiChartOverlayData.forEach(function (singleChartData) {
-                            svg.append('path')
-                                .datum(singleChartData)
-                                .attr('class', 'multiLine')
-                                .attr('fill', function (d, i) {
-                                return colorScale(i);
-                            })
-                                .attr('stroke', function (d, i) {
-                                return colorScale(i);
-                            })
-                                .attr('stroke-width', '1')
-                                .attr('stroke-opacity', '.8')
-                                .attr('d', createCenteredLine('linear'));
-                        });
-                    }
-                }
                 function annotateChart(annotationData) {
                     if (annotationData) {
                         svg.selectAll('.annotationDot')
@@ -2281,23 +2231,6 @@ var Charts;
                         scope.render(processedNewData, processedPreviousRangeData);
                     }
                 }, true);
-                scope.$watch('contextData', function (newContextData) {
-                    if (newContextData) {
-                        contextData = angular.fromJson(newContextData);
-                        scope.render(processedNewData, processedPreviousRangeData);
-                    }
-                }, true);
-                scope.$on('MultiChartOverlayDataChanged', function (event, newMultiChartData) {
-                    $log.log('Handling MultiChartOverlayDataChanged in Chart Directive');
-                    if (newMultiChartData) {
-                        multiChartOverlayData = angular.fromJson(newMultiChartData);
-                    }
-                    else {
-                        // same event is sent with no data to clear it
-                        multiChartOverlayData = [];
-                    }
-                    scope.render(processedNewData, processedPreviousRangeData);
-                });
                 scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'], function (chartAttrs) {
                     alertValue = chartAttrs[0] || alertValue;
                     chartType = chartAttrs[1] || chartType;
@@ -2342,6 +2275,9 @@ var Charts;
                             break;
                         case 'histogram':
                             createHistogramChart(false);
+                            break;
+                        case 'line':
+                            createHawkularMetricChart();
                             break;
                         case 'hawkularmetric':
                             createHawkularMetricChart();
@@ -2403,7 +2339,6 @@ var Charts;
                         createDataPoints(chartData);
                     }
                     createPreviousRangeOverlay(previousRangeDataPoints);
-                    createMultiMetricOverlay();
                     createXandYAxes();
                     if (showAvgLine) {
                         createAvgLines();
@@ -2436,33 +2371,23 @@ var Charts;
                     refreshIntervalInSeconds: '@',
                     previousRangeData: '@',
                     annotationData: '@',
-                    contextData: '@',
                     showDataPoints: '=',
                     alertValue: '@',
                     interpolation: '@',
-                    multiChartOverlayData: '@',
-                    chartHeight: '@',
                     chartType: '@',
                     yAxisUnits: '@',
                     useZeroMinValue: '=',
-                    buttonbarDatetimeFormat: '@',
-                    timeLabel: '@',
-                    dateLabel: '@',
                     chartHoverDateFormat: '@',
                     chartHoverTimeFormat: '@',
                     singleValueLabel: '@',
                     noDataLabel: '@',
-                    aggregateLabel: '@',
-                    startLabel: '@',
-                    endLabel: '@',
                     durationLabel: '@',
                     minLabel: '@',
                     maxLabel: '@',
                     avgLabel: '@',
                     timestampLabel: '@',
                     showAvgLine: '=',
-                    hideHighLowValues: '=',
-                    chartTitle: '@'
+                    hideHighLowValues: '='
                 }
             };
         }
@@ -2480,12 +2405,20 @@ var Charts;
             this.restrict = 'E';
             this.replace = true;
             this.scope = {
-                data: '='
+                data: '=',
+                showYAxisValues: '=',
+                showXAxisValues: '='
             };
             this.link = function (scope, element, attrs) {
                 var margin = { top: 10, right: 5, bottom: 5, left: 50 };
                 // data specific vars
-                var chartHeight = +attrs.chartHeight || SparklineChartDirective._CHART_HEIGHT, width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, chart, chartParent, svg;
+                var chartHeight = +attrs.chartHeight || SparklineChartDirective._CHART_HEIGHT, width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, showXAxisValues, showYAxisValues, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, chart, chartParent, svg;
+                if (typeof attrs.showXAxisValues != 'undefined') {
+                    showXAxisValues = attrs.showXAxisValues === 'true';
+                }
+                if (typeof attrs.showYAxisValues != 'undefined') {
+                    showYAxisValues = attrs.showYAxisValues === 'true';
+                }
                 function setup() {
                     // destroy any previous charts
                     if (chart) {
@@ -2504,9 +2437,10 @@ var Charts;
                     timeScale = d3.time.scale()
                         .range([0, width - 10])
                         .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
+                    var numberOfXTicks = showXAxisValues ? 5 : 0;
                     xAxis = d3.svg.axis()
                         .scale(timeScale)
-                        .ticks(5)
+                        .ticks(numberOfXTicks)
                         .tickSize(4, 0)
                         .orient('bottom');
                     svg.selectAll('g.axis').remove();
@@ -2526,9 +2460,10 @@ var Charts;
                     yScale = d3.scale.linear()
                         .rangeRound([SparklineChartDirective._CHART_HEIGHT, 0])
                         .domain([yMin, yMax]);
+                    var numberOfYTicks = showYAxisValues ? 3 : 0;
                     yAxis = d3.svg.axis()
                         .scale(yScale)
-                        .ticks(0)
+                        .ticks(numberOfYTicks)
                         .tickSize(4, 0)
                         .orient("left");
                     yAxisGroup = svg.append('g')
