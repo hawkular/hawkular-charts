@@ -68,6 +68,9 @@ namespace Charts {
 
   export class AvailabilityChartDirective {
 
+    private static  _CHART_HEIGHT = 150;
+    private static  _CHART_WIDTH = 750;
+
     public restrict = 'E';
     public replace = true;
 
@@ -76,7 +79,6 @@ namespace Charts {
       data: '=',
       startTimestamp: '@',
       endTimestamp: '@',
-      chartHeight: '@',
       timeLabel: '@',
       dateLabel: '@',
       noDataLabel: '@',
@@ -94,12 +96,12 @@ namespace Charts {
         // data specific vars
         let startTimestamp:number = +attrs.startTimestamp,
           endTimestamp:number = +attrs.endTimestamp,
-          chartHeight = +attrs.chartHeight || 150,
-          noDataLabel = attrs.noDataLabel || 'No Data';
+          chartHeight =  AvailabilityChartDirective._CHART_HEIGHT,
+          noDataLabel = attrs.noDataLabel || 'No Data'; //@todo: add No Data handling
 
         // chart specific vars
         let margin = {top: 10, right: 5, bottom: 5, left: 90},
-          width = 750 - margin.left - margin.right,
+          width = AvailabilityChartDirective._CHART_WIDTH - margin.left - margin.right,
           adjustedChartHeight = chartHeight - 50,
           height = adjustedChartHeight - margin.top - margin.bottom,
           titleHeight = 30,
@@ -114,15 +116,10 @@ namespace Charts {
           brush,
           brushGroup,
           tip,
-          timeScaleForBrush,
           chart,
           chartParent,
           svg;
 
-        function getChartWidth():number {
-          ///return angular.element('#' + chartContext.chartHandle).width();
-          return 760;
-        }
 
         function buildAvailHover(d:ITransformedAvailDataPoint) {
           return `<div class='chartHover'>
