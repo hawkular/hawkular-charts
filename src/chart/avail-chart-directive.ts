@@ -253,10 +253,12 @@ namespace Charts {
           let itemCount = inAvailData.length;
 
           function sortByTimestamp(a:IAvailDataPoint, b:IAvailDataPoint) {
-            if (a.timestamp < b.timestamp)
+            if (a.timestamp < b.timestamp) {
               return -1;
-            if (a.timestamp > b.timestamp)
+            }
+            if (a.timestamp > b.timestamp){
               return 1;
+            }
             return 0;
           }
 

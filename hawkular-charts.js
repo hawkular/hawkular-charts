@@ -52,7 +52,6 @@ var Charts;
                 data: '=',
                 startTimestamp: '@',
                 endTimestamp: '@',
-                chartHeight: '@',
                 timeLabel: '@',
                 dateLabel: '@',
                 noDataLabel: '@',
@@ -60,13 +59,9 @@ var Charts;
             };
             this.link = function (scope, element, attrs) {
                 // data specific vars
-                var startTimestamp = +attrs.startTimestamp, endTimestamp = +attrs.endTimestamp, chartHeight = +attrs.chartHeight || 150, noDataLabel = attrs.noDataLabel || 'No Data';
+                var startTimestamp = +attrs.startTimestamp, endTimestamp = +attrs.endTimestamp, chartHeight = AvailabilityChartDirective._CHART_HEIGHT, noDataLabel = attrs.noDataLabel || 'No Data'; //@todo: add No Data handling
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = 750 - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, xAxisGroup, brush, brushGroup, tip, timeScaleForBrush, chart, chartParent, svg;
-                function getChartWidth() {
-                    ///return angular.element('#' + chartContext.chartHandle).width();
-                    return 760;
-                }
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = AvailabilityChartDirective._CHART_WIDTH - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, xAxisGroup, brush, brushGroup, tip, chart, chartParent, svg;
                 function buildAvailHover(d) {
                     return "<div class='chartHover'>\n        <div>\n        <small>\n          <span class='chartHoverLabel'>Status: </span><span>: </span>\n          <span class='chartHoverValue'>" + d.value.toUpperCase() + "</span>\n        </small>\n        </div>\n          <div>\n          <small>\n            <span class='chartHoverLabel'>Duration</span><span>: </span>\n            <span class='chartHoverValue'>" + d.duration + "</span>\n          </small>\n          </div>\n        </div>";
                 }
@@ -166,10 +161,12 @@ var Charts;
                     var outputData = [];
                     var itemCount = inAvailData.length;
                     function sortByTimestamp(a, b) {
-                        if (a.timestamp < b.timestamp)
+                        if (a.timestamp < b.timestamp) {
                             return -1;
-                        if (a.timestamp > b.timestamp)
+                        }
+                        if (a.timestamp > b.timestamp) {
                             return 1;
+                        }
                         return 0;
                     }
                     inAvailData.sort(sortByTimestamp);
@@ -388,6 +385,8 @@ var Charts;
             directive['$inject'] = ['$rootScope'];
             return directive;
         };
+        AvailabilityChartDirective._CHART_HEIGHT = 150;
+        AvailabilityChartDirective._CHART_WIDTH = 750;
         return AvailabilityChartDirective;
     })();
     Charts.AvailabilityChartDirective = AvailabilityChartDirective;
@@ -635,6 +634,7 @@ var Charts;
     var debug = false;
     // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
     var DEFAULT_Y_SCALE = 10;
+    var Y_AXIS_HEIGHT = 25;
     /**
      * Defines an individual alert bounds  to be visually highlighted in a chart
      * that an alert was above/below a threshold.
@@ -689,7 +689,8 @@ var Charts;
                     }
                     chartParent = d3.select(element[0]);
                     chart = chartParent.append('svg')
-                        .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
+                        .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + Y_AXIS_HEIGHT)).attr('preserveAspectRatio', 'xMinYMin' +
+                        ' meet');
                     createSvgDefs(chart);
                     svg = chart.append('g')
                         .attr('width', width + margin.left + margin.right)
@@ -2398,6 +2399,7 @@ var Charts;
 var Charts;
 (function (Charts) {
     'use strict';
+    var Y_AXIS_HEIGHT = 25;
     var _module = angular.module('hawkular.charts');
     var SparklineChartDirective = (function () {
         function SparklineChartDirective($rootScope) {
@@ -2410,9 +2412,9 @@ var Charts;
                 showXAxisValues: '='
             };
             this.link = function (scope, element, attrs) {
-                var margin = { top: 10, right: 5, bottom: 5, left: 50 };
+                var margin = { top: 10, right: 5, bottom: 5, left: 35 };
                 // data specific vars
-                var chartHeight = +attrs.chartHeight || SparklineChartDirective._CHART_HEIGHT, width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, showXAxisValues, showYAxisValues, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, chart, chartParent, svg;
+                var chartHeight = SparklineChartDirective._CHART_HEIGHT, width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, showXAxisValues, showYAxisValues, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, chart, chartParent, svg;
                 if (typeof attrs.showXAxisValues != 'undefined') {
                     showXAxisValues = attrs.showXAxisValues === 'true';
                 }
@@ -2425,12 +2427,14 @@ var Charts;
                         chartParent.selectAll('*').remove();
                     }
                     chartParent = d3.select(element[0]);
-                    chart = chartParent.append('svg');
-                    //.attr('viewBox', '0 0 240 80').attr('preserveAspectRatio', 'xMinYMin meet');
+                    chart = chartParent.append('svg')
+                        .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom
+                        + Y_AXIS_HEIGHT))
+                        .attr('preserveAspectRatio', 'xMinYMin meet');
                     svg = chart.append('g')
                         .attr('width', width + margin.left + margin.right)
                         .attr('height', innerChartHeight)
-                        .attr('transform', 'translate(' + margin.left + ',' + height + ')');
+                        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
                 }
                 function createSparklineChart(dataPoints) {
                     console.log('dataPoints.length: ' + dataPoints.length);

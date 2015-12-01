@@ -38,13 +38,14 @@ declare namespace Charts {
         constructor(start: number, end: number, value: string, startDate?: Date, endDate?: Date, duration?: string, message?: string);
     }
     class AvailabilityChartDirective {
+        private static _CHART_HEIGHT;
+        private static _CHART_WIDTH;
         restrict: string;
         replace: boolean;
         scope: {
             data: string;
             startTimestamp: string;
             endTimestamp: string;
-            chartHeight: string;
             timeLabel: string;
             dateLabel: string;
             noDataLabel: string;
