@@ -10,6 +10,7 @@ namespace Charts {
 
   // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
   const DEFAULT_Y_SCALE = 10;
+  const Y_AXIS_HEIGHT = 25;
 
   // Type values and ID types
   export type AlertThreshold = number;
@@ -194,7 +195,8 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
             chart = chartParent.append('svg')
-              .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + 25)).attr('preserveAspectRatio', 'xMinYMin meet');
+              .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + Y_AXIS_HEIGHT)).attr('preserveAspectRatio', 'xMinYMin' +
+                ' meet');
 
             createSvgDefs(chart);
 

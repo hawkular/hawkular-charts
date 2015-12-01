@@ -8,6 +8,8 @@ namespace Charts {
   declare let d3:any;
   declare let console:any;
 
+  const Y_AXIS_HEIGHT = 25;
+
 
   let _module = angular.module('hawkular.charts');
 
@@ -34,10 +36,10 @@ namespace Charts {
 
       this.link = (scope, element, attrs) => {
 
-        const margin = {top: 10, right: 5, bottom: 5, left: 50};
+        const margin = {top: 10, right: 5, bottom: 5, left: 35};
 
         // data specific vars
-        let chartHeight = +attrs.chartHeight || SparklineChartDirective._CHART_HEIGHT,
+        let chartHeight = SparklineChartDirective._CHART_HEIGHT,
           width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right,
           height = chartHeight - margin.top - margin.bottom,
           innerChartHeight = height + margin.top,
@@ -53,11 +55,11 @@ namespace Charts {
           chartParent,
           svg;
 
-        if(typeof attrs.showXAxisValues != 'undefined'){
+        if (typeof attrs.showXAxisValues != 'undefined') {
           showXAxisValues = attrs.showXAxisValues === 'true';
         }
 
-        if(typeof attrs.showYAxisValues != 'undefined'){
+        if (typeof attrs.showYAxisValues != 'undefined') {
           showYAxisValues = attrs.showYAxisValues === 'true';
         }
 
@@ -68,13 +70,15 @@ namespace Charts {
             chartParent.selectAll('*').remove();
           }
           chartParent = d3.select(element[0]);
-          chart = chartParent.append('svg');
-          //.attr('viewBox', '0 0 240 80').attr('preserveAspectRatio', 'xMinYMin meet');
+          chart = chartParent.append('svg')
+            .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom
+              + Y_AXIS_HEIGHT ))
+            .attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
             .attr('width', width + margin.left + margin.right)
             .attr('height', innerChartHeight)
-            .attr('transform', 'translate(' + margin.left + ',' + height + ')');
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
         }
 

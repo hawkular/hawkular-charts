@@ -32,7 +32,7 @@
     }
 
     .metricIdHeader {
-      margin: 20px 0 -35px 90px;
+      margin: 20px 0 0 90px;
     }
 
     .metricIdHeader > li {
@@ -208,12 +208,12 @@
   </form>
 
 
-  <div class="metricIdHeader"><span class="metricIdLabel">Sparkline Chart</span>
+  <div class="metricIdHeader"><div class="metricIdLabel">Sparkline Chart</div>
   </div>
-  <div class="sparkLineChartWrapper">
+  <div class="sparkLineChartWrapper" style="height:100px">
     <hawkular-sparkline-chart
       data="myData"
-      show-x-axis-values="false"
+      show-x-axis-values="true"
       show-y-axis-values="false">
     </hawkular-sparkline-chart>
   </div>
