@@ -1587,7 +1587,6 @@ namespace Charts {
           }
 
           function createXandYAxes() {
-            let xAxisGroup;
 
             if (yAxis) {
 
@@ -1595,7 +1594,7 @@ namespace Charts {
 
 
               // create x-axis
-              xAxisGroup = svg.append('g')
+            let  xAxisGroup = svg.append('g')
                 .attr('class', 'x axis')
                 .attr('transform', 'translate(0,' + height + ')')
                 .attr("opacity", 0.3)
@@ -1606,9 +1605,16 @@ namespace Charts {
                 .attr("opacity", 1.0);
 
               // create y-axis
-              svg.append('g')
+              let yAxisGroup = svg.append('g')
                 .attr('class', 'y axis')
+                .attr("opacity", 0.3)
                 .call(yAxis)
+                .transition()
+                .delay(500)
+                .duration(2000)
+                .attr("opacity", 1.0);
+
+              let yAxisLabel = svg
                 .append('text')
                 .attr('transform', 'rotate(-90),translate(0,-50)')
                 .attr('x',-CHART_HEIGHT/2)
@@ -1618,7 +1624,7 @@ namespace Charts {
                 .transition()
                 .delay(500)
                 .duration(2000)
-                .attr("opacity", 1.0)
+                .attr("opacity", 1.0);
             }
 
           }
