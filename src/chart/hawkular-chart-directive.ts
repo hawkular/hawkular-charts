@@ -1598,14 +1598,12 @@ namespace Charts {
               xAxisGroup = svg.append('g')
                 .attr('class', 'x axis')
                 .attr('transform', 'translate(0,' + height + ')')
-                .call(xAxis);
-
-              xAxisGroup.append('g')
-                .attr('class', 'x brush')
-                .call(brush)
-                .selectAll('rect')
-                .attr('y', -6)
-                .attr('height', 30);
+                .attr("opacity", 0.3)
+                .call(xAxis)
+                .transition()
+                .delay(500)
+                .duration(2000)
+                .attr("opacity", 1.0);
 
               // create y-axis
               svg.append('g')
@@ -1615,7 +1613,12 @@ namespace Charts {
                 .attr('transform', 'rotate(-90),translate(0,-50)')
                 .attr('x',-CHART_HEIGHT/2)
                 .style('text-anchor', 'start')
-                .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits);
+                .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits)
+                .attr("opacity", 0.3)
+                .transition()
+                .delay(500)
+                .duration(2000)
+                .attr("opacity", 1.0)
             }
 
           }
