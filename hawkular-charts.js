@@ -717,15 +717,14 @@ var Charts;
                             return !isEmptyDataPoint(d) ? (d.avg || d.value) : undefined;
                         }));
                     }
-                    lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
+                    lowBound = useZeroMinValue ? 0 : min * .95;
+                    highBound = peak + ((peak - min) * 0.2);
+                    // check if we need to adjust high/low bound to fit alert value
                     if (alertValue) {
-                        alertPeak = (alertValue * 1.2);
-                        highPeak = peak + ((peak - min) * 0.2);
-                        highBound = alertPeak > highPeak ? alertPeak : highPeak;
+                        highBound = Math.max(highBound, alertValue * 1.2);
+                        lowBound = Math.min(lowBound, alertValue * .95);
                     }
-                    else {
-                        highBound = peak + ((peak - min) * 0.2);
-                    }
+                    // use default Y scale in case high and low bound are 0 (ie, no values or all 0)
                     highBound = !!!highBound && !!!lowBound ? DEFAULT_Y_SCALE : highBound;
                 }
                 function determineScale(dataPoints) {
