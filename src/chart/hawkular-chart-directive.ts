@@ -195,8 +195,8 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
             chart = chartParent.append('svg')
-              .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + Y_AXIS_HEIGHT)).attr('preserveAspectRatio', 'xMinYMin' +
-                ' meet');
+              .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + Y_AXIS_HEIGHT))
+              .attr('preserveAspectRatio', 'xMinYMin meet');
 
             createSvgDefs(chart);
 
@@ -222,8 +222,6 @@ namespace Charts {
 
 
           function setupFilteredData(dataPoints:IChartDataPoint[]):void {
-            let alertPeak:number,
-              highPeak:number;
 
             if (dataPoints) {
               peak = d3.max(dataPoints.map((d) => {
@@ -372,7 +370,7 @@ namespace Charts {
 
               let lowHigh = setupFilteredMultiData(multiDataPoints);
               lowBound = lowHigh[0];
-              highBound = lowHigh[1]
+              highBound = lowHigh[1];
 
               yScale = d3.scale.linear()
                 .clamp(true)
@@ -539,24 +537,7 @@ namespace Charts {
 
           }
 
-          function createHeader(titleName:string) {
-            let title = chart.append('g').append('rect')
-              .attr('class', 'title')
-              .attr('x', 30)
-              .attr('y', margin.top)
-              .attr('height', titleHeight)
-              .attr('width', width + 30 + margin.left)
-              .attr('fill', 'none');
 
-            chart.append('text')
-              .attr('class', 'titleName')
-              .attr('x', 40)
-              .attr('y', 37)
-              .text(titleName);
-
-            return title;
-
-          }
 
           function createSvgDefs(chart) {
 
@@ -600,74 +581,52 @@ namespace Charts {
             let barClass = stacked ? 'leaderBar' : 'histogram';
 
             let rectHistogram = svg.selectAll('rect.' + barClass).data(chartData);
+
+            function buildBars(selection) {
+              selection
+                .attr('class', barClass)
+                .on('mouseover', (d, i) => {
+                  tip.show(d, i);
+                }).on('mouseout', () => {
+                  tip.hide();
+                })
+                .transition()
+                .attr('x', (d, i) => {
+                  return calcBarXPos(d, i);
+                })
+                .attr('width', (d, i) => {
+                  return calcBarWidthAdjusted(i);
+                })
+                .attr('y', (d) => {
+                  return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
+                })
+                .attr('height', (d) => {
+                  return height - yScale(isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
+                })
+                .attr('opacity', stacked ? '.6' : '1')
+                .attr('fill', (d, i) => {
+                  return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
+                })
+                .attr('stroke', (d) => {
+                  return '#777';
+                })
+                .attr('stroke-width', (d) => {
+                  return '0';
+                })
+                .attr('data-hawkular-value', (d) => {
+                  return d.avg;
+                });
+
+            }
+
             // update existing
-            rectHistogram.attr('class', barClass)
-              .on('mouseover', (d, i) => {
-                tip.show(d, i);
-              }).on('mouseout', () => {
-                tip.hide();
-              })
-              .transition()
-              .attr('x', (d, i) => {
-                return calcBarXPos(d, i);
-              })
-              .attr('width', (d, i) => {
-                return calcBarWidthAdjusted(i);
-              })
-              .attr('y', (d) => {
-                return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
-              })
-              .attr('height', (d) => {
-                return height - yScale(isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
-              })
-              .attr('opacity', stacked ? '.6' : '1')
-              .attr('fill', (d, i) => {
-                return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
-              })
-              .attr('stroke', (d) => {
-                return '#777';
-              })
-              .attr('stroke-width', (d) => {
-                return '0';
-              })
-              .attr('data-hawkular-value', (d) => {
-                return d.avg;
-              });
+            rectHistogram.call(buildBars);
+
             // add new ones
-            rectHistogram.enter().append('rect')
-              .on('mouseover', (d, i) => {
-                tip.show(d, i);
-              })
-              .on('mouseout', () => {
-                tip.hide();
-              })
-              .attr('class', barClass)
-              .transition()
-              .attr('x', (d, i) => {
-                return calcBarXPos(d, i);
-              })
-              .attr('width', (d, i) => {
-                return calcBarWidthAdjusted(i);
-              })
-              .attr('y', (d) => {
-                return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
-              })
-              .attr('height', (d) => {
-                return height - yScale(isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
-              })
-              .attr('opacity', stacked ? '.6' : '1')
-              .attr('fill', (d, i) => {
-                return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
-              })
-              .attr('stroke', (d) => {
-                return '#777';
-              })
-              .attr('stroke-width', (d) => {
-                return '0';
-              })
-              .attr('data-hawkular-value', (d) => {
-                return d.avg;
-              });
+            rectHistogram.enter()
+              .append('rect')
+              .call(buildBars);
+
             // remove old ones
             rectHistogram.exit().remove();
 
@@ -686,331 +645,254 @@ namespace Charts {
             if (stacked) {
               // upper portion representing avg to high
               let rectHigh = svg.selectAll('rect.high, rect.singleValue').data(chartData);
+
+              function buildHighBar(selection) {
+                selection
+                  .attr('class', (d) => {
+                    return d.min === d.max ? 'singleValue' : 'high';
+                  })
+                  .attr('x', (d, i) => {
+                    return calcBarXPos(d, i);
+                  })
+                  .attr('y', (d) => {
+                    return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
+                  })
+                  .attr('height', (d) => {
+                    return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
+                  })
+                  .attr('width', (d, i) => {
+                    return calcBarWidthAdjusted(i);
+                  })
+                  .attr('data-rhq-value', (d) => {
+                    return d.max;
+                  })
+                  .attr('opacity', 0.9)
+                  .on('mouseover', (d, i) => {
+                    tip.show(d, i);
+                  }).on('mouseout', () => {
+                  tip.hide();
+                });
+              }
               // update existing
-              rectHigh.attr('class', (d) => {
-                  return d.min === d.max ? 'singleValue' : 'high';
-                })
-                .attr('x', (d, i) => {
-                  return calcBarXPos(d, i);
-                })
-                .attr('y', (d) => {
-                  return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
-                })
-                .attr('height', (d) => {
-                  return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
-                })
-                .attr('width', (d, i) => {
-                  return calcBarWidthAdjusted(i);
-                })
-                .attr('data-rhq-value', (d) => {
-                  return d.max;
-                })
-                .attr('opacity', 0.9)
-                .on('mouseover', (d, i) => {
-                  tip.show(d, i);
-                }).on('mouseout', () => {
-                  tip.hide();
-                });
+              rectHigh.call(buildHighBar);
+
               // add new ones
-              rectHigh.enter().append('rect')
-                .attr('class', (d) => {
-                  return d.min === d.max ? 'singleValue' : 'high';
-                })
-                .attr('x', (d,i) => {
-                  return calcBarXPos(d, i);
-                })
-                .attr('y', (d) => {
-                  return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
-                })
-                .attr('height', (d) => {
-                  return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
-                })
-                .attr('width', (d, i) => {
-                  return calcBarWidthAdjusted(i);
-                })
-                .attr('data-rhq-value', (d) => {
-                  return d.max;
-                })
-                .attr('opacity', 0.9)
-                .on('mouseover', (d, i) => {
-                  tip.show(d, i);
-                }).on('mouseout', () => {
-                  tip.hide();
-                });
+              rectHigh
+                .enter()
+                .append('rect')
+                .call(buildHighBar);
+
               // remove old ones
               rectHigh.exit().remove();
 
 
               // lower portion representing avg to low
-              let rectLow = svg.selectAll('rect.low').data(chartData)
+              let rectLow = svg.selectAll('rect.low').data(chartData);
+
+              function buildLowerBar(selection){
+                selection
+                  .attr('class', 'low')
+                  .attr('x', (d, i) => {
+                    return calcBarXPos(d, i);
+                  })
+                  .attr('y', (d) => {
+                    return isNaN(d.avg) ? height : yScale(d.avg);
+                  })
+                  .attr('height', (d) => {
+                    return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
+                  })
+                  .attr('width', (d, i) => {
+                    return calcBarWidthAdjusted(i);
+                  })
+                  .attr('opacity', 0.9)
+                  .attr('data-rhq-value', (d) => {
+                    return d.min;
+                  })
+                  .on('mouseover', (d, i) => {
+                    tip.show(d, i);
+                  }).on('mouseout', () => {
+                  tip.hide();
+                });
+
+              }
               // update existing
-              rectLow.attr('class', 'low')
-                .attr('x', (d, i) => {
-                  return calcBarXPos(d, i);
-                })
-                .attr('y', (d) => {
-                  return isNaN(d.avg) ? height : yScale(d.avg);
-                })
-                .attr('height', (d) => {
-                  return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
-                })
-                .attr('width', (d, i) => {
-                  return calcBarWidthAdjusted(i);
-                })
-                .attr('opacity', 0.9)
-                .attr('data-rhq-value', (d) => {
-                  return d.min;
-                })
-                .on('mouseover', (d, i) => {
-                  tip.show(d, i);
-                }).on('mouseout', () => {
-                  tip.hide();
-                });
+              rectLow.call(buildLowerBar);
+
               // add new ones
-              rectLow.enter().append('rect')
-                .attr('class', 'low')
-                .attr('x', (d, i) => {
-                  return calcBarXPos(d, i);
-                })
-                .attr('y', (d) => {
-                  return isNaN(d.avg) ? height : yScale(d.avg);
-                })
-                .attr('height', (d) => {
-                  return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
-                })
-                .attr('width', (d, i) => {
-                  return calcBarWidthAdjusted(i);
-                })
-                .attr('opacity', 0.9)
-                .attr('data-rhq-value', (d) => {
-                  return d.min;
-                })
-                .on('mouseover', (d, i) => {
-                  tip.show(d, i);
-                }).on('mouseout', () => {
-                  tip.hide();
-                });
+              rectLow
+                .enter()
+                .append('rect')
+                .call(buildLowerBar);
+
               // remove old ones
               rectLow.exit().remove();
             }
             else {
-              let strokeOpacity = '0.6';
+              const strokeOpacity = '0.6';
+
+              function buildTopStem(selection) {
+                selection
+                  .attr('class', 'histogramTopStem')
+                  .filter((d) => {
+                    return !isEmptyDataPoint(d);
+                  })
+                  .attr('x1', (d) => {
+                    return xMidPointStartPosition(d);
+                  })
+                  .attr('x2', (d) => {
+                    return xMidPointStartPosition(d);
+                  })
+                  .attr('y1', (d) => {
+                    return yScale(d.max);
+                  })
+                  .attr('y2', (d) => {
+                    return yScale(d.avg);
+                  })
+                  .attr('stroke', (d) => {
+                    return 'red';
+                  })
+                  .attr('stroke-opacity', (d) => {
+                    return strokeOpacity;
+                  });
+              }
 
               let lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartData);
+
               // update existing
-              lineHistoHighStem.attr('class', 'histogramTopStem')
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('x1', (d) => {
-                  return xMidPointStartPosition(d);
-                })
-                .attr('x2', (d) => {
-                  return xMidPointStartPosition(d);
-                })
-                .attr('y1', (d) => {
-                  return yScale(d.max);
-                })
-                .attr('y2', (d) => {
-                  return yScale(d.avg);
-                })
-                .attr('stroke', (d) => {
-                  return 'red';
-                })
-                .attr('stroke-opacity', (d) => {
-                  return strokeOpacity;
-                });
+              lineHistoHighStem.call(buildTopStem);
+
+
               // add new ones
-              lineHistoHighStem.enter().append('line')
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramTopStem')
-                .attr('x1', (d) => {
-                  return xMidPointStartPosition(d);
-                })
-                .attr('x2', (d) => {
-                  return xMidPointStartPosition(d);
-                })
-                .attr('y1', (d) => {
-                  return yScale(d.max);
-                })
-                .attr('y2', (d) => {
-                  return yScale(d.avg);
-                })
-                .attr('stroke', (d) => {
-                  return 'red';
-                })
-                .attr('stroke-opacity', (d) => {
-                  return strokeOpacity;
-                });
+              lineHistoHighStem
+                .enter()
+                .append('line')
+                .call(buildTopStem);
+
               // remove old ones
               lineHistoHighStem.exit().remove();
 
               let lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartData);
+
+              function buildLowStem(selection) {
+                selection
+                  .filter((d) => {
+                    return !isEmptyDataPoint(d);
+                  })
+                  .attr('class', 'histogramBottomStem')
+                  .attr('x1', (d) => {
+                    return xMidPointStartPosition(d);
+                  })
+                  .attr('x2', (d)  => {
+                    return xMidPointStartPosition(d);
+                  })
+                  .attr('y1', (d) => {
+                    return yScale(d.avg);
+                  })
+                  .attr('y2', (d)  => {
+                    return yScale(d.min);
+                  })
+                  .attr('stroke', (d) => {
+                    return 'red';
+                  }).attr('stroke-opacity', (d) => {
+                  return strokeOpacity;
+                });
+
+              }
               // update existing
-              lineHistoLowStem
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramBottomStem')
-                .attr('x1', (d) => {
-                  return xMidPointStartPosition(d);
-                })
-                .attr('x2', (d)  => {
-                  return xMidPointStartPosition(d);
-                })
-                .attr('y1', (d) => {
-                  return yScale(d.avg);
-                })
-                .attr('y2', (d)  => {
-                  return yScale(d.min);
-                })
-                .attr('stroke', (d) => {
-                  return 'red';
-                }).attr('stroke-opacity', (d) => {
-                  return strokeOpacity;
-                });
+              lineHistoLowStem.call(buildLowStem);
+
               // add new ones
-              lineHistoLowStem.enter().append('line')
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramBottomStem')
-                .attr('x1', (d) => {
-                  return xMidPointStartPosition(d);
-                })
-                .attr('x2', (d)  => {
-                  return xMidPointStartPosition(d);
-                })
-                .attr('y1', (d) => {
-                  return yScale(d.avg);
-                })
-                .attr('y2', (d)  => {
-                  return yScale(d.min);
-                })
-                .attr('stroke', (d) => {
-                  return 'red';
-                }).attr('stroke-opacity', (d) => {
-                  return strokeOpacity;
-                });
+              lineHistoLowStem
+                .enter()
+                .append('line')
+                .call(buildLowStem);
+
               // remove old ones
               lineHistoLowStem.exit().remove();
 
+              function buildTopCross(selection) {
+                selection
+                  .filter((d) => {
+                    return !isEmptyDataPoint(d);
+                  })
+                  .attr('class', 'histogramTopCross')
+                  .attr('x1', function (d) {
+                    return xMidPointStartPosition(d) - 3;
+                  })
+                  .attr('x2', function (d) {
+                    return xMidPointStartPosition(d) + 3;
+                  })
+                  .attr('y1', function (d) {
+                    return yScale(d.max);
+                  })
+                  .attr('y2', function (d) {
+                    return yScale(d.max);
+                  })
+                  .attr('stroke', function (d) {
+                    return 'red';
+                  })
+                  .attr('stroke-width', function (d) {
+                    return '0.5';
+                  })
+                  .attr('stroke-opacity', function (d) {
+                    return strokeOpacity;
+                  });
+              }
 
               let lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartData);
+
               // update existing
-              lineHistoTopCross
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramTopCross')
-                .attr('x1', function (d) {
-                  return xMidPointStartPosition(d) - 3;
-                })
-                .attr('x2', function (d) {
-                  return xMidPointStartPosition(d) + 3;
-                })
-                .attr('y1', function (d) {
-                  return yScale(d.max);
-                })
-                .attr('y2', function (d) {
-                  return yScale(d.max);
-                })
-                .attr('stroke', function (d) {
-                  return 'red';
-                })
-                .attr('stroke-width', function (d) {
-                  return '0.5';
-                })
-                .attr('stroke-opacity', function (d) {
-                  return strokeOpacity;
-                });
+              lineHistoTopCross.call(buildTopCross);
+
               // add new ones
-              lineHistoTopCross.enter().append('line')
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramTopCross')
-                .attr('x1', function (d) {
-                  return xMidPointStartPosition(d) - 3;
-                })
-                .attr('x2', function (d) {
-                  return xMidPointStartPosition(d) + 3;
-                })
-                .attr('y1', function (d) {
-                  return yScale(d.max);
-                })
-                .attr('y2', function (d) {
-                  return yScale(d.max);
-                })
-                .attr('stroke', function (d) {
-                  return 'red';
-                })
-                .attr('stroke-width', function (d) {
-                  return '0.5';
-                })
-                .attr('stroke-opacity', function (d) {
-                  return strokeOpacity;
-                });
+              lineHistoTopCross
+                .enter()
+                .append('line')
+                .call(buildTopCross);
+
               // remove old ones
               lineHistoTopCross.exit().remove();
 
+
+              function buildBottomCross(selection) {
+                selection
+                  .filter((d) => {
+                    return !isEmptyDataPoint(d);
+                  })
+                  .attr('class', 'histogramBottomCross')
+                  .attr('x1', function (d) {
+                    return xMidPointStartPosition(d) - 3;
+                  })
+                  .attr('x2', function (d) {
+                    return xMidPointStartPosition(d) + 3;
+                  })
+                  .attr('y1', function (d) {
+                    return yScale(d.min);
+                  })
+                  .attr('y2', function (d) {
+                    return yScale(d.min);
+                  })
+                  .attr('stroke', function (d) {
+                    return 'red';
+                  })
+                  .attr('stroke-width', function (d) {
+                    return '0.5';
+                  })
+                  .attr('stroke-opacity', function (d) {
+                    return strokeOpacity;
+                  });
+              }
+
               let lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartData);
               // update existing
-              lineHistoBottomCross
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramBottomCross')
-                .attr('x1', function (d) {
-                  return xMidPointStartPosition(d) - 3;
-                })
-                .attr('x2', function (d) {
-                  return xMidPointStartPosition(d) + 3;
-                })
-                .attr('y1', function (d) {
-                  return yScale(d.min);
-                })
-                .attr('y2', function (d) {
-                  return yScale(d.min);
-                })
-                .attr('stroke', function (d) {
-                  return 'red';
-                })
-                .attr('stroke-width', function (d) {
-                  return '0.5';
-                })
-                .attr('stroke-opacity', function (d) {
-                  return strokeOpacity;
-                });
+              lineHistoBottomCross.call(buildBottomCross);
+
               // add new ones
-              lineHistoBottomCross.enter().append('line')
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramBottomCross')
-                .attr('x1', function (d) {
-                  return xMidPointStartPosition(d) - 3;
-                })
-                .attr('x2', function (d) {
-                  return xMidPointStartPosition(d) + 3;
-                })
-                .attr('y1', function (d) {
-                  return yScale(d.min);
-                })
-                .attr('y2', function (d) {
-                  return yScale(d.min);
-                })
-                .attr('stroke', function (d) {
-                  return 'red';
-                })
-                .attr('stroke-width', function (d) {
-                  return '0.5';
-                })
-                .attr('stroke-opacity', function (d) {
-                  return strokeOpacity;
-                });
+              lineHistoBottomCross
+                .enter()
+                .append('line')
+                .call(buildBottomCross);
+
               // remove old ones
               lineHistoBottomCross.exit().remove();
             }
@@ -1588,10 +1470,17 @@ namespace Charts {
 
           function createXandYAxes() {
 
+            function axisTransition(selection) {
+              selection
+                .transition()
+                .delay(500)
+                .duration(2000)
+                .attr("opacity", 1.0);
+            }
+
             if (yAxis) {
 
               svg.selectAll('g.axis').remove();
-
 
               // create x-axis
             let  xAxisGroup = svg.append('g')
@@ -1599,20 +1488,14 @@ namespace Charts {
                 .attr('transform', 'translate(0,' + height + ')')
                 .attr("opacity", 0.3)
                 .call(xAxis)
-                .transition()
-                .delay(500)
-                .duration(2000)
-                .attr("opacity", 1.0);
+                .call(axisTransition);
 
               // create y-axis
               let yAxisGroup = svg.append('g')
                 .attr('class', 'y axis')
                 .attr("opacity", 0.3)
                 .call(yAxis)
-                .transition()
-                .delay(500)
-                .duration(2000)
-                .attr("opacity", 1.0);
+                .call(axisTransition);
 
               let yAxisLabel = svg
                 .append('text')
@@ -1621,10 +1504,7 @@ namespace Charts {
                 .style('text-anchor', 'start')
                 .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits)
                 .attr("opacity", 0.3)
-                .transition()
-                .delay(500)
-                .duration(2000)
-                .attr("opacity", 1.0);
+                .call(axisTransition);
             }
 
           }
@@ -1770,39 +1650,34 @@ namespace Charts {
 
           function createAlertBoundsArea(alertBounds:AlertBound[]) {
             let rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
+
+            function alertBoundingRect(selection){
+              selection
+                .attr('class', 'alertBounds')
+                .attr('x', (d:AlertBound) => {
+                  return timeScale(d.startTimestamp);
+                })
+                .attr('y', () => {
+                  return yScale(highBound);
+                })
+                .attr('height', (d:AlertBound) => {
+                  ///@todo: make the height adjustable
+                  return 185;
+                  //return yScale(0) - height;
+                })
+                .attr('width', (d:AlertBound) => {
+                  return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
+                });
+            }
+
             // update existing
-            rectAlert.attr('class', 'alertBounds')
-              .attr('x', (d:AlertBound) => {
-                return timeScale(d.startTimestamp);
-              })
-              .attr('y', () => {
-                return yScale(highBound);
-              })
-              .attr('height', (d:AlertBound) => {
-                ///@todo: make the height adjustable
-                return 185;
-                //return yScale(0) - height;
-              })
-              .attr('width', (d:AlertBound) => {
-                return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
-              });
+            rectAlert.call(alertBoundingRect);
+
             // add new ones
-            rectAlert.enter().append('rect')
-              .attr('class', 'alertBounds')
-              .attr('x', (d:AlertBound) => {
-                return timeScale(d.startTimestamp);
-              })
-              .attr('y', () => {
-                return yScale(highBound);
-              })
-              .attr('height', (d:AlertBound) => {
-                ///@todo: make the height adjustable
-                return 185;
-                //return yScale(0) - height;
-              })
-              .attr('width', (d:AlertBound) => {
-                return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
-              });
+            rectAlert.enter()
+              .append('rect')
+              .call(alertBoundingRect);
+
             // remove old ones
             rectAlert.exit().remove();
           }
