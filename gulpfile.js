@@ -27,7 +27,6 @@ var gulp = require('gulp'),
   rename = require('gulp-rename'),
   s = require('underscore.string'),
   size = require('gulp-size'),
-//stripDebug = require('gulp-strip-debug'),
   ts = require('gulp-typescript'),
   merge = require('merge2'),
   uglify = require('gulp-uglify'),
@@ -43,7 +42,6 @@ var config = {
   main: '.',
   ts: ['src/**/*.ts'],
   css: ['css/*.css'],
-  dist: './dist/',
   js: pkg.name + '.js',
   tsProject: plugins.typescript.createProject({
     target: 'ES5',
@@ -83,7 +81,7 @@ gulp.task('clean-defs', function () {
     .pipe(plugins.clean());
 });
 
-gulp.task('tsc', ['clean-defs'], function () {
+gulp.task('tsc-prod', ['clean-defs'], function () {
   var cwd = process.cwd();
   var tsResult = gulp.src(config.ts)
     .pipe(plugins.typescript(config.tsProject))
@@ -95,9 +93,7 @@ gulp.task('tsc', ['clean-defs'], function () {
   return eventStream.merge(
     tsResult.js
       .pipe(plugins.concat(config.js))
-      //.pipe(stripDebug())
       .pipe(gulp.dest('.'))
-      .pipe(reload())
       .pipe(uglify())
       .pipe(rename('hawkular-charts.min.js'))
       .pipe(gulp.dest('.')),
@@ -113,6 +109,34 @@ gulp.task('tsc', ['clean-defs'], function () {
       return buf;
     }));
 });
+
+gulp.task('tsc-dev', ['clean-defs'], function () {
+  var cwd = process.cwd();
+  var tsResult = gulp.src(config.ts)
+    .pipe(plugins.typescript(config.tsProject))
+    .on('error', plugins.notify.onError({
+      message: '<%= error.message %>',
+      title: 'Typescript compilation error'
+    }));
+
+  return eventStream.merge(
+    tsResult.js
+      .pipe(plugins.concat(config.js))
+      .pipe(gulp.dest('.'))
+      .pipe(reload()),
+
+    tsResult.dts
+      .pipe(gulp.dest('d.ts')))
+    .pipe(map(function (buf, filename) {
+      if (!s.endsWith(filename, 'd.ts')) {
+        return buf;
+      }
+      var relative = path.relative(cwd, filename);
+      fs.appendFileSync('defs.d.ts', '/// <reference path="' + relative + '"/>\n');
+      return buf;
+    }));
+});
+
 
 
 gulp.task('tslint', function () {
@@ -143,15 +167,15 @@ gulp.task('server', ['watch'], function () {
   browsersync({proxy: 'localhost:8000'})
 });
 
-gulp.task('dev-build', ['bower', 'path-adjust', 'tslint', 'tsc', 'concat', 'clean']);
+gulp.task('dev-build', ['bower', 'path-adjust', 'tslint', 'tsc-dev', 'concat', 'clean']);
 
 gulp.task('watch', function () {
-  gulp.watch(config.css, ['tsc']);
-  gulp.watch(config.ts, ['tsc']);
+  gulp.watch(config.css, ['tsc-dev']);
+  gulp.watch(config.ts, ['tsc-dev']);
 });
 
 
-gulp.task('build', ['bower', 'path-adjust', 'tslint', 'tsc', 'concat', 'clean']);
+gulp.task('build', ['bower', 'path-adjust', 'tslint', 'tsc-prod', 'concat', 'clean']);
 gulp.task('default', ['server']);
 
 
