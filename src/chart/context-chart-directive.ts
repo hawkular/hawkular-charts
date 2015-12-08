@@ -15,7 +15,7 @@ namespace Charts {
   export class ContextChartDirective {
 
     private static _CHART_WIDTH = 750;
-    private static _CHART_HEIGHT = 100;
+    private static _CHART_HEIGHT = 80;
 
     public restrict = 'E';
     public replace = true;
@@ -66,12 +66,12 @@ namespace Charts {
           }
           chartParent = d3.select(element[0]);
           chart = chartParent.append('svg')
-            .attr('viewBox', '0 0 750 100').attr('preserveAspectRatio', 'xMinYMin meet');
+            .attr('viewBox', '0 0 760 70').attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
             .attr('width', width + margin.left + margin.right)
             .attr('height', innerChartHeight)
-            .attr('transform', 'translate(' + margin.left + ',' + height + ')');
+            .attr('transform', 'translate(' + margin.left + ', 0)');
 
         }
 
@@ -110,7 +110,7 @@ namespace Charts {
           yMin = yMin - (yMin * 0.05);
 
           yScale = d3.scale.linear()
-            .rangeRound([90, 0])
+            .rangeRound([ContextChartDirective._CHART_HEIGHT - 10, 0])
             .nice()
             .domain([yMin, yMax]);
 

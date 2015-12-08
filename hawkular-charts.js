@@ -422,16 +422,17 @@ var Charts;
                     }
                     chartParent = d3.select(element[0]);
                     chart = chartParent.append('svg')
-                        .attr('viewBox', '0 0 750 100').attr('preserveAspectRatio', 'xMinYMin meet');
+                        .attr('viewBox', '0 0 760 70').attr('preserveAspectRatio', 'xMinYMin meet');
                     svg = chart.append('g')
                         .attr('width', width + margin.left + margin.right)
                         .attr('height', innerChartHeight)
-                        .attr('transform', 'translate(' + margin.left + ',' + height + ')');
+                        .attr('transform', 'translate(' + margin.left + ', 0)');
                 }
                 function createContextChart(dataPoints) {
                     console.log('dataPoints.length: ' + dataPoints.length);
                     timeScale = d3.time.scale()
                         .range([0, width - 10])
+                        .nice()
                         .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
                     xAxis = d3.svg.axis()
                         .scale(timeScale)
@@ -453,9 +454,10 @@ var Charts;
                     yMax = yMax + (yMax * 0.03);
                     yMin = yMin - (yMin * 0.05);
                     yScale = d3.scale.linear()
-                        .rangeRound([90, 0])
+                        .rangeRound([ContextChartDirective._CHART_HEIGHT - 10, 0])
+                        .nice()
                         .domain([yMin, yMax]);
-                    var numberOfTicks = showYAxisValues ? 3 : 0;
+                    var numberOfTicks = showYAxisValues ? 2 : 0;
                     yAxis = d3.svg.axis()
                         .scale(yScale)
                         .ticks(numberOfTicks)
@@ -584,7 +586,7 @@ var Charts;
             return directive;
         };
         ContextChartDirective._CHART_WIDTH = 750;
-        ContextChartDirective._CHART_HEIGHT = 100;
+        ContextChartDirective._CHART_HEIGHT = 80;
         return ContextChartDirective;
     })();
     Charts.ContextChartDirective = ContextChartDirective;
@@ -1934,29 +1936,38 @@ var Charts;
                     }
                 }
                 function createXandYAxes() {
-                    var xAxisGroup;
                     if (yAxis) {
                         svg.selectAll('g.axis').remove();
                         // create x-axis
-                        xAxisGroup = svg.append('g')
+                        var xAxisGroup = svg.append('g')
                             .attr('class', 'x axis')
                             .attr('transform', 'translate(0,' + height + ')')
-                            .call(xAxis);
-                        xAxisGroup.append('g')
-                            .attr('class', 'x brush')
-                            .call(brush)
-                            .selectAll('rect')
-                            .attr('y', -6)
-                            .attr('height', 30);
+                            .attr("opacity", 0.3)
+                            .call(xAxis)
+                            .transition()
+                            .delay(500)
+                            .duration(2000)
+                            .attr("opacity", 1.0);
                         // create y-axis
-                        svg.append('g')
+                        var yAxisGroup = svg.append('g')
                             .attr('class', 'y axis')
+                            .attr("opacity", 0.3)
                             .call(yAxis)
+                            .transition()
+                            .delay(500)
+                            .duration(2000)
+                            .attr("opacity", 1.0);
+                        var yAxisLabel = svg
                             .append('text')
                             .attr('transform', 'rotate(-90),translate(0,-50)')
                             .attr('x', -CHART_HEIGHT / 2)
                             .style('text-anchor', 'start')
-                            .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits);
+                            .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits)
+                            .attr("opacity", 0.3)
+                            .transition()
+                            .delay(500)
+                            .duration(2000)
+                            .attr("opacity", 1.0);
                     }
                 }
                 function createCenteredLine(newInterpolation) {

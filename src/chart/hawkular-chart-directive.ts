@@ -1809,7 +1809,7 @@ namespace Charts {
 
           function createXAxisBrush() {
 
-            brushGroup = svg.selectAll('g.brush')
+            brushGroup = svg.selectAll('g.brush');
             if (brushGroup.empty()) {
               brushGroup = svg.append('g').attr('class', 'brush');
             }
