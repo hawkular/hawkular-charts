@@ -81,6 +81,7 @@ namespace Charts {
 
           timeScale = d3.time.scale()
             .range([0, width - 10])
+            .nice()
             .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
 
           xAxis = d3.svg.axis()
@@ -110,10 +111,11 @@ namespace Charts {
 
           yScale = d3.scale.linear()
             .rangeRound([90, 0])
+            .nice()
             .domain([yMin, yMax]);
 
 
-          let numberOfTicks = showYAxisValues ? 3 : 0;
+          let numberOfTicks = showYAxisValues ? 2 : 0;
 
           yAxis = d3.svg.axis()
             .scale(yScale)

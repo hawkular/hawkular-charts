@@ -210,14 +210,14 @@ rect.low {
 
 /* Context Chart */
 .contextArea{
-  fill: #EDF7FF;
-  stroke: #CCE7F5;
+  fill: #ededed;
+  stroke:none;
   stroke-width: 0;
   opacity: .8;
 }
 .contextLine{
   fill: none;
-  stroke: #0088CE;
+  stroke: #393f44;
   stroke-width: 2;
 }
 
