@@ -120,32 +120,7 @@ var Charts;
                             .scale(timeScale)
                             .tickSize(-70, 0)
                             .orient('top')
-                            .tickFormat(d3.time.format.multi([
-                            [".%L", function (d) {
-                                    return d.getMilliseconds();
-                                }],
-                            [":%S", function (d) {
-                                    return d.getSeconds();
-                                }],
-                            ["%H:%M", function (d) {
-                                    return d.getMinutes();
-                                }],
-                            ["%H:%M", function (d) {
-                                    return d.getHours();
-                                }],
-                            ["%a %d", function (d) {
-                                    return d.getDay() && d.getDate() != 1;
-                                }],
-                            ["%b %d", function (d) {
-                                    return d.getDate() != 1;
-                                }],
-                            ["%B", function (d) {
-                                    return d.getMonth();
-                                }],
-                            ["%Y", function () {
-                                    return true;
-                                }]
-                        ]));
+                            .tickFormat(Charts.xAxisTimeFormats());
                     }
                 }
                 function isUp(d) {
@@ -438,6 +413,7 @@ var Charts;
                         .scale(timeScale)
                         .ticks(10)
                         .tickSize(4, 0)
+                        .tickFormat(Charts.xAxisTimeFormats())
                         .orient('bottom');
                     svg.selectAll('g.axis').remove();
                     xAxisGroup = svg.append('g')
@@ -778,7 +754,7 @@ var Charts;
                         xAxis = d3.svg.axis()
                             .scale(timeScale)
                             .ticks(xTicks)
-                            .tickFormat(d3.time.format('%H:%M'))
+                            .tickFormat(Charts.xAxisTimeFormats())
                             .tickSize(4, 4, 0)
                             .orient('bottom');
                     }
@@ -837,7 +813,7 @@ var Charts;
                         xAxis = d3.svg.axis()
                             .scale(timeScale)
                             .ticks(xTicks)
-                            .tickFormat(d3.time.format('%H:%M'))
+                            .tickFormat(Charts.xAxisTimeFormats())
                             .tickSize(4, 4, 0)
                             .orient('bottom');
                     }
@@ -2298,6 +2274,7 @@ var Charts;
                         .scale(timeScale)
                         .ticks(numberOfXTicks)
                         .tickSize(4, 0)
+                        .tickFormat(Charts.xAxisTimeFormats())
                         .orient('bottom');
                     svg.selectAll('g.axis').remove();
                     xAxisGroup = svg.append('g')
@@ -2424,4 +2401,39 @@ var Charts;
     })();
     Charts.SparklineChartDirective = SparklineChartDirective;
     _module.directive('hawkularSparklineChart', SparklineChartDirective.Factory());
+})(Charts || (Charts = {}));
+
+/// <reference path='../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
+    function xAxisTimeFormats() {
+        return d3.time.format.multi([
+            [".%L", function (d) {
+                    return d.getMilliseconds();
+                }],
+            [":%S", function (d) {
+                    return d.getSeconds();
+                }],
+            ["%H:%M", function (d) {
+                    return d.getMinutes();
+                }],
+            ["%H:%M", function (d) {
+                    return d.getHours();
+                }],
+            ["%a %d", function (d) {
+                    return d.getDay() && d.getDate() != 1;
+                }],
+            ["%b %d", function (d) {
+                    return d.getDate() != 1;
+                }],
+            ["%B", function (d) {
+                    return d.getMonth();
+                }],
+            ["%Y", function () {
+                    return true;
+                }]
+        ]);
+    }
+    Charts.xAxisTimeFormats = xAxisTimeFormats;
 })(Charts || (Charts = {}));

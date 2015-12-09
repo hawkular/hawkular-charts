@@ -206,32 +206,8 @@ namespace Charts {
               .scale(timeScale)
               .tickSize(-70, 0)
               .orient('top')
-              .tickFormat(d3.time.format.multi([
-                [".%L", (d) => {
-                  return d.getMilliseconds();
-                }],
-                [":%S", (d) => {
-                  return d.getSeconds();
-                }],
-                ["%H:%M", (d) => {
-                  return d.getMinutes()
-                }],
-                ["%H:%M", (d) => {
-                  return d.getHours();
-                }],
-                ["%a %d", (d) => {
-                  return d.getDay() && d.getDate() != 1;
-                }],
-                ["%b %d", (d) => {
-                  return d.getDate() != 1;
-                }],
-                ["%B", (d) => {
-                  return d.getMonth();
-                }],
-                ["%Y", () => {
-                  return true;
-                }]
-              ]));
+              .tickFormat(xAxisTimeFormats());
+
           }
         }
 

@@ -54,7 +54,7 @@ namespace Charts {
           chartParent,
           svg;
 
-        if(typeof attrs.showYAxisValues != 'undefined'){
+        if (typeof attrs.showYAxisValues != 'undefined') {
           showYAxisValues = attrs.showYAxisValues === 'true';
         }
 
@@ -66,9 +66,9 @@ namespace Charts {
           }
           chartParent = d3.select(element[0]);
           chart = chartParent.append('svg')
-          .attr('width', width + margin.left + margin.right)
-          .attr('height', innerChartHeight)
-          .attr('viewBox', '0 0 760 70').attr('preserveAspectRatio', 'xMinYMin meet');
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', innerChartHeight)
+            .attr('viewBox', '0 0 760 70').attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
             .attr('transform', 'translate(' + margin.left + ', 0)');
@@ -88,6 +88,7 @@ namespace Charts {
             .scale(timeScale)
             .ticks(10)
             .tickSize(4, 0)
+            .tickFormat(xAxisTimeFormats())
             .orient('bottom');
 
           svg.selectAll('g.axis').remove();

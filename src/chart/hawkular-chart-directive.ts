@@ -90,8 +90,8 @@ namespace Charts {
    */
   angular.module('hawkular.charts')
     .directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log',
-        function ($rootScope:ng.IRootScopeService,
-                  $http:ng.IHttpService,
+      function ($rootScope:ng.IRootScopeService,
+                $http:ng.IHttpService,
                   $interval:ng.IIntervalService,
                   $log:ng.ILogService):ng.IDirective {
 
@@ -309,7 +309,7 @@ namespace Charts {
                 xAxis = d3.svg.axis()
                   .scale(timeScale)
                   .ticks(xTicks)
-                  .tickFormat(d3.time.format('%H:%M'))
+                  .tickFormat(xAxisTimeFormats())
                   .tickSize(4, 4, 0)
                   .orient('bottom');
 
@@ -391,7 +391,7 @@ namespace Charts {
                 xAxis = d3.svg.axis()
                   .scale(timeScale)
                   .ticks(xTicks)
-                  .tickFormat(d3.time.format('%H:%M'))
+                  .tickFormat(xAxisTimeFormats())
                   .tickSize(4, 4, 0)
                   .orient('bottom');
 
