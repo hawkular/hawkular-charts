@@ -1024,37 +1024,162 @@ var Charts;
                             remove();
                     }
                 }
+                function buildHighBar(selection) {
+                    selection
+                        .attr('class', function (d) {
+                        return d.min === d.max ? 'singleValue' : 'high';
+                    })
+                        .attr('x', function (d, i) {
+                        return calcBarXPos(d, i);
+                    })
+                        .attr('y', function (d) {
+                        return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
+                    })
+                        .attr('height', function (d) {
+                        return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
+                    })
+                        .attr('width', function (d, i) {
+                        return calcBarWidthAdjusted(i);
+                    })
+                        .attr('opacity', 0.9)
+                        .on('mouseover', function (d, i) {
+                        tip.show(d, i);
+                    }).on('mouseout', function () {
+                        tip.hide();
+                    });
+                }
+                function buildLowerBar(selection) {
+                    selection
+                        .attr('class', 'low')
+                        .attr('x', function (d, i) {
+                        return calcBarXPos(d, i);
+                    })
+                        .attr('y', function (d) {
+                        return isNaN(d.avg) ? height : yScale(d.avg);
+                    })
+                        .attr('height', function (d) {
+                        return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
+                    })
+                        .attr('width', function (d, i) {
+                        return calcBarWidthAdjusted(i);
+                    })
+                        .attr('opacity', 0.9)
+                        .on('mouseover', function (d, i) {
+                        tip.show(d, i);
+                    }).on('mouseout', function () {
+                        tip.hide();
+                    });
+                }
+                var strokeOpacity = 0.6;
+                function buildTopStem(selection) {
+                    selection
+                        .attr('class', 'histogramTopStem')
+                        .filter(function (d) {
+                        return !isEmptyDataPoint(d);
+                    })
+                        .attr('x1', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('x2', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('y1', function (d) {
+                        return yScale(d.max);
+                    })
+                        .attr('y2', function (d) {
+                        return yScale(d.avg);
+                    })
+                        .attr('stroke', function (d) {
+                        return 'red';
+                    })
+                        .attr('stroke-opacity', function (d) {
+                        return strokeOpacity;
+                    });
+                }
+                function buildLowStem(selection) {
+                    selection
+                        .filter(function (d) {
+                        return !isEmptyDataPoint(d);
+                    })
+                        .attr('class', 'histogramBottomStem')
+                        .attr('x1', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('x2', function (d) {
+                        return xMidPointStartPosition(d);
+                    })
+                        .attr('y1', function (d) {
+                        return yScale(d.avg);
+                    })
+                        .attr('y2', function (d) {
+                        return yScale(d.min);
+                    })
+                        .attr('stroke', function (d) {
+                        return 'red';
+                    }).attr('stroke-opacity', function (d) {
+                        return strokeOpacity;
+                    });
+                }
+                function buildTopCross(selection) {
+                    selection
+                        .filter(function (d) {
+                        return !isEmptyDataPoint(d);
+                    })
+                        .attr('class', 'histogramTopCross')
+                        .attr('x1', function (d) {
+                        return xMidPointStartPosition(d) - 3;
+                    })
+                        .attr('x2', function (d) {
+                        return xMidPointStartPosition(d) + 3;
+                    })
+                        .attr('y1', function (d) {
+                        return yScale(d.max);
+                    })
+                        .attr('y2', function (d) {
+                        return yScale(d.max);
+                    })
+                        .attr('stroke', function (d) {
+                        return 'red';
+                    })
+                        .attr('stroke-width', function (d) {
+                        return '0.5';
+                    })
+                        .attr('stroke-opacity', function (d) {
+                        return strokeOpacity;
+                    });
+                }
+                function buildBottomCross(selection) {
+                    selection
+                        .filter(function (d) {
+                        return !isEmptyDataPoint(d);
+                    })
+                        .attr('class', 'histogramBottomCross')
+                        .attr('x1', function (d) {
+                        return xMidPointStartPosition(d) - 3;
+                    })
+                        .attr('x2', function (d) {
+                        return xMidPointStartPosition(d) + 3;
+                    })
+                        .attr('y1', function (d) {
+                        return yScale(d.min);
+                    })
+                        .attr('y2', function (d) {
+                        return yScale(d.min);
+                    })
+                        .attr('stroke', function (d) {
+                        return 'red';
+                    })
+                        .attr('stroke-width', function (d) {
+                        return '0.5';
+                    })
+                        .attr('stroke-opacity', function (d) {
+                        return strokeOpacity;
+                    });
+                }
                 function createHistogramHighLowValues(stacked) {
                     if (stacked) {
                         // upper portion representing avg to high
                         var rectHigh = svg.selectAll('rect.high, rect.singleValue').data(chartData);
-                        function buildHighBar(selection) {
-                            selection
-                                .attr('class', function (d) {
-                                return d.min === d.max ? 'singleValue' : 'high';
-                            })
-                                .attr('x', function (d, i) {
-                                return calcBarXPos(d, i);
-                            })
-                                .attr('y', function (d) {
-                                return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
-                            })
-                                .attr('height', function (d) {
-                                return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
-                            })
-                                .attr('width', function (d, i) {
-                                return calcBarWidthAdjusted(i);
-                            })
-                                .attr('data-rhq-value', function (d) {
-                                return d.max;
-                            })
-                                .attr('opacity', 0.9)
-                                .on('mouseover', function (d, i) {
-                                tip.show(d, i);
-                            }).on('mouseout', function () {
-                                tip.hide();
-                            });
-                        }
                         // update existing
                         rectHigh.call(buildHighBar);
                         // add new ones
@@ -1066,31 +1191,6 @@ var Charts;
                         rectHigh.exit().remove();
                         // lower portion representing avg to low
                         var rectLow = svg.selectAll('rect.low').data(chartData);
-                        function buildLowerBar(selection) {
-                            selection
-                                .attr('class', 'low')
-                                .attr('x', function (d, i) {
-                                return calcBarXPos(d, i);
-                            })
-                                .attr('y', function (d) {
-                                return isNaN(d.avg) ? height : yScale(d.avg);
-                            })
-                                .attr('height', function (d) {
-                                return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
-                            })
-                                .attr('width', function (d, i) {
-                                return calcBarWidthAdjusted(i);
-                            })
-                                .attr('opacity', 0.9)
-                                .attr('data-rhq-value', function (d) {
-                                return d.min;
-                            })
-                                .on('mouseover', function (d, i) {
-                                tip.show(d, i);
-                            }).on('mouseout', function () {
-                                tip.hide();
-                            });
-                        }
                         // update existing
                         rectLow.call(buildLowerBar);
                         // add new ones
@@ -1102,32 +1202,7 @@ var Charts;
                         rectLow.exit().remove();
                     }
                     else {
-                        var strokeOpacity = '0.6';
-                        function buildTopStem(selection) {
-                            selection
-                                .attr('class', 'histogramTopStem')
-                                .filter(function (d) {
-                                return !isEmptyDataPoint(d);
-                            })
-                                .attr('x1', function (d) {
-                                return xMidPointStartPosition(d);
-                            })
-                                .attr('x2', function (d) {
-                                return xMidPointStartPosition(d);
-                            })
-                                .attr('y1', function (d) {
-                                return yScale(d.max);
-                            })
-                                .attr('y2', function (d) {
-                                return yScale(d.avg);
-                            })
-                                .attr('stroke', function (d) {
-                                return 'red';
-                            })
-                                .attr('stroke-opacity', function (d) {
-                                return strokeOpacity;
-                            });
-                        }
+                        var strokeOpacity_1 = '0.6';
                         var lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartData);
                         // update existing
                         lineHistoHighStem.call(buildTopStem);
@@ -1139,30 +1214,6 @@ var Charts;
                         // remove old ones
                         lineHistoHighStem.exit().remove();
                         var lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartData);
-                        function buildLowStem(selection) {
-                            selection
-                                .filter(function (d) {
-                                return !isEmptyDataPoint(d);
-                            })
-                                .attr('class', 'histogramBottomStem')
-                                .attr('x1', function (d) {
-                                return xMidPointStartPosition(d);
-                            })
-                                .attr('x2', function (d) {
-                                return xMidPointStartPosition(d);
-                            })
-                                .attr('y1', function (d) {
-                                return yScale(d.avg);
-                            })
-                                .attr('y2', function (d) {
-                                return yScale(d.min);
-                            })
-                                .attr('stroke', function (d) {
-                                return 'red';
-                            }).attr('stroke-opacity', function (d) {
-                                return strokeOpacity;
-                            });
-                        }
                         // update existing
                         lineHistoLowStem.call(buildLowStem);
                         // add new ones
@@ -1172,34 +1223,6 @@ var Charts;
                             .call(buildLowStem);
                         // remove old ones
                         lineHistoLowStem.exit().remove();
-                        function buildTopCross(selection) {
-                            selection
-                                .filter(function (d) {
-                                return !isEmptyDataPoint(d);
-                            })
-                                .attr('class', 'histogramTopCross')
-                                .attr('x1', function (d) {
-                                return xMidPointStartPosition(d) - 3;
-                            })
-                                .attr('x2', function (d) {
-                                return xMidPointStartPosition(d) + 3;
-                            })
-                                .attr('y1', function (d) {
-                                return yScale(d.max);
-                            })
-                                .attr('y2', function (d) {
-                                return yScale(d.max);
-                            })
-                                .attr('stroke', function (d) {
-                                return 'red';
-                            })
-                                .attr('stroke-width', function (d) {
-                                return '0.5';
-                            })
-                                .attr('stroke-opacity', function (d) {
-                                return strokeOpacity;
-                            });
-                        }
                         var lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartData);
                         // update existing
                         lineHistoTopCross.call(buildTopCross);
@@ -1210,34 +1233,6 @@ var Charts;
                             .call(buildTopCross);
                         // remove old ones
                         lineHistoTopCross.exit().remove();
-                        function buildBottomCross(selection) {
-                            selection
-                                .filter(function (d) {
-                                return !isEmptyDataPoint(d);
-                            })
-                                .attr('class', 'histogramBottomCross')
-                                .attr('x1', function (d) {
-                                return xMidPointStartPosition(d) - 3;
-                            })
-                                .attr('x2', function (d) {
-                                return xMidPointStartPosition(d) + 3;
-                            })
-                                .attr('y1', function (d) {
-                                return yScale(d.min);
-                            })
-                                .attr('y2', function (d) {
-                                return yScale(d.min);
-                            })
-                                .attr('stroke', function (d) {
-                                return 'red';
-                            })
-                                .attr('stroke-width', function (d) {
-                                return '0.5';
-                            })
-                                .attr('stroke-opacity', function (d) {
-                                return strokeOpacity;
-                            });
-                        }
                         var lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartData);
                         // update existing
                         lineHistoBottomCross.call(buildBottomCross);
