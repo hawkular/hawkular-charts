@@ -71,13 +71,13 @@ namespace Charts {
           }
           chartParent = d3.select(element[0]);
           chart = chartParent.append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', innerChartHeight)
             .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom
               + Y_AXIS_HEIGHT ))
             .attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
-            .attr('width', width + margin.left + margin.right)
-            .attr('height', innerChartHeight)
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
         }

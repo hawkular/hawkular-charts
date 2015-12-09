@@ -195,14 +195,14 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
             chart = chartParent.append('svg')
+              .attr('width', width + margin.left + margin.right)
+              .attr('height', innerChartHeight)
               .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + Y_AXIS_HEIGHT))
               .attr('preserveAspectRatio', 'xMinYMin meet');
 
             createSvgDefs(chart);
 
             svg = chart.append('g')
-              .attr('width', width + margin.left + margin.right)
-              .attr('height', innerChartHeight)
               .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
 
             tip = d3.tip()
