@@ -1499,7 +1499,8 @@ namespace Charts {
 
               let yAxisLabel = svg
                 .append('text')
-                .attr('transform', 'rotate(-90),translate(0,-50)')
+                .attr('class', 'yAxisUnitsLabel')
+                .attr('transform', 'rotate(-90),translate(-10,-50)')
                 .attr('x',-CHART_HEIGHT/2)
                 .style('text-anchor', 'start')
                 .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits)
