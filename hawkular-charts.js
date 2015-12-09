@@ -384,7 +384,7 @@ var Charts;
                 showYAxisValues: '='
             };
             this.link = function (scope, element, attrs) {
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 };
+                var margin = { top: 0, right: 5, bottom: 5, left: 90 };
                 // data specific vars
                 var chartHeight = ContextChartDirective._CHART_HEIGHT, width = ContextChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, showYAxisValues, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, brush, brushGroup, chart, chartParent, svg;
                 if (typeof attrs.showYAxisValues != 'undefined') {
@@ -399,7 +399,7 @@ var Charts;
                     chart = chartParent.append('svg')
                         .attr('width', width + margin.left + margin.right)
                         .attr('height', innerChartHeight)
-                        .attr('viewBox', '0 0 760 70').attr('preserveAspectRatio', 'xMinYMin meet');
+                        .attr('viewBox', '0 0 760 50').attr('preserveAspectRatio', 'xMinYMin meet');
                     svg = chart.append('g')
                         .attr('transform', 'translate(' + margin.left + ', 0)');
                 }
@@ -411,7 +411,7 @@ var Charts;
                         .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
                     xAxis = d3.svg.axis()
                         .scale(timeScale)
-                        .ticks(10)
+                        .ticks(5)
                         .tickSize(4, 0)
                         .tickFormat(Charts.xAxisTimeFormats())
                         .orient('bottom');
@@ -502,7 +502,7 @@ var Charts;
                         .call(brush);
                     brushGroup.selectAll('.resize').append('path');
                     brushGroup.selectAll('rect')
-                        .attr('height', 85);
+                        .attr('height', height + 17);
                     function contextBrushStart() {
                         svg.classed('selecting', true);
                     }
@@ -562,7 +562,7 @@ var Charts;
             return directive;
         };
         ContextChartDirective._CHART_WIDTH = 750;
-        ContextChartDirective._CHART_HEIGHT = 80;
+        ContextChartDirective._CHART_HEIGHT = 50;
         return ContextChartDirective;
     })();
     Charts.ContextChartDirective = ContextChartDirective;
