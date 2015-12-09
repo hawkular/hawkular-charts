@@ -195,14 +195,14 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
             chart = chartParent.append('svg')
+              .attr('width', width + margin.left + margin.right)
+              .attr('height', innerChartHeight)
               .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + Y_AXIS_HEIGHT))
               .attr('preserveAspectRatio', 'xMinYMin meet');
 
             createSvgDefs(chart);
 
             svg = chart.append('g')
-              .attr('width', width + margin.left + margin.right)
-              .attr('height', innerChartHeight)
               .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
 
             tip = d3.tip()
@@ -1499,7 +1499,8 @@ namespace Charts {
 
               let yAxisLabel = svg
                 .append('text')
-                .attr('transform', 'rotate(-90),translate(0,-50)')
+                .attr('class', 'yAxisUnitsLabel')
+                .attr('transform', 'rotate(-90),translate(-10,-50)')
                 .attr('x',-CHART_HEIGHT/2)
                 .style('text-anchor', 'start')
                 .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits)

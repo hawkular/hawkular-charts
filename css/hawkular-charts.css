@@ -52,6 +52,16 @@ svg {
   stroke: #d1d1d1;
 }
 
+.yAxisUnitsLabel {
+  stroke: #bbbbbbb;
+  opacity: .5;
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  text-rendering: optimizeLegibility;
+}
+
 /* Brush related css rules */
 .brush rect.extent {
   fill: #0757ff;
