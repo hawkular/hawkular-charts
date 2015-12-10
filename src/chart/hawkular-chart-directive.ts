@@ -522,14 +522,26 @@ namespace Charts {
                 } else {
                   // aggregate with min/avg/max
                   hover = `<div class='chartHover'>
-                <small>
-                  <span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span>
-                </small>
-                  <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
-                  <hr/>
-                  <div><small><span class='chartHoverLabel'>${maxLabel}</span><span>: </span><span class='chartHoverValue'>${d3.round(d.max, 2)}</span></small> </div>
-                  <div><small><span class='chartHoverLabel'>${avgLabel}</span><span>: </span><span class='chartHoverValue'>${d3.round(d.avg, 2)}</span></small> </div>
-                  <div><small><span class='chartHoverLabel'>${minLabel}</span><span>: </span><span class='chartHoverValue'>${d3.round(d.min, 2)}</span></small> </div>
+                    <div class="info-item">
+                      <span class='chartHoverLabel'>${timestampLabel}:</span>
+                      <span class='chartHoverValue'>${formattedDateTime}</span>
+                    </div>
+                    <div class="info-item before-separator">
+                      <span class='chartHoverLabel'>${durationLabel}:</span>
+                      <span class='chartHoverValue'>${barDuration}</span>
+                    </div>
+                    <div class="info-item separator">
+                      <span class='chartHoverLabel'>${maxLabel}:</span>
+                      <span class='chartHoverValue'>${d3.round(d.max, 2)}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class='chartHoverLabel'>${avgLabel}:</span>
+                      <span class='chartHoverValue'>${d3.round(d.avg, 2)}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class='chartHoverLabel'>${minLabel}:</span>
+                      <span class='chartHoverValue'>${d3.round(d.min, 2)}</span>
+                    </div>
                   </div> `;
                 }
               }

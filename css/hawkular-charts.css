@@ -235,46 +235,62 @@ rect.low {
 
 /* Tooltip */
 .d3-tip {
-  line-height: 1;
-  font-weight: bold;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  border-radius: 2px;
+  background-color: rgba(67,67,67,0.95);
+  border-radius: 1px;
+  line-height: 1.2;
+  padding: 10px;
+  transition: opacity 0.3s ease;
 }
 
 /* Creates a small triangle extender for the tooltip */
 .d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 10px;
-  width: 100%;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.7);
-  content: "\25BC";
+  bottom: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-top-color: #4d4d4d;
+  border-width: 8px 8px 0;
+  content: "";
+  height: 0;
   position: absolute;
-  text-align: center;
+  width: 0;
 }
 
 /* Style northward tooltips differently */
 .d3-tip.n:after {
-  margin: -1px 0 0 0;
+  margin: 0 0 0 -8px;
   top: 100%;
-  left: 0;
+  left: 50%;
 }
 
 .chartHover {
+  color: #fff;
+  display: table;
+  font-family: "Open Sans", Helvetica, Arial, sans-serif;
+  font-size: 12px;
 }
 
-.chartHoverValue {
-  margin-left: 20px;
-  color: #f7f7f7;
+.chartHover .info-item {
+  display: table-row;
+}
+
+.chartHover .info-item span {
+  display: table-cell;
+  padding: 3px 5px;
+}
+
+.chartHover .separator span {
+  border-top: 1px solid #777;
+  padding-top: 10px;
+}
+
+.chartHover .before-separator span {
+  padding-bottom: 10px;
 }
 
 .chartHoverLabel {
-  margin-right: 10px;
   color: #d3d3d3;
 }
+
 
 /* Area Chart */
 .highArea {
