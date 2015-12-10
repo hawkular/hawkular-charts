@@ -15,7 +15,7 @@ namespace Charts {
   export class ContextChartDirective {
 
     private static _CHART_WIDTH = 750;
-    private static _CHART_HEIGHT = 80;
+    private static _CHART_HEIGHT = 50;
 
     public restrict = 'E';
     public replace = true;
@@ -34,7 +34,7 @@ namespace Charts {
 
       this.link = (scope, element, attrs) => {
 
-        const margin = {top: 10, right: 5, bottom: 5, left: 90};
+        const margin = {top: 0, right: 5, bottom: 5, left: 90};
 
         // data specific vars
         let chartHeight = ContextChartDirective._CHART_HEIGHT,
@@ -54,7 +54,7 @@ namespace Charts {
           chartParent,
           svg;
 
-        if(typeof attrs.showYAxisValues != 'undefined'){
+        if (typeof attrs.showYAxisValues != 'undefined') {
           showYAxisValues = attrs.showYAxisValues === 'true';
         }
 
@@ -66,9 +66,9 @@ namespace Charts {
           }
           chartParent = d3.select(element[0]);
           chart = chartParent.append('svg')
-          .attr('width', width + margin.left + margin.right)
-          .attr('height', innerChartHeight)
-          .attr('viewBox', '0 0 760 70').attr('preserveAspectRatio', 'xMinYMin meet');
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', innerChartHeight)
+            .attr('viewBox', '0 0 760 50').attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
             .attr('transform', 'translate(' + margin.left + ', 0)');
@@ -86,8 +86,9 @@ namespace Charts {
 
           xAxis = d3.svg.axis()
             .scale(timeScale)
-            .ticks(10)
+            .ticks(5)
             .tickSize(4, 0)
+            .tickFormat(xAxisTimeFormats())
             .orient('bottom');
 
           svg.selectAll('g.axis').remove();
@@ -203,7 +204,7 @@ namespace Charts {
           brushGroup.selectAll('.resize').append('path');
 
           brushGroup.selectAll('rect')
-            .attr('height', 85);
+            .attr('height', height +17);
 
           function contextBrushStart() {
             svg.classed('selecting', true);

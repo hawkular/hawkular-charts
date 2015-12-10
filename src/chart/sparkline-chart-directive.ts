@@ -97,6 +97,7 @@ namespace Charts {
             .scale(timeScale)
             .ticks(numberOfXTicks)
             .tickSize(4, 0)
+            .tickFormat(xAxisTimeFormats())
             .orient('bottom');
 
           svg.selectAll('g.axis').remove();
