@@ -8,7 +8,7 @@ namespace Charts {
   declare let d3:any;
   declare let console:any;
 
-  const Y_AXIS_HEIGHT = 25;
+  const Y_AXIS_HEIGHT = 15;
 
 
   let _module = angular.module('hawkular.charts');
@@ -120,7 +120,7 @@ namespace Charts {
           yMin = yMin - (yMin * 0.05);
 
           yScale = d3.scale.linear()
-            .rangeRound([SparklineChartDirective._CHART_HEIGHT, 0])
+            .rangeRound([SparklineChartDirective._CHART_HEIGHT - Y_AXIS_HEIGHT, 0])
             .domain([yMin, yMax]);
 
           let numberOfYTicks = showYAxisValues ? 3 : 0;
@@ -145,7 +145,7 @@ namespace Charts {
               return timeScale(d.timestamp);
             })
             .y0((d:IChartDataPoint) => {
-              return SparklineChartDirective._CHART_HEIGHT - 15;
+              return SparklineChartDirective._CHART_HEIGHT - Y_AXIS_HEIGHT;
             })
             .y1((d:IChartDataPoint) => {
               return yScale(d.avg);
