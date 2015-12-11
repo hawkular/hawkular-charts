@@ -2227,7 +2227,7 @@ var Charts;
 var Charts;
 (function (Charts) {
     'use strict';
-    var Y_AXIS_HEIGHT = 25;
+    var Y_AXIS_HEIGHT = 15;
     var _module = angular.module('hawkular.charts');
     var SparklineChartDirective = (function () {
         function SparklineChartDirective($rootScope) {
@@ -2291,7 +2291,7 @@ var Charts;
                     yMax = yMax + (yMax * 0.03);
                     yMin = yMin - (yMin * 0.05);
                     yScale = d3.scale.linear()
-                        .rangeRound([SparklineChartDirective._CHART_HEIGHT, 0])
+                        .rangeRound([SparklineChartDirective._CHART_HEIGHT - Y_AXIS_HEIGHT, 0])
                         .domain([yMin, yMax]);
                     var numberOfYTicks = showYAxisValues ? 3 : 0;
                     yAxis = d3.svg.axis()
@@ -2312,7 +2312,7 @@ var Charts;
                         return timeScale(d.timestamp);
                     })
                         .y0(function (d) {
-                        return SparklineChartDirective._CHART_HEIGHT - 15;
+                        return SparklineChartDirective._CHART_HEIGHT - Y_AXIS_HEIGHT;
                     })
                         .y1(function (d) {
                         return yScale(d.avg);
