@@ -38,7 +38,6 @@ svg {
 
 .y.axis text,
 .x.axis text {
-  color: #333;
   font-family: 'Open Sans', Helvetica, Arial, sans-serif;
   font-size: 11px;
   font-weight: normal;
@@ -46,6 +45,25 @@ svg {
   fill: #50505a;
   text-rendering: optimizeLegibility;
 }
+
+.sparkline .x.axis text, .sparkline .y.axis text  {
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: normal;
+  font-style: normal;
+  fill: #bbbbbb;
+  text-rendering: optimizeLegibility;
+}
+
+.contextChart .x.axis text, .contextChart .y.axis text  {
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  font-size: 9px;
+  font-weight: normal;
+  font-style: normal;
+  fill: #bbbbbb;
+  text-rendering: optimizeLegibility;
+}
+
 
 .x.axis path,
 .y.axis path {

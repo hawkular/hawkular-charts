@@ -401,7 +401,8 @@ var Charts;
                         .attr('height', innerChartHeight)
                         .attr('viewBox', '0 0 760 50').attr('preserveAspectRatio', 'xMinYMin meet');
                     svg = chart.append('g')
-                        .attr('transform', 'translate(' + margin.left + ', 0)');
+                        .attr('transform', 'translate(' + margin.left + ', 0)')
+                        .attr('class', 'contextChart');
                 }
                 function createContextChart(dataPoints) {
                     console.log('dataPoints.length: ' + dataPoints.length);
@@ -2240,7 +2241,7 @@ var Charts;
                 showXAxisValues: '='
             };
             this.link = function (scope, element, attrs) {
-                var margin = { top: 10, right: 5, bottom: 5, left: 35 };
+                var margin = { top: 10, right: 5, bottom: 5, left: 45 };
                 // data specific vars
                 var chartHeight = SparklineChartDirective._CHART_HEIGHT, width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, showXAxisValues, showYAxisValues, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, chart, chartParent, svg;
                 if (typeof attrs.showXAxisValues != 'undefined') {
@@ -2262,14 +2263,15 @@ var Charts;
                         + Y_AXIS_HEIGHT))
                         .attr('preserveAspectRatio', 'xMinYMin meet');
                     svg = chart.append('g')
-                        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                        .attr('class', 'sparkline');
                 }
                 function createSparklineChart(dataPoints) {
-                    console.log('dataPoints.length: ' + dataPoints.length);
                     timeScale = d3.time.scale()
                         .range([0, width - 10])
+                        .nice()
                         .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
-                    var numberOfXTicks = showXAxisValues ? 5 : 0;
+                    var numberOfXTicks = showXAxisValues ? 3 : 0;
                     xAxis = d3.svg.axis()
                         .scale(timeScale)
                         .ticks(numberOfXTicks)
@@ -2277,10 +2279,6 @@ var Charts;
                         .tickFormat(Charts.xAxisTimeFormats())
                         .orient('bottom');
                     svg.selectAll('g.axis').remove();
-                    xAxisGroup = svg.append('g')
-                        .attr('class', 'x axis')
-                        .attr('transform', 'translate(0,' + height + ')')
-                        .call(xAxis);
                     var yMin = d3.min(dataPoints, function (d) {
                         return d.avg;
                     });
@@ -2293,15 +2291,12 @@ var Charts;
                     yScale = d3.scale.linear()
                         .rangeRound([SparklineChartDirective._CHART_HEIGHT - Y_AXIS_HEIGHT, 0])
                         .domain([yMin, yMax]);
-                    var numberOfYTicks = showYAxisValues ? 3 : 0;
+                    var numberOfYTicks = showYAxisValues ? 2 : 0;
                     yAxis = d3.svg.axis()
                         .scale(yScale)
                         .ticks(numberOfYTicks)
-                        .tickSize(4, 0)
+                        .tickSize(3, 0)
                         .orient("left");
-                    yAxisGroup = svg.append('g')
-                        .attr('class', 'y axis')
-                        .call(yAxis);
                     var interpolationType = 'basis';
                     var area = d3.svg.area()
                         .interpolate(interpolationType)
@@ -2327,7 +2322,8 @@ var Charts;
                         return timeScale(d.timestamp);
                     })
                         .y(function (d) {
-                        return yScale(d.avg);
+                        // -2 pixels to keep the 2 pixel line from crossing over the x-axis
+                        return yScale(d.avg) - 2;
                     });
                     var pathSparklineLine = svg.selectAll('path.sparklineLine')
                         .data([dataPoints]);
@@ -2350,6 +2346,14 @@ var Charts;
                         .duration(500)
                         .attr("class", "sparklineArea")
                         .attr("d", area);
+                    // place the x and y axes above the chart
+                    yAxisGroup = svg.append('g')
+                        .attr('class', 'y axis')
+                        .call(yAxis);
+                    xAxisGroup = svg.append('g')
+                        .attr('class', 'x axis')
+                        .attr('transform', 'translate(0,' + height + ')')
+                        .call(xAxis);
                 }
                 scope.$watchCollection('data', function (newData) {
                     console.log('Sparkline Chart Data Changed');

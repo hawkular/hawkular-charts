@@ -71,7 +71,8 @@ namespace Charts {
             .attr('viewBox', '0 0 760 50').attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
-            .attr('transform', 'translate(' + margin.left + ', 0)');
+            .attr('transform', 'translate(' + margin.left + ', 0)')
+            .attr('class', 'contextChart');
 
         }
 
