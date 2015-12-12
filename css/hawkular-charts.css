@@ -48,7 +48,7 @@ svg {
 
 .sparkline .x.axis text, .sparkline .y.axis text  {
   font-family: 'Open Sans', Helvetica, Arial, sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: normal;
   font-style: normal;
   fill: #bbbbbb;

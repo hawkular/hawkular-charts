@@ -36,7 +36,7 @@ namespace Charts {
 
       this.link = (scope, element, attrs) => {
 
-        const margin = {top: 10, right: 5, bottom: 5, left: 35};
+        const margin = {top: 10, right: 5, bottom: 5, left: 45};
 
         // data specific vars
         let chartHeight = SparklineChartDirective._CHART_HEIGHT,
@@ -103,12 +103,6 @@ namespace Charts {
 
           svg.selectAll('g.axis').remove();
 
-          xAxisGroup = svg.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + height + ')')
-            .call(xAxis);
-
-
           let yMin = d3.min(dataPoints, (d)  => {
             return d.avg;
           });
@@ -131,10 +125,6 @@ namespace Charts {
             .ticks(numberOfYTicks)
             .tickSize(3, 0)
             .orient("left");
-
-          yAxisGroup = svg.append('g')
-            .attr('class', 'y axis')
-            .call(yAxis);
 
           let interpolationType = 'basis';
           let area = d3.svg.area()
@@ -162,7 +152,8 @@ namespace Charts {
               return timeScale(d.timestamp);
             })
             .y((d) => {
-              return yScale(d.avg);
+              // -2 pixels to keep the 2 pixel line from crossing over the x-axis
+              return yScale(d.avg) - 2;
             });
 
           let pathSparklineLine = svg.selectAll('path.sparklineLine')
@@ -192,6 +183,17 @@ namespace Charts {
             .duration(500)
             .attr("class", "sparklineArea")
             .attr("d", area);
+
+          // place the x and y axes above the chart
+          yAxisGroup = svg.append('g')
+            .attr('class', 'y axis')
+            .call(yAxis);
+
+          xAxisGroup = svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + height + ')')
+            .call(xAxis);
+
 
         }
 
