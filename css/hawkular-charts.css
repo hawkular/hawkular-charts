@@ -47,6 +47,17 @@ svg {
   text-rendering: optimizeLegibility;
 }
 
+.sparkline .x.axis text {
+  color: #333;
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  font-size: 9px;
+  font-weight: normal;
+  font-style: normal;
+  fill: #50505a;
+  text-rendering: optimizeLegibility;
+}
+
+
 .x.axis path,
 .y.axis path {
   stroke: #d1d1d1;

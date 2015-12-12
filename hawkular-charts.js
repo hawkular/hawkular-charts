@@ -2262,14 +2262,15 @@ var Charts;
                         + Y_AXIS_HEIGHT))
                         .attr('preserveAspectRatio', 'xMinYMin meet');
                     svg = chart.append('g')
-                        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                        .attr('class', 'sparkline');
                 }
                 function createSparklineChart(dataPoints) {
-                    console.log('dataPoints.length: ' + dataPoints.length);
                     timeScale = d3.time.scale()
                         .range([0, width - 10])
+                        .nice()
                         .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
-                    var numberOfXTicks = showXAxisValues ? 5 : 0;
+                    var numberOfXTicks = showXAxisValues ? 3 : 0;
                     xAxis = d3.svg.axis()
                         .scale(timeScale)
                         .ticks(numberOfXTicks)
@@ -2293,11 +2294,11 @@ var Charts;
                     yScale = d3.scale.linear()
                         .rangeRound([SparklineChartDirective._CHART_HEIGHT - Y_AXIS_HEIGHT, 0])
                         .domain([yMin, yMax]);
-                    var numberOfYTicks = showYAxisValues ? 3 : 0;
+                    var numberOfYTicks = showYAxisValues ? 2 : 0;
                     yAxis = d3.svg.axis()
                         .scale(yScale)
                         .ticks(numberOfYTicks)
-                        .tickSize(4, 0)
+                        .tickSize(3, 0)
                         .orient("left");
                     yAxisGroup = svg.append('g')
                         .attr('class', 'y axis')

@@ -78,20 +78,21 @@ namespace Charts {
             .attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
-            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+            .attr('class', 'sparkline');
 
         }
 
 
         function createSparklineChart(dataPoints:IChartDataPoint[]) {
-          console.log('dataPoints.length: ' + dataPoints.length);
 
           timeScale = d3.time.scale()
             .range([0, width - 10])
+            .nice()
             .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
 
 
-          let numberOfXTicks = showXAxisValues ? 5 : 0;
+          let numberOfXTicks = showXAxisValues ? 3 : 0;
 
           xAxis = d3.svg.axis()
             .scale(timeScale)
@@ -123,12 +124,12 @@ namespace Charts {
             .rangeRound([SparklineChartDirective._CHART_HEIGHT - Y_AXIS_HEIGHT, 0])
             .domain([yMin, yMax]);
 
-          let numberOfYTicks = showYAxisValues ? 3 : 0;
+          let numberOfYTicks = showYAxisValues ? 2 : 0;
 
           yAxis = d3.svg.axis()
             .scale(yScale)
             .ticks(numberOfYTicks)
-            .tickSize(4, 0)
+            .tickSize(3, 0)
             .orient("left");
 
           yAxisGroup = svg.append('g')
