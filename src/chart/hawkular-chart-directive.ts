@@ -54,22 +54,6 @@ namespace Charts {
     median: MetricValue;
   }
 
-  /**
-   * Defines an individual alert bounds  to be visually highlighted in a chart
-   * that an alert was above/below a threshold.
-   */
-  class AlertBound {
-    public startDate:Date;
-    public endDate:Date;
-
-    constructor(public startTimestamp:TimeInMillis,
-                public endTimestamp:TimeInMillis,
-                public alertValue:number) {
-      this.startDate = new Date(startTimestamp);
-      this.endDate = new Date(endTimestamp);
-    }
-
-  }
 
   /**
    * Data structure for a Multi-Metric chart. Composed of IChartDataDataPoint[].
@@ -472,23 +456,7 @@ namespace Charts {
             }
 
 
-            /**
-             * An empty datapoint has 'empty' attribute set to true. Used to distinguish from real 0 values.
-             * @param d
-             * @returns {boolean}
-             */
-            function isEmptyDataPoint(d:IChartDataPoint):boolean {
-              return d.empty;
-            }
 
-            /**
-             * Raw metrics have a 'value' set instead of avg/min/max of aggregates
-             * @param d
-             * @returns {boolean}
-             */
-            function isRawMetric(d:IChartDataPoint):boolean {
-              return typeof d.avg === 'undefined';
-            }
 
             function buildHover(d:IChartDataPoint, i:number) {
               let hover,
@@ -550,42 +518,7 @@ namespace Charts {
             }
 
 
-            function createSvgDefs(chart) {
 
-              let defs = chart.append('defs');
-
-              defs.append('pattern')
-                .attr('id', 'noDataStripes')
-                .attr('patternUnits', 'userSpaceOnUse')
-                .attr('x', '0')
-                .attr('y', '0')
-                .attr('width', '6')
-                .attr('height', '3')
-                .append('path')
-                .attr('d', 'M 0 0 6 0')
-                .attr('style', 'stroke:#CCCCCC; fill:none;');
-
-              defs.append('pattern')
-                .attr('id', 'unknownStripes')
-                .attr('patternUnits', 'userSpaceOnUse')
-                .attr('x', '0')
-                .attr('y', '0')
-                .attr('width', '6')
-                .attr('height', '3')
-                .attr('style', 'stroke:#2E9EC2; fill:none;')
-                .append('path').attr('d', 'M 0 0 6 0');
-
-              defs.append('pattern')
-                .attr('id', 'downStripes')
-                .attr('patternUnits', 'userSpaceOnUse')
-                .attr('x', '0')
-                .attr('y', '0')
-                .attr('width', '6')
-                .attr('height', '3')
-                .attr('style', 'stroke:#ff8a9a; fill:none;')
-                .append('path').attr('d', 'M 0 0 6 0');
-
-            }
 
             function createHistogramChart(stacked?:boolean) {
 
@@ -1571,130 +1504,6 @@ namespace Charts {
               }
             }
 
-            function createAlertLineDef(alertValue:number) {
-              let line = d3.svg.line()
-                .interpolate('monotone')
-                .x((d) => {
-                  return timeScale(d.timestamp);
-                })
-                .y((d) => {
-                  return yScale(alertValue);
-                });
-
-              return line;
-            }
-
-            function createAlertLine(alertValue:number) {
-              let pathAlertLine = svg.selectAll('path.alertLine').data([chartData]);
-              // update existing
-              pathAlertLine.attr('class', 'alertLine')
-                .attr('d', createAlertLineDef(alertValue));
-              // add new ones
-              pathAlertLine.enter().append('path')
-                .attr('class', 'alertLine')
-                .attr('d', createAlertLineDef(alertValue));
-              // remove old ones
-              pathAlertLine.exit().remove();
-            }
-
-
-            function extractAlertRanges(chartData:IChartDataPoint[], threshold:AlertThreshold):AlertBound[] {
-              let alertBoundAreaItems:AlertBound[];
-              let startPoints:number[];
-
-              function findStartPoints(chartData:IChartDataPoint[], threshold:AlertThreshold) {
-                let startPoints = [];
-                let prevItem:IChartDataPoint;
-
-                chartData.forEach((chartItem:IChartDataPoint, i:number) => {
-                  if (i === 0 && chartItem.avg > threshold) {
-                    startPoints.push(i);
-                  }
-                  else {
-                    prevItem = chartData[i - 1];
-                    if (chartItem.avg > threshold && prevItem && (!prevItem.avg || prevItem.avg <= threshold)) {
-                      startPoints.push(prevItem.avg ? (i - 1) : i);
-                    }
-                  }
-
-                });
-                return startPoints;
-              }
-
-              function findEndPointsForStartPointIndex(startPoints:number[], threshold:AlertThreshold):AlertBound[] {
-                let alertBoundAreaItems:AlertBound[] = [];
-                let currentItem:IChartDataPoint;
-                let nextItem:IChartDataPoint;
-                let startItem:IChartDataPoint;
-
-                startPoints.forEach((startPointIndex:number) => {
-                  startItem = chartData[startPointIndex];
-
-
-                  for (let j = startPointIndex; j < chartData.length - 1; j++) {
-                    currentItem = chartData[j];
-                    nextItem = chartData[j + 1];
-
-                    if ((currentItem.avg > threshold && nextItem.avg <= threshold)
-                      || (currentItem.avg > threshold && !nextItem.avg)) {
-                      alertBoundAreaItems.push(new AlertBound(startItem.timestamp,
-                        nextItem.avg ? nextItem.timestamp : currentItem.timestamp, threshold));
-                      break;
-                    }
-                  }
-                });
-
-                /// means the last piece data is all above threshold, use last data point
-                if (alertBoundAreaItems.length === (startPoints.length - 1)) {
-                  alertBoundAreaItems.push(new AlertBound(chartData[startPoints[startPoints.length - 1]].timestamp,
-                    chartData[chartData.length - 1].timestamp, threshold));
-                }
-
-                return alertBoundAreaItems
-              }
-
-              startPoints = findStartPoints(chartData, threshold);
-
-              alertBoundAreaItems = findEndPointsForStartPointIndex(startPoints, threshold);
-
-              return alertBoundAreaItems;
-
-            }
-
-            function createAlertBoundsArea(alertBounds:AlertBound[]) {
-              let rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
-
-              function alertBoundingRect(selection) {
-                selection
-                  .attr('class', 'alertBounds')
-                  .attr('x', (d:AlertBound) => {
-                    return timeScale(d.startTimestamp);
-                  })
-                  .attr('y', () => {
-                    return yScale(highBound);
-                  })
-                  .attr('height', (d:AlertBound) => {
-                    ///@todo: make the height adjustable
-                    return 185;
-                    //return yScale(0) - height;
-                  })
-                  .attr('width', (d:AlertBound) => {
-                    return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
-                  });
-              }
-
-              // update existing
-              rectAlert.call(alertBoundingRect);
-
-              // add new ones
-              rectAlert.enter()
-                .append('rect')
-                .call(alertBoundingRect);
-
-              // remove old ones
-              rectAlert.exit().remove();
-            }
-
             function createXAxisBrush() {
 
               brushGroup = svg.selectAll('g.brush');
@@ -1950,10 +1759,9 @@ namespace Charts {
                 determineMultiScale(multiDataPoints);
               }
 
-              ///createHeader(attrs.chartTitle);
-
               if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
-                createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
+                let alertBounds: AlertBound[] = extractAlertRanges(chartData, alertValue);
+                createAlertBoundsArea(svg,timeScale, yScale,highBound, alertBounds);
               }
               createXAxisBrush();
 
@@ -1970,7 +1778,7 @@ namespace Charts {
 
               if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                 /// NOTE: this alert line has higher precedence from alert area above
-                createAlertLine(alertValue);
+                createAlertLine(svg, timeScale, yScale, chartData, alertValue);
               }
 
               if (annotationData) {
