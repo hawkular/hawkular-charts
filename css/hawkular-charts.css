@@ -51,7 +51,7 @@ svg {
   font-size: 10px;
   font-weight: normal;
   font-style: normal;
-  fill: #bbbbbb;
+  fill: #50505a;
   text-rendering: optimizeLegibility;
 }
 
@@ -162,6 +162,12 @@ rect.low {
 
 .alertBounds {
   fill: #feedee;
+}
+
+.sparklineAlertLine {
+  stroke: #cc0000;
+  stroke-width: 1px;
+  stroke-dasharray: 10, 5;
 }
 
 .prevRangeAvgLine {

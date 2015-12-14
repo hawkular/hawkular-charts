@@ -1778,7 +1778,7 @@ namespace Charts {
 
               if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                 /// NOTE: this alert line has higher precedence from alert area above
-                createAlertLine(svg, timeScale, yScale, chartData, alertValue);
+                createAlertLine(svg, timeScale, yScale, chartData, alertValue,'alertLine');
               }
 
               if (annotationData) {
