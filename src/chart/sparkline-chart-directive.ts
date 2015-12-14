@@ -98,7 +98,7 @@ namespace Charts {
             .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
 
 
-          let numberOfXTicks = showXAxisValues ? 3 : 0;
+          let numberOfXTicks = showXAxisValues ? 2 : 0;
 
           xAxis = d3.svg.axis()
             .scale(timeScale)
@@ -207,7 +207,7 @@ namespace Charts {
 
           if (alertValue && (alertValue >= yMin && alertValue <= yMax)) {
             /// NOTE: this alert line has higher precedence from alert area above
-            createAlertLine(svg, timeScale, yScale, dataPoints, alertValue);
+            createAlertLine(svg, timeScale, yScale, dataPoints, alertValue, 'sparklineAlertLine');
           }
         }
 

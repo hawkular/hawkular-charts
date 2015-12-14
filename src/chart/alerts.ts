@@ -39,15 +39,16 @@ namespace Charts {
                                   timeScale:any,
                                   yScale:any,
                                   chartData:IChartDataPoint[],
-                                  alertValue:number):void {
+                                  alertValue:number,
+                                  cssClassName:string):void {
     let pathAlertLine = svg.selectAll('path.alertLine').data([chartData]);
     // update existing
-    pathAlertLine.attr('class', 'alertLine')
+    pathAlertLine.attr('class', cssClassName)
       .attr('d', createAlertLineDef(timeScale, yScale, alertValue));
 
     // add new ones
     pathAlertLine.enter().append('path')
-      .attr('class', 'alertLine')
+      .attr('class', cssClassName)
       .attr('d', createAlertLineDef(timeScale, yScale, alertValue));
 
     // remove old ones

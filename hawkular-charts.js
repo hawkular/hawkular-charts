@@ -37,14 +37,14 @@ var Charts;
         });
         return line;
     }
-    function createAlertLine(svg, timeScale, yScale, chartData, alertValue) {
+    function createAlertLine(svg, timeScale, yScale, chartData, alertValue, cssClassName) {
         var pathAlertLine = svg.selectAll('path.alertLine').data([chartData]);
         // update existing
-        pathAlertLine.attr('class', 'alertLine')
+        pathAlertLine.attr('class', cssClassName)
             .attr('d', createAlertLineDef(timeScale, yScale, alertValue));
         // add new ones
         pathAlertLine.enter().append('path')
-            .attr('class', 'alertLine')
+            .attr('class', cssClassName)
             .attr('d', createAlertLineDef(timeScale, yScale, alertValue));
         // remove old ones
         pathAlertLine.exit().remove();
@@ -2138,7 +2138,7 @@ var Charts;
                     }
                     if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                         /// NOTE: this alert line has higher precedence from alert area above
-                        Charts.createAlertLine(svg, timeScale, yScale, chartData, alertValue);
+                        Charts.createAlertLine(svg, timeScale, yScale, chartData, alertValue, 'alertLine');
                     }
                     if (annotationData) {
                         annotateChart(annotationData);
@@ -2238,7 +2238,7 @@ var Charts;
                         .range([0, width - 10])
                         .nice()
                         .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
-                    var numberOfXTicks = showXAxisValues ? 3 : 0;
+                    var numberOfXTicks = showXAxisValues ? 2 : 0;
                     xAxis = d3.svg.axis()
                         .scale(timeScale)
                         .ticks(numberOfXTicks)
@@ -2327,7 +2327,7 @@ var Charts;
                         .call(xAxis);
                     if (alertValue && (alertValue >= yMin && alertValue <= yMax)) {
                         /// NOTE: this alert line has higher precedence from alert area above
-                        Charts.createAlertLine(svg, timeScale, yScale, dataPoints, alertValue);
+                        Charts.createAlertLine(svg, timeScale, yScale, dataPoints, alertValue, 'sparklineAlertLine');
                     }
                 }
                 scope.$watchCollection('data', function (newData) {
