@@ -13,4 +13,5 @@ declare namespace Charts {
      */
     function isRawMetric(d: IChartDataPoint): boolean;
     function xAxisTimeFormats(): d3.time.Format;
+    function createSvgDefs(chart: any): void;
 }
