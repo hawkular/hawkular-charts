@@ -9,6 +9,7 @@ declare namespace Charts {
             data: string;
             showYAxisValues: string;
             showXAxisValues: string;
+            alertValue: string;
         };
         link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
         dataPoints: IChartDataPoint[];

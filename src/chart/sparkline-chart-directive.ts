@@ -25,7 +25,8 @@ namespace Charts {
     public scope = {
       data: '=',
       showYAxisValues: '=',
-      showXAxisValues: '='
+      showXAxisValues: '=',
+      alertValue: '@',
     };
 
     public link:(scope:any, element:ng.IAugmentedJQuery, attrs:any) => void;
@@ -53,7 +54,12 @@ namespace Charts {
           xAxisGroup,
           chart,
           chartParent,
-          svg;
+          svg,
+          alertValue;
+
+        if (typeof attrs.alertValue != 'undefined') {
+          alertValue = +attrs.alertValue;
+        }
 
         if (typeof attrs.showXAxisValues != 'undefined') {
           showXAxisValues = attrs.showXAxisValues === 'true';
@@ -73,8 +79,8 @@ namespace Charts {
           chart = chartParent.append('svg')
             .attr('width', width + margin.left + margin.right)
             .attr('height', innerChartHeight)
-            .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom
-              + Y_AXIS_HEIGHT ))
+            .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top +
+            margin.bottom + Y_AXIS_HEIGHT ))
             .attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
@@ -184,6 +190,11 @@ namespace Charts {
             .attr("class", "sparklineArea")
             .attr("d", area);
 
+          //if (alertValue && (alertValue >= yMin && alertValue <= yMax)) {
+          //  let alertBounds: AlertBound[] = extractAlertRanges(dataPoints, alertValue);
+          //  createAlertBoundsArea(svg,timeScale, yScale,yMax, alertBounds);
+          //}
+
           // place the x and y axes above the chart
           yAxisGroup = svg.append('g')
             .attr('class', 'y axis')
@@ -194,15 +205,27 @@ namespace Charts {
             .attr('transform', 'translate(0,' + height + ')')
             .call(xAxis);
 
-
+          if (alertValue && (alertValue >= yMin && alertValue <= yMax)) {
+            /// NOTE: this alert line has higher precedence from alert area above
+            createAlertLine(svg, timeScale, yScale, dataPoints, alertValue);
+          }
         }
-
 
         scope.$watchCollection('data', (newData) => {
           console.log('Sparkline Chart Data Changed');
           if (newData) {
             this.dataPoints = formatBucketedChartOutput(angular.fromJson(newData));
             scope.render(this.dataPoints);
+          }
+        });
+
+        scope.$watchCollection('alertValue', (newAlertValue) => {
+          console.log('Sparkline AlertValue Changed');
+          if (newAlertValue) {
+            alertValue = newAlertValue;
+            if (this.dataPoints) {
+              scope.render(this.dataPoints);
+            }
           }
         });
 

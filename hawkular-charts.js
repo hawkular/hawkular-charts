@@ -11,6 +11,128 @@ angular.module('hawkular.charts', []);
 var Charts;
 (function (Charts) {
     'use strict';
+    /**
+     * Defines an individual alert bounds  to be visually highlighted in a chart
+     * that an alert was above/below a threshold.
+     */
+    var AlertBound = (function () {
+        function AlertBound(startTimestamp, endTimestamp, alertValue) {
+            this.startTimestamp = startTimestamp;
+            this.endTimestamp = endTimestamp;
+            this.alertValue = alertValue;
+            this.startDate = new Date(startTimestamp);
+            this.endDate = new Date(endTimestamp);
+        }
+        return AlertBound;
+    })();
+    Charts.AlertBound = AlertBound;
+    function createAlertLineDef(timeScale, yScale, alertValue) {
+        var line = d3.svg.line()
+            .interpolate('monotone')
+            .x(function (d) {
+            return timeScale(d.timestamp);
+        })
+            .y(function (d) {
+            return yScale(alertValue);
+        });
+        return line;
+    }
+    function createAlertLine(svg, timeScale, yScale, chartData, alertValue) {
+        var pathAlertLine = svg.selectAll('path.alertLine').data([chartData]);
+        // update existing
+        pathAlertLine.attr('class', 'alertLine')
+            .attr('d', createAlertLineDef(timeScale, yScale, alertValue));
+        // add new ones
+        pathAlertLine.enter().append('path')
+            .attr('class', 'alertLine')
+            .attr('d', createAlertLineDef(timeScale, yScale, alertValue));
+        // remove old ones
+        pathAlertLine.exit().remove();
+    }
+    Charts.createAlertLine = createAlertLine;
+    function extractAlertRanges(chartData, threshold) {
+        var alertBoundAreaItems;
+        var startPoints;
+        function findStartPoints(chartData, threshold) {
+            var startPoints = [];
+            var prevItem;
+            chartData.forEach(function (chartItem, i) {
+                if (i === 0 && chartItem.avg > threshold) {
+                    startPoints.push(i);
+                }
+                else {
+                    prevItem = chartData[i - 1];
+                    if (chartItem.avg > threshold && prevItem && (!prevItem.avg || prevItem.avg <= threshold)) {
+                        startPoints.push(prevItem.avg ? (i - 1) : i);
+                    }
+                }
+            });
+            return startPoints;
+        }
+        function findEndPointsForStartPointIndex(startPoints, threshold) {
+            var alertBoundAreaItems = [];
+            var currentItem;
+            var nextItem;
+            var startItem;
+            startPoints.forEach(function (startPointIndex) {
+                startItem = chartData[startPointIndex];
+                for (var j = startPointIndex; j < chartData.length - 1; j++) {
+                    currentItem = chartData[j];
+                    nextItem = chartData[j + 1];
+                    if ((currentItem.avg > threshold && nextItem.avg <= threshold)
+                        || (currentItem.avg > threshold && !nextItem.avg)) {
+                        alertBoundAreaItems.push(new AlertBound(startItem.timestamp, nextItem.avg ? nextItem.timestamp : currentItem.timestamp, threshold));
+                        break;
+                    }
+                }
+            });
+            /// means the last piece data is all above threshold, use last data point
+            if (alertBoundAreaItems.length === (startPoints.length - 1)) {
+                alertBoundAreaItems.push(new AlertBound(chartData[startPoints[startPoints.length - 1]].timestamp, chartData[chartData.length - 1].timestamp, threshold));
+            }
+            return alertBoundAreaItems;
+        }
+        startPoints = findStartPoints(chartData, threshold);
+        alertBoundAreaItems = findEndPointsForStartPointIndex(startPoints, threshold);
+        return alertBoundAreaItems;
+    }
+    Charts.extractAlertRanges = extractAlertRanges;
+    function createAlertBoundsArea(svg, timeScale, yScale, highBound, alertBounds) {
+        var rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
+        function alertBoundingRect(selection) {
+            selection
+                .attr('class', 'alertBounds')
+                .attr('x', function (d) {
+                return timeScale(d.startTimestamp);
+            })
+                .attr('y', function () {
+                return yScale(highBound);
+            })
+                .attr('height', function (d) {
+                ///@todo: make the height adjustable
+                return 185;
+                //return yScale(0) - height;
+            })
+                .attr('width', function (d) {
+                return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
+            });
+        }
+        // update existing
+        rectAlert.call(alertBoundingRect);
+        // add new ones
+        rectAlert.enter()
+            .append('rect')
+            .call(alertBoundingRect);
+        // remove old ones
+        rectAlert.exit().remove();
+    }
+    Charts.createAlertBoundsArea = createAlertBoundsArea;
+})(Charts || (Charts = {}));
+
+/// <reference path='../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
     var _module = angular.module('hawkular.charts');
     var AvailStatus = (function () {
         function AvailStatus(value) {
@@ -615,20 +737,6 @@ var Charts;
     var DEFAULT_Y_SCALE = 10;
     var Y_AXIS_HEIGHT = 25;
     /**
-     * Defines an individual alert bounds  to be visually highlighted in a chart
-     * that an alert was above/below a threshold.
-     */
-    var AlertBound = (function () {
-        function AlertBound(startTimestamp, endTimestamp, alertValue) {
-            this.startTimestamp = startTimestamp;
-            this.endTimestamp = endTimestamp;
-            this.alertValue = alertValue;
-            this.startDate = new Date(startTimestamp);
-            this.endDate = new Date(endTimestamp);
-        }
-        return AlertBound;
-    })();
-    /**
      * @ngdoc directive
      * @name hawkularChart
      * @description A d3 based charting direction to provide charting using various styles of charts.
@@ -670,7 +778,7 @@ var Charts;
                     chart = chartParent.append('svg')
                         .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + Y_AXIS_HEIGHT))
                         .attr('preserveAspectRatio', 'xMinYMin meet');
-                    createSvgDefs(chart);
+                    Charts.createSvgDefs(chart);
                     svg = chart.append('g')
                         .attr('width', width + margin.left + margin.right)
                         .attr('height', innerChartHeight)
@@ -689,10 +797,10 @@ var Charts;
                 function setupFilteredData(dataPoints) {
                     if (dataPoints) {
                         peak = d3.max(dataPoints.map(function (d) {
-                            return !isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
+                            return !Charts.isEmptyDataPoint(d) ? (d.avg || d.value) : 0;
                         }));
                         min = d3.min(dataPoints.map(function (d) {
-                            return !isEmptyDataPoint(d) ? (d.avg || d.value) : undefined;
+                            return !Charts.isEmptyDataPoint(d) ? (d.avg || d.value) : undefined;
                         }));
                     }
                     lowBound = useZeroMinValue ? 0 : min * .95;
@@ -766,11 +874,11 @@ var Charts;
                         var currentMax, currentMin, seriesMax, seriesMin, maxList = [], minList = [];
                         multiDataPoints.forEach(function (series) {
                             currentMax = d3.max(series.values.map(function (d) {
-                                return isEmptyDataPoint(d) ? 0 : d.avg;
+                                return Charts.isEmptyDataPoint(d) ? 0 : d.avg;
                             }));
                             maxList.push(currentMax);
                             currentMin = d3.min(series.values.map(function (d) {
-                                return !isEmptyDataPoint(d) ? d.avg : Number.MAX_VALUE;
+                                return !Charts.isEmptyDataPoint(d) ? d.avg : Number.MAX_VALUE;
                             }));
                             minList.push(currentMin);
                         });
@@ -877,34 +985,18 @@ var Charts;
                         });
                     }
                 }
-                /**
-                 * An empty datapoint has 'empty' attribute set to true. Used to distinguish from real 0 values.
-                 * @param d
-                 * @returns {boolean}
-                 */
-                function isEmptyDataPoint(d) {
-                    return d.empty;
-                }
-                /**
-                 * Raw metrics have a 'value' set instead of avg/min/max of aggregates
-                 * @param d
-                 * @returns {boolean}
-                 */
-                function isRawMetric(d) {
-                    return typeof d.avg === 'undefined';
-                }
                 function buildHover(d, i) {
                     var hover, prevTimestamp, currentTimestamp = d.timestamp, barDuration, formattedDateTime = moment(d.timestamp).format(HOVER_DATE_TIME_FORMAT);
                     if (i > 0) {
                         prevTimestamp = chartData[i - 1].timestamp;
                         barDuration = moment(currentTimestamp).from(moment(prevTimestamp), true);
                     }
-                    if (isEmptyDataPoint(d)) {
+                    if (Charts.isEmptyDataPoint(d)) {
                         // nodata
                         hover = "<div class='chartHover'>\n                <small class='chartHoverLabel'>" + noDataLabel + "</small>\n                <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small> </div>\n                <hr/>\n                <div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>\n                </div>";
                     }
                     else {
-                        if (isRawMetric(d)) {
+                        if (Charts.isRawMetric(d)) {
                             // raw single value from raw table
                             hover = "<div class='chartHover'>\n                <div><small><span class='chartHoverLabel'>" + timestampLabel + "</span><span>: </span><span class='chartHoverValue'>" + formattedDateTime + "</span></small></div>\n                  <div><small><span class='chartHoverLabel'>" + durationLabel + "</span><span>: </span><span class='chartHoverValue'>" + barDuration + "</span></small></div>\n                  <hr/>\n                  <div><small><span class='chartHoverLabel'>" + singleValueLabel + "</span><span>: </span><span class='chartHoverValue'>" + d3.round(d.value, 2) + "</span></small> </div>\n                  </div> ";
                         }
@@ -914,37 +1006,6 @@ var Charts;
                         }
                     }
                     return hover;
-                }
-                function createSvgDefs(chart) {
-                    var defs = chart.append('defs');
-                    defs.append('pattern')
-                        .attr('id', 'noDataStripes')
-                        .attr('patternUnits', 'userSpaceOnUse')
-                        .attr('x', '0')
-                        .attr('y', '0')
-                        .attr('width', '6')
-                        .attr('height', '3')
-                        .append('path')
-                        .attr('d', 'M 0 0 6 0')
-                        .attr('style', 'stroke:#CCCCCC; fill:none;');
-                    defs.append('pattern')
-                        .attr('id', 'unknownStripes')
-                        .attr('patternUnits', 'userSpaceOnUse')
-                        .attr('x', '0')
-                        .attr('y', '0')
-                        .attr('width', '6')
-                        .attr('height', '3')
-                        .attr('style', 'stroke:#2E9EC2; fill:none;')
-                        .append('path').attr('d', 'M 0 0 6 0');
-                    defs.append('pattern')
-                        .attr('id', 'downStripes')
-                        .attr('patternUnits', 'userSpaceOnUse')
-                        .attr('x', '0')
-                        .attr('y', '0')
-                        .attr('width', '6')
-                        .attr('height', '3')
-                        .attr('style', 'stroke:#ff8a9a; fill:none;')
-                        .append('path').attr('d', 'M 0 0 6 0');
                 }
                 function createHistogramChart(stacked) {
                     var barClass = stacked ? 'leaderBar' : 'histogram';
@@ -965,14 +1026,14 @@ var Charts;
                             return calcBarWidthAdjusted(i);
                         })
                             .attr('y', function (d) {
-                            return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
+                            return Charts.isEmptyDataPoint(d) ? 0 : yScale(d.avg);
                         })
                             .attr('height', function (d) {
-                            return height - yScale(isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
+                            return height - yScale(Charts.isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
                         })
                             .attr('opacity', stacked ? '.6' : '1')
                             .attr('fill', function (d, i) {
-                            return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
+                            return Charts.isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
                         })
                             .attr('stroke', function (d) {
                             return '#777';
@@ -1013,7 +1074,7 @@ var Charts;
                         return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
                     })
                         .attr('height', function (d) {
-                        return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
+                        return Charts.isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
                     })
                         .attr('width', function (d, i) {
                         return calcBarWidthAdjusted(i);
@@ -1035,7 +1096,7 @@ var Charts;
                         return isNaN(d.avg) ? height : yScale(d.avg);
                     })
                         .attr('height', function (d) {
-                        return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
+                        return Charts.isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
                     })
                         .attr('width', function (d, i) {
                         return calcBarWidthAdjusted(i);
@@ -1052,7 +1113,7 @@ var Charts;
                     selection
                         .attr('class', 'histogramTopStem')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d);
@@ -1076,7 +1137,7 @@ var Charts;
                 function buildLowStem(selection) {
                     selection
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('class', 'histogramBottomStem')
                         .attr('x1', function (d) {
@@ -1100,7 +1161,7 @@ var Charts;
                 function buildTopCross(selection) {
                     selection
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('class', 'histogramTopCross')
                         .attr('x1', function (d) {
@@ -1128,7 +1189,7 @@ var Charts;
                 function buildBottomCross(selection) {
                     selection
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('class', 'histogramBottomCross')
                         .attr('x1', function (d) {
@@ -1226,13 +1287,13 @@ var Charts;
                     var metricChartLine = d3.svg.line()
                         .interpolate(interpolation)
                         .defined(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return timeScale(d.timestamp);
                     })
                         .y(function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     });
                     var pathMetric = svg.selectAll('path.metricLine').data([chartData]);
                     // update existing
@@ -1304,39 +1365,39 @@ var Charts;
                     var highArea = d3.svg.area()
                         .interpolate(interpolation)
                         .defined(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return xMidPointStartPosition(d);
                     })
                         .y(function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                     })
                         .y0(function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     }), avgArea = d3.svg.area()
                         .interpolate(interpolation)
                         .defined(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return xMidPointStartPosition(d);
                     })
                         .y(function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     }).
                         y0(function (d) {
                         return hideHighLowValues ? height : yScale(d.min);
                     }), lowArea = d3.svg.area()
                         .interpolate(interpolation)
                         .defined(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return xMidPointStartPosition(d);
                     })
                         .y(function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
                     })
                         .y0(function () {
                         return height;
@@ -1382,14 +1443,14 @@ var Charts;
                         // update existing
                         highDotCircle.attr('class', 'highDot')
                             .filter(function (d) {
-                            return !isEmptyDataPoint(d);
+                            return !Charts.isEmptyDataPoint(d);
                         })
                             .attr('r', 3)
                             .attr('cx', function (d) {
                             return xMidPointStartPosition(d);
                         })
                             .attr('cy', function (d) {
-                            return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+                            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                         })
                             .style('fill', function () {
                             return '#ff1a13';
@@ -1401,7 +1462,7 @@ var Charts;
                         // add new ones
                         highDotCircle.enter().append('circle')
                             .filter(function (d) {
-                            return !isEmptyDataPoint(d);
+                            return !Charts.isEmptyDataPoint(d);
                         })
                             .attr('class', 'highDot')
                             .attr('r', 3)
@@ -1409,7 +1470,7 @@ var Charts;
                             return xMidPointStartPosition(d);
                         })
                             .attr('cy', function (d) {
-                            return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+                            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
                         })
                             .style('fill', function () {
                             return '#ff1a13';
@@ -1424,14 +1485,14 @@ var Charts;
                         // update existing
                         lowDotCircle.attr('class', 'lowDot')
                             .filter(function (d) {
-                            return !isEmptyDataPoint(d);
+                            return !Charts.isEmptyDataPoint(d);
                         })
                             .attr('r', 3)
                             .attr('cx', function (d) {
                             return xMidPointStartPosition(d);
                         })
                             .attr('cy', function (d) {
-                            return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+                            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
                         })
                             .style('fill', function () {
                             return '#70c4e2';
@@ -1443,7 +1504,7 @@ var Charts;
                         // add new ones
                         lowDotCircle.enter().append('circle')
                             .filter(function (d) {
-                            return !isEmptyDataPoint(d);
+                            return !Charts.isEmptyDataPoint(d);
                         })
                             .attr('class', 'lowDot')
                             .attr('r', 3)
@@ -1451,7 +1512,7 @@ var Charts;
                             return xMidPointStartPosition(d);
                         })
                             .attr('cy', function (d) {
-                            return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+                            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
                         })
                             .style('fill', function () {
                             return '#70c4e2';
@@ -1471,14 +1532,14 @@ var Charts;
                     // update existing
                     avgDotCircle.attr('class', 'avgDot')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('r', 3)
                         .attr('cx', function (d) {
                         return xMidPointStartPosition(d);
                     })
                         .attr('cy', function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     })
                         .style('fill', function () {
                         return '#FFF';
@@ -1490,7 +1551,7 @@ var Charts;
                     // add new ones
                     avgDotCircle.enter().append('circle')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('class', 'avgDot')
                         .attr('r', 3)
@@ -1498,7 +1559,7 @@ var Charts;
                         return xMidPointStartPosition(d);
                     })
                         .attr('cy', function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     })
                         .style('fill', function () {
                         return '#FFF';
@@ -1515,7 +1576,7 @@ var Charts;
                     // update existing
                     lineScatterTopStem.attr('class', 'scatterLineTopStem')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d);
@@ -1535,7 +1596,7 @@ var Charts;
                     // add new ones
                     lineScatterTopStem.enter().append('line')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterLineTopStem')
                         .attr('x1', function (d) {
@@ -1559,7 +1620,7 @@ var Charts;
                     // update existing
                     lineScatterBottomStem.attr('class', 'scatterLineBottomStem')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d);
@@ -1579,7 +1640,7 @@ var Charts;
                     // add new ones
                     lineScatterBottomStem.enter().append('line')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterLineBottomStem')
                         .attr('x1', function (d) {
@@ -1603,7 +1664,7 @@ var Charts;
                     // update existing
                     lineScatterTopCross.attr('class', 'scatterLineTopCross')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d) - 3;
@@ -1626,7 +1687,7 @@ var Charts;
                     // add new ones
                     lineScatterTopCross.enter().append('line')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterLineTopCross')
                         .attr('x1', function (d) {
@@ -1653,7 +1714,7 @@ var Charts;
                     // update existing
                     lineScatterBottomCross.attr('class', 'scatterLineBottomCross')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
                         return xMidPointStartPosition(d) - 3;
@@ -1676,7 +1737,7 @@ var Charts;
                     // add new ones
                     lineScatterBottomCross.enter().append('line')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterLineBottomCross')
                         .attr('x1', function (d) {
@@ -1703,14 +1764,14 @@ var Charts;
                     // update existing
                     circleScatterDot.attr('class', 'scatterDot')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('r', 3)
                         .attr('cx', function (d) {
                         return xMidPointStartPosition(d);
                     })
                         .attr('cy', function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     })
                         .style('fill', function () {
                         return '#70c4e2';
@@ -1725,7 +1786,7 @@ var Charts;
                     // add new ones
                     circleScatterDot.enter().append('circle')
                         .filter(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('class', 'scatterDot')
                         .attr('r', 3)
@@ -1733,7 +1794,7 @@ var Charts;
                         return xMidPointStartPosition(d);
                     })
                         .attr('cy', function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     })
                         .style('fill', function () {
                         return '#70c4e2';
@@ -1802,13 +1863,13 @@ var Charts;
                     var interpolate = newInterpolation || 'monotone', line = d3.svg.line()
                         .interpolate(interpolate)
                         .defined(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return timeScale(d.timestamp);
                     })
                         .y(function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     });
                     return line;
                 }
@@ -1816,13 +1877,13 @@ var Charts;
                     var interpolate = newInterpolation || 'monotone', line = d3.svg.line()
                         .interpolate(interpolate)
                         .defined(function (d) {
-                        return !isEmptyDataPoint(d);
+                        return !Charts.isEmptyDataPoint(d);
                     })
                         .x(function (d) {
                         return timeScale(d.timestamp);
                     })
                         .y(function (d) {
-                        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
                     });
                     return line;
                 }
@@ -1839,104 +1900,6 @@ var Charts;
                         // remove old ones
                         pathAvgLine.exit().remove();
                     }
-                }
-                function createAlertLineDef(alertValue) {
-                    var line = d3.svg.line()
-                        .interpolate('monotone')
-                        .x(function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .y(function (d) {
-                        return yScale(alertValue);
-                    });
-                    return line;
-                }
-                function createAlertLine(alertValue) {
-                    var pathAlertLine = svg.selectAll('path.alertLine').data([chartData]);
-                    // update existing
-                    pathAlertLine.attr('class', 'alertLine')
-                        .attr('d', createAlertLineDef(alertValue));
-                    // add new ones
-                    pathAlertLine.enter().append('path')
-                        .attr('class', 'alertLine')
-                        .attr('d', createAlertLineDef(alertValue));
-                    // remove old ones
-                    pathAlertLine.exit().remove();
-                }
-                function extractAlertRanges(chartData, threshold) {
-                    var alertBoundAreaItems;
-                    var startPoints;
-                    function findStartPoints(chartData, threshold) {
-                        var startPoints = [];
-                        var prevItem;
-                        chartData.forEach(function (chartItem, i) {
-                            if (i === 0 && chartItem.avg > threshold) {
-                                startPoints.push(i);
-                            }
-                            else {
-                                prevItem = chartData[i - 1];
-                                if (chartItem.avg > threshold && prevItem && (!prevItem.avg || prevItem.avg <= threshold)) {
-                                    startPoints.push(prevItem.avg ? (i - 1) : i);
-                                }
-                            }
-                        });
-                        return startPoints;
-                    }
-                    function findEndPointsForStartPointIndex(startPoints, threshold) {
-                        var alertBoundAreaItems = [];
-                        var currentItem;
-                        var nextItem;
-                        var startItem;
-                        startPoints.forEach(function (startPointIndex) {
-                            startItem = chartData[startPointIndex];
-                            for (var j = startPointIndex; j < chartData.length - 1; j++) {
-                                currentItem = chartData[j];
-                                nextItem = chartData[j + 1];
-                                if ((currentItem.avg > threshold && nextItem.avg <= threshold)
-                                    || (currentItem.avg > threshold && !nextItem.avg)) {
-                                    alertBoundAreaItems.push(new AlertBound(startItem.timestamp, nextItem.avg ? nextItem.timestamp : currentItem.timestamp, threshold));
-                                    break;
-                                }
-                            }
-                        });
-                        /// means the last piece data is all above threshold, use last data point
-                        if (alertBoundAreaItems.length === (startPoints.length - 1)) {
-                            alertBoundAreaItems.push(new AlertBound(chartData[startPoints[startPoints.length - 1]].timestamp, chartData[chartData.length - 1].timestamp, threshold));
-                        }
-                        return alertBoundAreaItems;
-                    }
-                    startPoints = findStartPoints(chartData, threshold);
-                    alertBoundAreaItems = findEndPointsForStartPointIndex(startPoints, threshold);
-                    return alertBoundAreaItems;
-                }
-                function createAlertBoundsArea(alertBounds) {
-                    var rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
-                    function alertBoundingRect(selection) {
-                        selection
-                            .attr('class', 'alertBounds')
-                            .attr('x', function (d) {
-                            return timeScale(d.startTimestamp);
-                        })
-                            .attr('y', function () {
-                            return yScale(highBound);
-                        })
-                            .attr('height', function (d) {
-                            ///@todo: make the height adjustable
-                            return 185;
-                            //return yScale(0) - height;
-                        })
-                            .attr('width', function (d) {
-                            return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
-                        });
-                    }
-                    // update existing
-                    rectAlert.call(alertBoundingRect);
-                    // add new ones
-                    rectAlert.enter()
-                        .append('rect')
-                        .call(alertBoundingRect);
-                    // remove old ones
-                    rectAlert.exit().remove();
                 }
                 function createXAxisBrush() {
                     brushGroup = svg.selectAll('g.brush');
@@ -2158,9 +2121,9 @@ var Charts;
                     if (multiDataPoints) {
                         determineMultiScale(multiDataPoints);
                     }
-                    ///createHeader(attrs.chartTitle);
                     if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
-                        createAlertBoundsArea(extractAlertRanges(chartData, alertValue));
+                        var alertBounds = Charts.extractAlertRanges(chartData, alertValue);
+                        Charts.createAlertBoundsArea(svg, timeScale, yScale, highBound, alertBounds);
                     }
                     createXAxisBrush();
                     createYAxisGridLines();
@@ -2175,7 +2138,7 @@ var Charts;
                     }
                     if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
                         /// NOTE: this alert line has higher precedence from alert area above
-                        createAlertLine(alertValue);
+                        Charts.createAlertLine(svg, timeScale, yScale, chartData, alertValue);
                     }
                     if (annotationData) {
                         annotateChart(annotationData);
@@ -2238,12 +2201,16 @@ var Charts;
             this.scope = {
                 data: '=',
                 showYAxisValues: '=',
-                showXAxisValues: '='
+                showXAxisValues: '=',
+                alertValue: '@',
             };
             this.link = function (scope, element, attrs) {
                 var margin = { top: 10, right: 5, bottom: 5, left: 45 };
                 // data specific vars
-                var chartHeight = SparklineChartDirective._CHART_HEIGHT, width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, showXAxisValues, showYAxisValues, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, chart, chartParent, svg;
+                var chartHeight = SparklineChartDirective._CHART_HEIGHT, width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right, height = chartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, showXAxisValues, showYAxisValues, yScale, yAxis, yAxisGroup, timeScale, xAxis, xAxisGroup, chart, chartParent, svg, alertValue;
+                if (typeof attrs.alertValue != 'undefined') {
+                    alertValue = +attrs.alertValue;
+                }
                 if (typeof attrs.showXAxisValues != 'undefined') {
                     showXAxisValues = attrs.showXAxisValues === 'true';
                 }
@@ -2259,8 +2226,8 @@ var Charts;
                     chart = chartParent.append('svg')
                         .attr('width', width + margin.left + margin.right)
                         .attr('height', innerChartHeight)
-                        .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom
-                        + Y_AXIS_HEIGHT))
+                        .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top +
+                        margin.bottom + Y_AXIS_HEIGHT))
                         .attr('preserveAspectRatio', 'xMinYMin meet');
                     svg = chart.append('g')
                         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
@@ -2346,6 +2313,10 @@ var Charts;
                         .duration(500)
                         .attr("class", "sparklineArea")
                         .attr("d", area);
+                    //if (alertValue && (alertValue >= yMin && alertValue <= yMax)) {
+                    //  let alertBounds: AlertBound[] = extractAlertRanges(dataPoints, alertValue);
+                    //  createAlertBoundsArea(svg,timeScale, yScale,yMax, alertBounds);
+                    //}
                     // place the x and y axes above the chart
                     yAxisGroup = svg.append('g')
                         .attr('class', 'y axis')
@@ -2354,12 +2325,25 @@ var Charts;
                         .attr('class', 'x axis')
                         .attr('transform', 'translate(0,' + height + ')')
                         .call(xAxis);
+                    if (alertValue && (alertValue >= yMin && alertValue <= yMax)) {
+                        /// NOTE: this alert line has higher precedence from alert area above
+                        Charts.createAlertLine(svg, timeScale, yScale, dataPoints, alertValue);
+                    }
                 }
                 scope.$watchCollection('data', function (newData) {
                     console.log('Sparkline Chart Data Changed');
                     if (newData) {
                         _this.dataPoints = formatBucketedChartOutput(angular.fromJson(newData));
                         scope.render(_this.dataPoints);
+                    }
+                });
+                scope.$watchCollection('alertValue', function (newAlertValue) {
+                    console.log('Sparkline AlertValue Changed');
+                    if (newAlertValue) {
+                        alertValue = newAlertValue;
+                        if (_this.dataPoints) {
+                            scope.render(_this.dataPoints);
+                        }
                     }
                 });
                 function formatBucketedChartOutput(response) {
@@ -2411,6 +2395,24 @@ var Charts;
 var Charts;
 (function (Charts) {
     'use strict';
+    /**
+     * An empty datapoint has 'empty' attribute set to true. Used to distinguish from real 0 values.
+     * @param d
+     * @returns {boolean}
+     */
+    function isEmptyDataPoint(d) {
+        return d.empty;
+    }
+    Charts.isEmptyDataPoint = isEmptyDataPoint;
+    /**
+     * Raw metrics have a 'value' set instead of avg/min/max of aggregates
+     * @param d
+     * @returns {boolean}
+     */
+    function isRawMetric(d) {
+        return typeof d.avg === 'undefined';
+    }
+    Charts.isRawMetric = isRawMetric;
     function xAxisTimeFormats() {
         return d3.time.format.multi([
             [".%L", function (d) {
@@ -2440,4 +2442,36 @@ var Charts;
         ]);
     }
     Charts.xAxisTimeFormats = xAxisTimeFormats;
+    function createSvgDefs(chart) {
+        var defs = chart.append('defs');
+        defs.append('pattern')
+            .attr('id', 'noDataStripes')
+            .attr('patternUnits', 'userSpaceOnUse')
+            .attr('x', '0')
+            .attr('y', '0')
+            .attr('width', '6')
+            .attr('height', '3')
+            .append('path')
+            .attr('d', 'M 0 0 6 0')
+            .attr('style', 'stroke:#CCCCCC; fill:none;');
+        defs.append('pattern')
+            .attr('id', 'unknownStripes')
+            .attr('patternUnits', 'userSpaceOnUse')
+            .attr('x', '0')
+            .attr('y', '0')
+            .attr('width', '6')
+            .attr('height', '3')
+            .attr('style', 'stroke:#2E9EC2; fill:none;')
+            .append('path').attr('d', 'M 0 0 6 0');
+        defs.append('pattern')
+            .attr('id', 'downStripes')
+            .attr('patternUnits', 'userSpaceOnUse')
+            .attr('x', '0')
+            .attr('y', '0')
+            .attr('width', '6')
+            .attr('height', '3')
+            .attr('style', 'stroke:#ff8a9a; fill:none;')
+            .append('path').attr('d', 'M 0 0 6 0');
+    }
+    Charts.createSvgDefs = createSvgDefs;
 })(Charts || (Charts = {}));
