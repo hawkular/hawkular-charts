@@ -1315,7 +1315,7 @@ var Charts;
                         svg.selectAll('path[id^=\'multiLine\']')[0].forEach(function (existingPath) {
                             var stillExists = false;
                             multiDataPoints.forEach(function (singleChartData) {
-                                singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                                singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + Charts.hashString(singleChartData.key));
                                 if (existingPath.getAttribute('id') === singleChartData.keyHash) {
                                     stillExists = true;
                                 }
@@ -1326,7 +1326,7 @@ var Charts;
                         });
                         multiDataPoints.forEach(function (singleChartData) {
                             if (singleChartData && singleChartData.values) {
-                                singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                                singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + Charts.hashString(singleChartData.key));
                                 var pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash).data([singleChartData.values]);
                                 // update existing
                                 pathMultiLine.attr('id', singleChartData.keyHash)
@@ -2092,18 +2092,6 @@ var Charts;
                                 ' [rhqbar,line,area,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
                     }
                 }
-                // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
-                function hashString(str) {
-                    var hash = 0, i, chr, len;
-                    if (str.length == 0)
-                        return hash;
-                    for (i = 0, len = str.length; i < len; i++) {
-                        chr = str.charCodeAt(i);
-                        hash = ((hash << 5) - hash) + chr;
-                        hash |= 0; // Convert to 32bit integer
-                    }
-                    return hash;
-                }
                 scope.render = function (dataPoints, previousRangeDataPoints) {
                     // if we don't have data, don't bother..
                     if (!dataPoints && !multiDataPoints) {
@@ -2395,6 +2383,12 @@ var Charts;
 var Charts;
 (function (Charts) {
     'use strict';
+})(Charts || (Charts = {}));
+
+/// <reference path='../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
     /**
      * An empty datapoint has 'empty' attribute set to true. Used to distinguish from real 0 values.
      * @param d
@@ -2474,4 +2468,17 @@ var Charts;
             .append('path').attr('d', 'M 0 0 6 0');
     }
     Charts.createSvgDefs = createSvgDefs;
+    // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+    function hashString(str) {
+        var hash = 0, i, chr, len;
+        if (str.length == 0)
+            return hash;
+        for (i = 0, len = str.length; i < len; i++) {
+            chr = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    }
+    Charts.hashString = hashString;
 })(Charts || (Charts = {}));

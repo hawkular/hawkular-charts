@@ -12,58 +12,7 @@ namespace Charts {
   const DEFAULT_Y_SCALE = 10;
   const Y_AXIS_HEIGHT = 25;
 
-  // Type values and ID types
-  export type AlertThreshold = number;
-  export type TimeInMillis = number;
-  export type UrlType = number;
-  export type MetricId = string;
-  export type MetricValue = number;
 
-  /**
-   * Metrics Response from Hawkular Metrics
-   */
-  export interface IMetricsResponseDataPoint {
-    start: TimeInMillis;
-    end: TimeInMillis;
-    value?: MetricValue; /// Only for Raw data (no buckets or aggregates)
-    avg?: MetricValue; /// when using buckets or aggregates
-    min?: MetricValue; /// when using buckets or aggregates
-    max?: MetricValue; /// when using buckets or aggregates
-    median?: MetricValue; /// when using buckets or aggregates
-    percentile95th?: MetricValue; /// when using buckets or aggregates
-    empty: boolean;
-  }
-
-  export interface IBaseChartDataPoint {
-    timestamp: TimeInMillis;
-    start?: TimeInMillis;
-    end?: TimeInMillis;
-    value?: MetricValue; /// Only for Raw data (no buckets or aggregates)
-    avg: MetricValue; /// most of the time this is the useful value for aggregates
-    empty: boolean; /// will show up in the chart as blank - set this when you have NaN
-  }
-
-  /**
-   * Representation of data ready to be consumed by charts.
-   */
-  export interface IChartDataPoint extends IBaseChartDataPoint {
-    date?: Date;
-    min: MetricValue;
-    max: MetricValue;
-    percentile95th: MetricValue;
-    median: MetricValue;
-  }
-
-
-  /**
-   * Data structure for a Multi-Metric chart. Composed of IChartDataDataPoint[].
-   */
-  export interface IMultiDataPoint {
-    key: string;
-    keyHash?: string; // for using as valid html id
-    color?: string; /// #fffeee
-    values: IChartDataPoint[];
-  }
 
 
   /**
@@ -103,7 +52,7 @@ namespace Charts {
               startTimestamp:TimeInMillis = endTimestamp - timeRangeInSeconds,
               previousRangeDataPoints = [],
               annotationData = [],
-              chartType = attrs.chartType || 'hawkularline',
+              chartType = attrs.chartType || 'line',
               singleValueLabel = attrs.singleValueLabel || 'Raw Value',
               noDataLabel = attrs.noDataLabel || 'No Data',
               durationLabel = attrs.durationLabel || 'Interval',
@@ -1727,17 +1676,7 @@ namespace Charts {
               }
             }
 
-            // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
-            function hashString(str:string):number {
-              let hash = 0, i, chr, len;
-              if (str.length == 0) return hash;
-              for (i = 0, len = str.length; i < len; i++) {
-                chr = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + chr;
-                hash |= 0; // Convert to 32bit integer
-              }
-              return hash;
-            }
+
 
             scope.render = (dataPoints, previousRangeDataPoints) => {
               // if we don't have data, don't bother..
