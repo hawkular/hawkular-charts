@@ -19,6 +19,10 @@ declare namespace Charts {
         percentile95th?: MetricValue;
         empty: boolean;
     }
+    interface ISimpleMetric {
+        timestamp: TimeInMillis;
+        value: MetricValue;
+    }
     interface IBaseChartDataPoint {
         timestamp: TimeInMillis;
         start?: TimeInMillis;

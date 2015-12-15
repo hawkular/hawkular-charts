@@ -93,6 +93,16 @@
       $scope.dataPoints = 120;
       $scope.hideHighLowValues = false;
 
+      $scope.myForecastData = [
+        {'timestamp': 1434480361167, 'value': 1780},
+        {'timestamp': 1434480511167, 'value': 1680},
+        {'timestamp': 1434480571167, 'value': 1650},
+        {'timestamp': 1434480661167, 'value': 1600},
+        {'timestamp': 1434480781167, 'value': 1570},
+        {'timestamp': 1434480931167, 'value': 1550},
+        {'timestamp': 1434481111167, 'value': 1560}
+      ];
+
       // load a captured Hawkular Feed for sample data -- simulates loading data
       $.getJSON('./test-data/metrics-data.json', function (jsonData) {
 
@@ -227,6 +237,7 @@
   <div class="chartWrapper">
     <hawkular-chart
       data="myData"
+      forecast-data="myForecastData"
       chart-type="line"
       alert-value="{{alertThreshold}}"
       show-data-points="true"
