@@ -25,6 +25,11 @@ namespace Charts {
     empty: boolean;
   }
 
+  export interface ISimpleMetric {
+    timestamp: TimeInMillis;
+    value: MetricValue;
+  }
+
   export interface IBaseChartDataPoint {
     timestamp: TimeInMillis;
     start?: TimeInMillis;

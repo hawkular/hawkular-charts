@@ -732,6 +732,46 @@ var Charts;
 var Charts;
 (function (Charts) {
     'use strict';
+    function createDataPoints(svg, timeScale, yScale, tip, dataPoints) {
+        var radius = 1;
+        var dotDatapoint = svg.selectAll('.dataPointDot').data(dataPoints);
+        // update existing
+        dotDatapoint.attr('class', 'dataPointDot')
+            .attr('r', radius)
+            .attr('cx', function (d) {
+            return timeScale(d.timestamp);
+        })
+            .attr('cy', function (d) {
+            return d.avg ? yScale(d.avg) : -9999999;
+        }).on('mouseover', function (d, i) {
+            tip.show(d, i);
+        }).on('mouseout', function () {
+            tip.hide();
+        });
+        // add new ones
+        dotDatapoint.enter().append('circle')
+            .attr('class', 'dataPointDot')
+            .attr('r', radius)
+            .attr('cx', function (d) {
+            return timeScale(d.timestamp);
+        })
+            .attr('cy', function (d) {
+            return d.avg ? yScale(d.avg) : -9999999;
+        }).on('mouseover', function (d, i) {
+            tip.show(d, i);
+        }).on('mouseout', function () {
+            tip.hide();
+        });
+        // remove old ones
+        dotDatapoint.exit().remove();
+    }
+    Charts.createDataPoints = createDataPoints;
+})(Charts || (Charts = {}));
+
+/// <reference path='../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
     var debug = false;
     // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
     var DEFAULT_Y_SCALE = 10;
@@ -750,11 +790,12 @@ var Charts;
             function link(scope, element, attrs) {
                 var CHART_HEIGHT = 250, CHART_WIDTH = 750, HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
                 // data specific vars
-                var dataPoints = [], multiDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], chartType = attrs.chartType || 'hawkularline', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false;
+                var dataPoints = [], multiDataPoints, forecastDataPoints, dataUrl = attrs.metricUrl, metricId = attrs.metricId || '', metricTenantId = attrs.metricTenantId || '', metricType = attrs.metricType || 'gauge', timeRangeInSeconds = +attrs.timeRangeInSeconds || 43200, refreshIntervalInSeconds = +attrs.refreshIntervalInSeconds || 3600, alertValue = +attrs.alertValue, interpolation = attrs.interpolation || 'monotone', endTimestamp = Date.now(), startTimestamp = endTimestamp - timeRangeInSeconds, previousRangeDataPoints = [], annotationData = [], chartType = attrs.chartType || 'line', singleValueLabel = attrs.singleValueLabel || 'Raw Value', noDataLabel = attrs.noDataLabel || 'No Data', durationLabel = attrs.durationLabel || 'Interval', minLabel = attrs.minLabel || 'Min', maxLabel = attrs.maxLabel || 'Max', avgLabel = attrs.avgLabel || 'Avg', timestampLabel = attrs.timestampLabel || 'Timestamp', showAvgLine = true, showDataPoints = false, hideHighLowValues = false, useZeroMinValue = false;
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = CHART_WIDTH - margin.left - margin.right, adjustedChartHeight = CHART_HEIGHT - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, calcBarWidthAdjusted, calcBarXPos, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, timeScaleForBrush, chart, chartParent, svg, lowBound, highBound, avg, peak, min, processedNewData, processedPreviousRangeData;
+                var margin = { top: 10, right: 5, bottom: 5, left: 90 }, width = CHART_WIDTH - margin.left - margin.right, adjustedChartHeight = CHART_HEIGHT - 50, height = adjustedChartHeight - margin.top - margin.bottom, smallChartThresholdInPixels = 600, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, barOffset = 2, chartData, calcBarWidth, calcBarWidthAdjusted, calcBarXPos, yScale, timeScale, yAxis, xAxis, tip, brush, brushGroup, chart, chartParent, svg, visuallyAdjustedMin, visuallyAdjustedMax, avg, peak, min, processedNewData, processedPreviousRangeData;
                 var hasInit = false;
                 dataPoints = attrs.data;
+                forecastDataPoints = attrs.forecastData;
                 showDataPoints = attrs.showDataPoints;
                 previousRangeDataPoints = attrs.previousRangeData;
                 annotationData = attrs.annotationData;
@@ -803,15 +844,16 @@ var Charts;
                             return !Charts.isEmptyDataPoint(d) ? (d.avg || d.value) : undefined;
                         }));
                     }
-                    lowBound = useZeroMinValue ? 0 : min * .95;
-                    highBound = peak + ((peak - min) * 0.2);
-                    // check if we need to adjust high/low bound to fit alert value
+                    /// lets adjust the min and max to add some visual spacing between it and the axes
+                    visuallyAdjustedMin = useZeroMinValue ? 0 : min * .95;
+                    visuallyAdjustedMax = peak + ((peak - min) * 0.2);
+                    /// check if we need to adjust high/low bound to fit alert value
                     if (alertValue) {
-                        highBound = Math.max(highBound, alertValue * 1.2);
-                        lowBound = Math.min(lowBound, alertValue * .95);
+                        visuallyAdjustedMax = Math.max(visuallyAdjustedMax, alertValue * 1.2);
+                        visuallyAdjustedMin = Math.min(visuallyAdjustedMin, alertValue * .95);
                     }
-                    // use default Y scale in case high and low bound are 0 (ie, no values or all 0)
-                    highBound = !!!highBound && !!!lowBound ? DEFAULT_Y_SCALE : highBound;
+                    /// use default Y scale in case high and low bound are 0 (ie, no values or all 0)
+                    visuallyAdjustedMax = !!!visuallyAdjustedMax && !!!visuallyAdjustedMin ? DEFAULT_Y_SCALE : visuallyAdjustedMax;
                 }
                 function determineScale(dataPoints) {
                     var xTicks, numberOfBarsForSmallGraph = 20;
@@ -844,22 +886,27 @@ var Charts;
                         yScale = d3.scale.linear()
                             .clamp(true)
                             .rangeRound([height, 0])
-                            .domain([lowBound, highBound]);
+                            .domain([visuallyAdjustedMin, visuallyAdjustedMax]);
                         yAxis = d3.svg.axis()
                             .scale(yScale)
                             .ticks(5)
                             .tickSize(4, 4, 0)
                             .orient('left');
+                        var timeScaleMin = d3.min(dataPoints.map(function (d) {
+                            return d.timestamp;
+                        }));
+                        var timeScaleMax;
+                        if (forecastDataPoints && forecastDataPoints.length > 0) {
+                            timeScaleMax = forecastDataPoints[forecastDataPoints.length - 1].timestamp;
+                        }
+                        else {
+                            timeScaleMax = d3.max(dataPoints.map(function (d) {
+                                return d.timestamp;
+                            }));
+                        }
                         timeScale = d3.time.scale()
                             .range([0, width])
-                            .domain(d3.extent(chartData, function (d) {
-                            return d.timestamp;
-                        }));
-                        timeScaleForBrush = d3.time.scale()
-                            .range([0, width])
-                            .domain(d3.extent(chartData, function (d) {
-                            return d.timestamp;
-                        }));
+                            .domain([timeScaleMin, timeScaleMax]);
                         xAxis = d3.svg.axis()
                             .scale(timeScale)
                             .ticks(xTicks)
@@ -889,27 +936,27 @@ var Charts;
                     var minMax = determineMultiDataMinMax();
                     peak = minMax[1];
                     min = minMax[0];
-                    lowBound = useZeroMinValue ? 0 : min - (min * 0.05);
+                    visuallyAdjustedMin = useZeroMinValue ? 0 : min - (min * 0.05);
                     if (alertValue) {
                         alertPeak = (alertValue * 1.2);
                         highPeak = peak + ((peak - min) * 0.2);
-                        highBound = alertPeak > highPeak ? alertPeak : highPeak;
+                        visuallyAdjustedMax = alertPeak > highPeak ? alertPeak : highPeak;
                     }
                     else {
-                        highBound = peak + ((peak - min) * 0.2);
+                        visuallyAdjustedMax = peak + ((peak - min) * 0.2);
                     }
-                    return [lowBound, !!!highBound && !!!lowBound ? DEFAULT_Y_SCALE : highBound];
+                    return [visuallyAdjustedMin, !!!visuallyAdjustedMax && !!!visuallyAdjustedMin ? DEFAULT_Y_SCALE : visuallyAdjustedMax];
                 }
                 function determineMultiScale(multiDataPoints) {
                     var xTicks = 9;
                     if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
                         var lowHigh = setupFilteredMultiData(multiDataPoints);
-                        lowBound = lowHigh[0];
-                        highBound = lowHigh[1];
+                        visuallyAdjustedMin = lowHigh[0];
+                        visuallyAdjustedMax = lowHigh[1];
                         yScale = d3.scale.linear()
                             .clamp(true)
                             .rangeRound([height, 0])
-                            .domain([lowBound, highBound]);
+                            .domain([visuallyAdjustedMin, visuallyAdjustedMax]);
                         yAxis = d3.svg.axis()
                             .scale(yScale)
                             .ticks(5)
@@ -1029,7 +1076,7 @@ var Charts;
                             return Charts.isEmptyDataPoint(d) ? 0 : yScale(d.avg);
                         })
                             .attr('height', function (d) {
-                            return height - yScale(Charts.isEmptyDataPoint(d) ? yScale(highBound) : d.avg);
+                            return height - yScale(Charts.isEmptyDataPoint(d) ? yScale(visuallyAdjustedMax) : d.avg);
                         })
                             .attr('opacity', stacked ? '.6' : '1')
                             .attr('fill', function (d, i) {
@@ -1071,7 +1118,7 @@ var Charts;
                         return calcBarXPos(d, i);
                     })
                         .attr('y', function (d) {
-                        return isNaN(d.max) ? yScale(lowBound) : yScale(d.max);
+                        return isNaN(d.max) ? yScale(visuallyAdjustedMin) : yScale(d.max);
                     })
                         .attr('height', function (d) {
                         return Charts.isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
@@ -1829,8 +1876,8 @@ var Charts;
                     function axisTransition(selection) {
                         selection
                             .transition()
-                            .delay(500)
-                            .duration(2000)
+                            .delay(250)
+                            .duration(750)
                             .attr("opacity", 1.0);
                     }
                     if (yAxis) {
@@ -1948,7 +1995,7 @@ var Charts;
                             return timeScale(d.timestamp);
                         })
                             .attr('cy', function () {
-                            return height - yScale(highBound);
+                            return height - yScale(visuallyAdjustedMax);
                         })
                             .style('fill', function (d) {
                             if (d.severity === '1') {
@@ -1963,38 +2010,28 @@ var Charts;
                         });
                     }
                 }
-                function createDataPoints(dataPoints) {
-                    var radius = 1;
-                    var dotDatapoint = svg.selectAll('.dataPointDot').data(dataPoints);
+                function createForecastLine(newInterpolation) {
+                    var interpolate = newInterpolation || 'monotone', line = d3.svg.line()
+                        .interpolate(interpolate)
+                        .x(function (d) {
+                        return timeScale(d.timestamp);
+                    })
+                        .y(function (d) {
+                        return yScale(d.value);
+                    });
+                    return line;
+                }
+                function showForecastData(forecastData) {
+                    var forecastPathLine = svg.selectAll('.forecastLine').data([forecastData]);
                     // update existing
-                    dotDatapoint.attr('class', 'dataPointDot')
-                        .attr('r', radius)
-                        .attr('cx', function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .attr('cy', function (d) {
-                        return d.avg ? yScale(d.avg) : -9999999;
-                    }).on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
+                    forecastPathLine.attr('class', 'forecastLine')
+                        .attr('d', createForecastLine('monotone'));
                     // add new ones
-                    dotDatapoint.enter().append('circle')
-                        .attr('class', 'dataPointDot')
-                        .attr('r', radius)
-                        .attr('cx', function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .attr('cy', function (d) {
-                        return d.avg ? yScale(d.avg) : -9999999;
-                    }).on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
+                    forecastPathLine.enter().append('path')
+                        .attr('class', 'forecastLine')
+                        .attr('d', createForecastLine('monotone'));
                     // remove old ones
-                    dotDatapoint.exit().remove();
+                    forecastPathLine.exit().remove();
                 }
                 scope.$watchCollection('data', function (newData) {
                     if (newData) {
@@ -2018,6 +2055,12 @@ var Charts;
                 scope.$watch('annotationData', function (newAnnotationData) {
                     if (newAnnotationData) {
                         annotationData = angular.fromJson(newAnnotationData);
+                        scope.render(processedNewData, processedPreviousRangeData);
+                    }
+                }, true);
+                scope.$watch('forecastData', function (newForecastData) {
+                    if (newForecastData) {
+                        forecastDataPoints = angular.fromJson(newForecastData);
                         scope.render(processedNewData, processedPreviousRangeData);
                     }
                 }, true);
@@ -2109,27 +2152,30 @@ var Charts;
                     if (multiDataPoints) {
                         determineMultiScale(multiDataPoints);
                     }
-                    if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
+                    if (alertValue && (alertValue > visuallyAdjustedMin && alertValue < visuallyAdjustedMax)) {
                         var alertBounds = Charts.extractAlertRanges(chartData, alertValue);
-                        Charts.createAlertBoundsArea(svg, timeScale, yScale, highBound, alertBounds);
+                        Charts.createAlertBoundsArea(svg, timeScale, yScale, visuallyAdjustedMax, alertBounds);
                     }
                     createXAxisBrush();
                     createYAxisGridLines();
                     determineChartType(chartType);
                     if (showDataPoints) {
-                        createDataPoints(chartData);
+                        Charts.createDataPoints(svg, timeScale, yScale, tip, chartData);
                     }
                     createPreviousRangeOverlay(previousRangeDataPoints);
                     createXandYAxes();
                     if (showAvgLine) {
                         createAvgLines();
                     }
-                    if (alertValue && (alertValue > lowBound && alertValue < highBound)) {
+                    if (alertValue && (alertValue > visuallyAdjustedMin && alertValue < visuallyAdjustedMax)) {
                         /// NOTE: this alert line has higher precedence from alert area above
                         Charts.createAlertLine(svg, timeScale, yScale, chartData, alertValue, 'alertLine');
                     }
                     if (annotationData) {
                         annotateChart(annotationData);
+                    }
+                    if (forecastDataPoints && forecastDataPoints.length > 0) {
+                        showForecastData(forecastDataPoints);
                     }
                     debug && console.timeEnd('chartRender');
                     debug && console.groupEnd('Render Chart');
@@ -2142,6 +2188,7 @@ var Charts;
                 scope: {
                     data: '=',
                     multiData: '=',
+                    forecastData: '=',
                     metricUrl: '@',
                     metricId: '@',
                     metricType: '@',

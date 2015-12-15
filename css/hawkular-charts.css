@@ -167,7 +167,7 @@ rect.low {
 .sparklineAlertLine {
   stroke: #cc0000;
   stroke-width: 1px;
-  stroke-dasharray: 10, 5;
+  stroke-dasharray: 5, 5;
 }
 
 .prevRangeAvgLine {
@@ -220,7 +220,7 @@ rect.low {
   fill: none;
   stroke: #0757ff;
   stroke-width: 2;
-  stroke-opacity: 0.9;
+
 }
 
 .areaLine {
@@ -255,6 +255,15 @@ rect.low {
   fill: none;
   stroke: #0088CE;
   stroke-width: 2;
+}
+
+
+.forecastLine{
+  fill: none;
+  stroke: #0757ff;
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  stroke-opacity: 0.9;
 }
 
 /* Tooltip */
