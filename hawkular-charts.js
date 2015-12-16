@@ -1969,6 +1969,8 @@ var Charts;
                         svg.classed('selecting', !d3.event.target.empty());
                         // ignore range selections less than 1 minute
                         if (dragSelectionDelta >= 60000) {
+                            forecastDataPoints = [];
+                            showForecastData(forecastDataPoints);
                             $rootScope.$broadcast(Charts.EventNames.CHART_TIMERANGE_CHANGED.toString(), extent);
                         }
                         // clear the brush selection
