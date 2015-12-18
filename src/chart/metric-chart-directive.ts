@@ -1390,15 +1390,16 @@ namespace Charts {
                   .call(yAxis)
                   .call(axisTransition);
 
-                let yAxisLabel = svg
-                  .append('text')
-                  .attr('class', 'yAxisUnitsLabel')
-                  .attr('transform', 'rotate(-90),translate(-10,-50)')
-                  .attr('x', -CHART_HEIGHT / 2)
-                  .style('text-anchor', 'start')
-                  .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits)
-                  .attr("opacity", 0.3)
-                  .call(axisTransition);
+                let yAxisLabel = svg.selectAll('.yAxisUnitsLabel');
+                if (yAxisLabel.empty()) {
+                  yAxisLabel = svg.append('text').attr('class', 'yAxisUnitsLabel')
+                    .attr('transform', 'rotate(-90),translate(-10,-50)')
+                    .attr('x', -CHART_HEIGHT / 2)
+                    .style('text-anchor', 'start')
+                    .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits)
+                    .attr("opacity", 0.3)
+                    .call(axisTransition);
+                }
               }
 
             }
