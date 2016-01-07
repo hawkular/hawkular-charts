@@ -19,3 +19,6 @@ libs/
 
 # Users Environment Variables
 .lock-wscript
+
+# Mac OSX
+.DS_Store
