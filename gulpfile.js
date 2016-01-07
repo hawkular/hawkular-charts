@@ -41,7 +41,7 @@ var pkg = require('./package.json');
 var config = {
   main: '.',
   ts: ['src/**/*.ts'],
-  css: ['css/*.css'],
+  less: ['src/**/*.less'],
   js: pkg.name + '.js',
   tsProject: plugins.typescript.createProject({
     target: 'ES5',
@@ -147,6 +147,16 @@ gulp.task('tslint', function () {
 
 
 
+gulp.task('less', function(){
+  gulp.src(config.less)
+    .pipe(plugins.less())
+    .pipe(plugins.concat('css/hawkular-charts.css'))
+    .pipe(gulp.dest('.'))
+    .pipe(reload());
+});
+
+
+
 gulp.task('concat', function () {
   var gZipSize = size(gZippedSizeOptions);
   return gulp.src([config.js])
@@ -160,22 +170,22 @@ gulp.task('clean', function () {
     .pipe(plugins.clean());
 });
 
-gulp.task('server', ['watch'], function () {
+gulp.task('server', ['build', 'watch'], function () {
   server = express();
   server.use(express.static('.'));
   server.listen(8000);
   browsersync({proxy: 'localhost:8000'})
 });
 
-gulp.task('dev-build', ['bower', 'path-adjust', 'tslint', 'tsc-dev', 'concat', 'clean']);
+gulp.task('dev-build', ['bower', 'path-adjust', 'less', 'tslint', 'tsc-dev', 'concat', 'clean']);
 
 gulp.task('watch', function () {
-  gulp.watch(config.css, ['tsc-dev']);
+  gulp.watch(config.less, ['less']);
   gulp.watch(config.ts, ['tsc-dev']);
 });
 
 
-gulp.task('build', ['bower', 'path-adjust', 'tslint', 'tsc-prod', 'concat', 'clean']);
+gulp.task('build', ['bower', 'path-adjust', 'less', 'tslint', 'tsc-prod', 'concat', 'clean']);
 gulp.task('default', ['server']);
 
 
