@@ -21,26 +21,42 @@
       this.vm = $scope;
 
       console.log("Starting Avail Tester");
-      var baseTime = moment().hour(13).minutes(0); // start a 13:00 today
+      var baseTime = moment().hour(1).minutes(0).seconds(0); // start at 1 AM today
 
       $scope.$on('AvailChartTimeRangeChanged', function (event, data) {
         console.info('Received AvailChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
+        $scope.startTime = data[0];
+        $scope.endTime = data[1];
+        $scope.refreshChartWithDateRange();
       });
 
-      this.availAllChartData = [
-        {'timestamp': +baseTime.add('minutes', 5), 'value': 'up'},
-        {'timestamp': +baseTime.add('minutes', 10), 'value': 'down'},
-        {'timestamp': +baseTime.add('minutes', 10), 'value': 'up'},
-        {'timestamp': +baseTime.add('minutes', 20), 'value': 'unknown'},
-        {'timestamp': +baseTime.add('minutes', 15), 'value': 'down'}];
+      $scope.refreshChartWithDateRange = function () {
+        console.info('refreshChartWithDateRange');
+        // we already have the data, but perhaps the data is stale and you want to requery
+        // also, by just changing the data the charts will automatically update themselves
+        $scope.availAllChartData = $scope.availAllChartData.filter(function (value) {
+          return new Date(value.timestamp) >= $scope.startTime && new Date(value.timestamp) <= $scope.endTime;
+        });
+        $scope.$digest();
 
-      this.startTime = baseTime;
-      this.endTime = this.availAllChartData[this.availAllChartData.length - 1].timestamp;
+      };
 
-      console.log("StartTime: " + moment(baseTime).toISOString());
-      console.log("EndTime: " + moment().toISOString());
+      $scope.availAllChartData = [
+        {'timestamp': +baseTime, 'value': 'up'},
+        {'timestamp': +baseTime.add(15, 'minutes'), 'value': 'down'},
+        {'timestamp': +baseTime.add( 5, 'minutes'), 'value': 'up'},
+        {'timestamp': +baseTime.add(25, 'minutes'), 'value': 'unknown'},
+        {'timestamp': +baseTime.add(10, 'minutes'), 'value': 'down'}];
 
-      this.singleAvailData = [{'timestamp': +baseTime.add('minutes', 15), 'value': 'up'}]
+      $scope.startTime = $scope.availAllChartData[0].timestamp;
+      $scope.endTime = $scope.availAllChartData[$scope.availAllChartData.length - 1].timestamp;
+      // add some more time so that the last datapoint shows (but not all of it)
+      $scope.endTime += parseInt(($scope.endTime-$scope.startTime) / 10, 10);
+
+      console.log("StartTime: " + moment($scope.startTime).toISOString());
+      console.log("EndTime: " + moment($scope.endTime).toISOString());
+
+      $scope.singleAvailData = [{'timestamp': +baseTime.add(15, 'minutes'), 'value': 'up'}]
 
     });
 
@@ -58,9 +74,9 @@
   <p>Standard, multiple avail points.</p>
 
   <div ng-controller="AvailTestController as vm">
-    <availability-chart data="vm.availAllChartData"
-                        start-timestamp="{{vm.startTime}}"
-                        end-timestamp="{{vm.endTime}}"
+    <availability-chart data="availAllChartData"
+                        start-timestamp="{{startTime}}"
+                        end-timestamp="{{endTime}}"
       />
   </div>
 </div>

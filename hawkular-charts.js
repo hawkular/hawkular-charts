@@ -225,7 +225,7 @@ var Charts;
                     }) || +moment().subtract(1, 'hour');
                     if (transformedAvailDataPoint && transformedAvailDataPoint.length > 0) {
                         adjustedTimeRange[0] = startTimestamp;
-                        adjustedTimeRange[1] = +moment(); // @TODO: Fix when we support end != now
+                        adjustedTimeRange[1] = endTimestamp || +moment();
                         yScale = d3.scale.linear()
                             .clamp(true)
                             .rangeRound([70, 0])
@@ -326,7 +326,7 @@ var Charts;
                     });
                     var availTimeScale = d3.time.scale()
                         .range([0, width])
-                        .domain([startTimestamp, xAxisMax]), yScale = d3.scale.linear()
+                        .domain([startTimestamp, endTimestamp || xAxisMax]), yScale = d3.scale.linear()
                         .clamp(true)
                         .range([height, 0])
                         .domain([0, 4]), availXAxis = d3.svg.axis()
@@ -369,7 +369,8 @@ var Charts;
                         return calcBarHeight(d);
                     })
                         .attr('width', function (d) {
-                        return availTimeScale(+d.end) - availTimeScale(+d.start);
+                        var dEnd = endTimestamp ? (Math.min(+d.end, endTimestamp)) : (+d.end);
+                        return availTimeScale(dEnd) - availTimeScale(+d.start);
                     })
                         .attr('fill', function (d) {
                         return calcBarFill(d);
@@ -454,8 +455,8 @@ var Charts;
                 });
                 scope.$watchGroup(['startTimestamp', 'endTimestamp'], function (newTimestamp) {
                     console.log('Avail Chart Start/End Timestamp Changed');
-                    startTimestamp = newTimestamp[0] || startTimestamp;
-                    endTimestamp = newTimestamp[1] || endTimestamp;
+                    startTimestamp = +newTimestamp[0] || startTimestamp;
+                    endTimestamp = +newTimestamp[1] || endTimestamp;
                     scope.render(_this.transformedDataPoints);
                 });
                 scope.render = function (transformedAvailDataPoint) {
