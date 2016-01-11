@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Red Hat, Inc. and/or its affiliates
+ * Copyright 2014-2016 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-var gulp = require('gulp'),
+'use strict';
+
+const gulp = require('gulp'),
   wiredep = require('wiredep').stream,
   eventStream = require('event-stream'),
   gulpLoadPlugins = require('gulp-load-plugins'),
@@ -34,11 +36,11 @@ var gulp = require('gulp'),
   browsersync = require('browser-sync'),
   tslint = require('gulp-tslint');
 
-var server;
-var plugins = gulpLoadPlugins({});
-var pkg = require('./package.json');
+const server;
+const plugins = gulpLoadPlugins({});
+const pkg = require('./package.json');
 
-var config = {
+const config = {
   main: '.',
   ts: ['src/**/*.ts'],
   less: ['src/**/*.less'],
@@ -51,7 +53,7 @@ var config = {
   })
 };
 
-var normalSizeOptions = {
+const normalSizeOptions = {
   showFiles: true
 }, gZippedSizeOptions = {
   showFiles: true,
