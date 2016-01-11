@@ -181,7 +181,7 @@ namespace Charts {
           if (transformedAvailDataPoint && transformedAvailDataPoint.length > 0) {
 
             adjustedTimeRange[0] = startTimestamp;
-            adjustedTimeRange[1] = +moment(); // @TODO: Fix when we support end != now
+            adjustedTimeRange[1] = endTimestamp || +moment();
 
             yScale = d3.scale.linear()
               .clamp(true)
@@ -310,7 +310,7 @@ namespace Charts {
 
           let availTimeScale = d3.time.scale()
               .range([0, width])
-              .domain([startTimestamp, xAxisMax]),
+              .domain([startTimestamp, endTimestamp || xAxisMax]),
 
             yScale = d3.scale.linear()
               .clamp(true)
@@ -359,7 +359,8 @@ namespace Charts {
               return calcBarHeight(d);
             })
             .attr('width', (d:ITransformedAvailDataPoint) => {
-              return availTimeScale(+d.end) - availTimeScale(+d.start);
+              let dEnd = endTimestamp ? (Math.min(+d.end, endTimestamp)) : (+d.end);
+              return availTimeScale(dEnd) - availTimeScale(+d.start);
             })
             .attr('fill', (d:ITransformedAvailDataPoint) => {
               return calcBarFill(d);
@@ -466,8 +467,8 @@ namespace Charts {
 
         scope.$watchGroup(['startTimestamp', 'endTimestamp'], (newTimestamp) => {
           console.log('Avail Chart Start/End Timestamp Changed');
-          startTimestamp = newTimestamp[0] || startTimestamp;
-          endTimestamp = newTimestamp[1] || endTimestamp;
+          startTimestamp = +newTimestamp[0] || startTimestamp;
+          endTimestamp = +newTimestamp[1] || endTimestamp;
           scope.render(this.transformedDataPoints);
         });
 
