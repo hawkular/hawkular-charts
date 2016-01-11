@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Red Hat, Inc. and/or its affiliates
+ * Copyright 2014-2016 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-var gulp = require('gulp'),
+'use strict';
+
+const gulp = require('gulp'),
   wiredep = require('wiredep').stream,
   eventStream = require('event-stream'),
   gulpLoadPlugins = require('gulp-load-plugins'),
@@ -34,11 +36,11 @@ var gulp = require('gulp'),
   browsersync = require('browser-sync'),
   tslint = require('gulp-tslint');
 
-var server;
-var plugins = gulpLoadPlugins({});
-var pkg = require('./package.json');
+let server;
+const plugins = gulpLoadPlugins({});
+const pkg = require('./package.json');
 
-var config = {
+const config = {
   main: '.',
   ts: ['src/**/*.ts'],
   less: ['src/**/*.less'],
@@ -51,7 +53,7 @@ var config = {
   })
 };
 
-var normalSizeOptions = {
+const normalSizeOptions = {
   showFiles: true
 }, gZippedSizeOptions = {
   showFiles: true,
@@ -68,8 +70,8 @@ gulp.task('bower', function () {
 gulp.task('path-adjust', function () {
   gulp.src('libs/**/includes.d.ts')
     .pipe(map(function (buf, filename) {
-      var textContent = buf.toString();
-      var newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
+      const textContent = buf.toString();
+      const newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
       //console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
       return newTextContent;
     }))
@@ -82,8 +84,8 @@ gulp.task('clean-defs', function () {
 });
 
 gulp.task('tsc-prod', ['clean-defs'], function () {
-  var cwd = process.cwd();
-  var tsResult = gulp.src(config.ts)
+  const cwd = process.cwd();
+  let tsResult = gulp.src(config.ts)
     .pipe(plugins.typescript(config.tsProject))
     .on('error', plugins.notify.onError({
       message: '<%= error.message %>',
@@ -104,15 +106,15 @@ gulp.task('tsc-prod', ['clean-defs'], function () {
       if (!s.endsWith(filename, 'd.ts')) {
         return buf;
       }
-      var relative = path.relative(cwd, filename);
+      const relative = path.relative(cwd, filename);
       fs.appendFileSync('defs.d.ts', '/// <reference path="' + relative + '"/>\n');
       return buf;
     }));
 });
 
 gulp.task('tsc-dev', ['clean-defs'], function () {
-  var cwd = process.cwd();
-  var tsResult = gulp.src(config.ts)
+  const cwd = process.cwd();
+  let tsResult = gulp.src(config.ts)
     .pipe(plugins.typescript(config.tsProject))
     .on('error', plugins.notify.onError({
       message: '<%= error.message %>',
@@ -131,7 +133,7 @@ gulp.task('tsc-dev', ['clean-defs'], function () {
       if (!s.endsWith(filename, 'd.ts')) {
         return buf;
       }
-      var relative = path.relative(cwd, filename);
+      const relative = path.relative(cwd, filename);
       fs.appendFileSync('defs.d.ts', '/// <reference path="' + relative + '"/>\n');
       return buf;
     }));
@@ -158,7 +160,7 @@ gulp.task('less', function(){
 
 
 gulp.task('concat', function () {
-  var gZipSize = size(gZippedSizeOptions);
+  const gZipSize = size(gZippedSizeOptions);
   return gulp.src([config.js])
     .pipe(plugins.concat(config.js))
     .pipe(size(normalSizeOptions))
