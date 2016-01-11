@@ -36,7 +36,7 @@ const gulp = require('gulp'),
   browsersync = require('browser-sync'),
   tslint = require('gulp-tslint');
 
-const server;
+let server;
 const plugins = gulpLoadPlugins({});
 const pkg = require('./package.json');
 
@@ -70,8 +70,8 @@ gulp.task('bower', function () {
 gulp.task('path-adjust', function () {
   gulp.src('libs/**/includes.d.ts')
     .pipe(map(function (buf, filename) {
-      var textContent = buf.toString();
-      var newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
+      const textContent = buf.toString();
+      const newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
       //console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
       return newTextContent;
     }))
@@ -84,8 +84,8 @@ gulp.task('clean-defs', function () {
 });
 
 gulp.task('tsc-prod', ['clean-defs'], function () {
-  var cwd = process.cwd();
-  var tsResult = gulp.src(config.ts)
+  const cwd = process.cwd();
+  let tsResult = gulp.src(config.ts)
     .pipe(plugins.typescript(config.tsProject))
     .on('error', plugins.notify.onError({
       message: '<%= error.message %>',
@@ -106,15 +106,15 @@ gulp.task('tsc-prod', ['clean-defs'], function () {
       if (!s.endsWith(filename, 'd.ts')) {
         return buf;
       }
-      var relative = path.relative(cwd, filename);
+      const relative = path.relative(cwd, filename);
       fs.appendFileSync('defs.d.ts', '/// <reference path="' + relative + '"/>\n');
       return buf;
     }));
 });
 
 gulp.task('tsc-dev', ['clean-defs'], function () {
-  var cwd = process.cwd();
-  var tsResult = gulp.src(config.ts)
+  const cwd = process.cwd();
+  let tsResult = gulp.src(config.ts)
     .pipe(plugins.typescript(config.tsProject))
     .on('error', plugins.notify.onError({
       message: '<%= error.message %>',
@@ -133,7 +133,7 @@ gulp.task('tsc-dev', ['clean-defs'], function () {
       if (!s.endsWith(filename, 'd.ts')) {
         return buf;
       }
-      var relative = path.relative(cwd, filename);
+      const relative = path.relative(cwd, filename);
       fs.appendFileSync('defs.d.ts', '/// <reference path="' + relative + '"/>\n');
       return buf;
     }));
@@ -160,7 +160,7 @@ gulp.task('less', function(){
 
 
 gulp.task('concat', function () {
-  var gZipSize = size(gZippedSizeOptions);
+  const gZipSize = size(gZippedSizeOptions);
   return gulp.src([config.js])
     .pipe(plugins.concat(config.js))
     .pipe(size(normalSizeOptions))
