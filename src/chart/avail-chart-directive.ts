@@ -228,7 +228,7 @@ namespace Charts {
             if (a.timestamp < b.timestamp) {
               return -1;
             }
-            if (a.timestamp > b.timestamp){
+            if (a.timestamp > b.timestamp) {
               return 1;
             }
             return 0;
@@ -352,7 +352,7 @@ namespace Charts {
             .attr('x', (d:ITransformedAvailDataPoint) => {
               return availTimeScale(+d.start);
             })
-            .attr('y', (d:ITransformedAvailDataPoint)  => {
+            .attr('y', (d:ITransformedAvailDataPoint) => {
               return calcBarY(d);
             })
             .attr('height', (d) => {
