@@ -8,3 +8,7 @@
 /// <reference path="d.ts/chart/sparkline-chart-directive.d.ts"/>
 /// <reference path="d.ts/chart/types.d.ts"/>
 /// <reference path="d.ts/chart/utility.d.ts"/>
+/// <reference path="d.ts/chart/chart-type/area.d.ts"/>
+/// <reference path="d.ts/chart/chart-type/line.d.ts"/>
+/// <reference path="d.ts/chart/chart-type/scatter.d.ts"/>
+/// <reference path="d.ts/chart/chart-type/scatterLine.d.ts"/>

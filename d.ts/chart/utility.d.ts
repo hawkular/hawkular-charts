@@ -14,5 +14,6 @@ declare namespace Charts {
     function isRawMetric(d: IChartDataPoint): boolean;
     function xAxisTimeFormats(): d3.time.Format;
     function createSvgDefs(chart: any): void;
+    function xMidPointStartPosition(d: any, timeScale: any): any;
     function hashString(str: string): number;
 }

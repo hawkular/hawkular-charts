@@ -100,7 +100,7 @@ namespace Charts {
             .call(xAxis);
 
 
-          let yMin = d3.min(dataPoints, (d)  => {
+          let yMin = d3.min(dataPoints, (d) => {
             return d.avg;
           });
           let yMax = d3.max(dataPoints, (d) => {
@@ -205,7 +205,7 @@ namespace Charts {
           brushGroup.selectAll('.resize').append('path');
 
           brushGroup.selectAll('rect')
-            .attr('height', height +17);
+            .attr('height', height + 17);
 
           function contextBrushStart() {
             svg.classed('selecting', true);

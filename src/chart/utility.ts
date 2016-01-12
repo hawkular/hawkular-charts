@@ -87,6 +87,11 @@ namespace Charts {
 
   }
 
+  export function xMidPointStartPosition(d, timeScale:any) {
+    return timeScale(d.timestamp);
+  }
+
+
   // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
   export function hashString(str:string):number {
     let hash = 0, i, chr, len;

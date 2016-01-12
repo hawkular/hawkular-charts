@@ -65,7 +65,7 @@ _Sample code for this chart:_
 ----
 <hawkular-chart
     data="dataPoints"
-    chart-type="hawkularmetric"
+    chart-type="line"
     alert-value="{{threshold}}"
     y-axis-units="Response Time (ms)">
 </hawkular-chart>

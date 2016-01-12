@@ -61,7 +61,7 @@ const normalSizeOptions = {
 };
 
 gulp.task('bower', function () {
-  gulp.src('metrics-chart-sample.html')
+  gulp.src('index.html')
     .pipe(wiredep({}))
     .pipe(gulp.dest('.'));
 });

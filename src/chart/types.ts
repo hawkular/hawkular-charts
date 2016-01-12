@@ -10,6 +10,7 @@ namespace Charts {
   export type MetricId = string;
   export type MetricValue = number;
 
+
   /**
    * Metrics Response from Hawkular Metrics
    */
@@ -60,4 +61,5 @@ namespace Charts {
     color?: string; /// #fffeee
     values: IChartDataPoint[];
   }
+
 }
