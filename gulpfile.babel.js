@@ -18,7 +18,6 @@
 'use strict';
 
 import browsersync from 'browser-sync';
-import clean from 'gulp-clean';
 import concat from 'gulp-concat';
 import express from 'express';
 import eventStream  from 'event-stream';
@@ -82,12 +81,8 @@ gulp.task('path-adjust', () => {
     .pipe(gulp.dest('libs'));
 });
 
-gulp.task('clean-defs', () => {
-  return gulp.src('defs.d.ts', {read: false})
-    .pipe(clean());
-});
 
-gulp.task('tsc-prod', ['clean-defs'], () => {
+gulp.task('tsc-prod', [], () => {
   const cwd = process.cwd();
   let tsResult = gulp.src(config.ts)
     .pipe(ts(config.tsProject))
@@ -116,7 +111,7 @@ gulp.task('tsc-prod', ['clean-defs'], () => {
     }));
 });
 
-gulp.task('tsc-dev', ['clean-defs'], () => {
+gulp.task('tsc-dev', [], () => {
   const cwd = process.cwd();
   let tsResult = gulp.src(config.ts)
     .pipe(ts(config.tsProject))
@@ -168,10 +163,6 @@ gulp.task('concat', () => {
     .pipe(gZipSize);
 });
 
-gulp.task('clean', () => {
-  return gulp.src([config.js], {read: false})
-    .pipe(clean());
-});
 
 gulp.task('server', ['build', 'watch'], () => {
   server = express();
@@ -180,7 +171,7 @@ gulp.task('server', ['build', 'watch'], () => {
   browsersync({proxy: 'localhost:8000'})
 });
 
-gulp.task('dev-build', ['bower', 'path-adjust', 'less', 'tslint', 'tsc-dev', 'concat', 'clean']);
+gulp.task('dev-build', ['bower', 'path-adjust', 'less', 'tslint', 'tsc-dev', 'concat' ]);
 
 gulp.task('watch', () => {
   gulp.watch(config.less, ['less']);
@@ -188,7 +179,7 @@ gulp.task('watch', () => {
 });
 
 
-gulp.task('build', ['bower', 'path-adjust', 'less', 'tslint', 'tsc-prod', 'concat', 'clean']);
+gulp.task('build', ['bower', 'path-adjust', 'less', 'tslint', 'tsc-prod', 'concat']);
 gulp.task('default', ['server']);
 
 

@@ -15,7 +15,6 @@
     "express": "4.13.3",
     "gulp": "3.9.0",
     "gulp-angular-templatecache": "1.8.0",
-    "gulp-clean": "0.3.1",
     "gulp-concat": "2.6.0",
     "gulp-less": "3.0.5",
     "gulp-notify": "2.2.0",
