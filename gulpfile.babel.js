@@ -18,14 +18,17 @@
 'use strict';
 
 import browsersync from 'browser-sync';
+import clean from 'gulp-clean';
+import concat from 'gulp-concat';
 import express from 'express';
 import eventStream  from 'event-stream';
 import fs from 'fs';
 import gulp from 'gulp';
-import gulpLoadPlugins from 'gulp-load-plugins';
 import gutil from 'gulp-util';
+import less from 'gulp-less';
 import map from 'vinyl-map';
 import merge from 'merge2';
+import notify from 'gulp-notify';
 import path from 'path';
 import rename from  'gulp-rename';
 import s from  'underscore.string';
@@ -38,7 +41,6 @@ import wiredeps from 'wiredep';
 import pkg from './package.json';
 
 const wiredep = wiredeps.stream;
-const plugins = gulpLoadPlugins({});
 
 let server;
 
@@ -47,7 +49,7 @@ const config = {
   ts: ['src/**/*.ts'],
   less: ['src/**/*.less'],
   js: pkg.name + '.js',
-  tsProject: plugins.typescript.createProject({
+  tsProject: ts.createProject({
     target: 'ES5',
     module: 'commonjs',
     declarationFiles: true,
@@ -82,21 +84,21 @@ gulp.task('path-adjust', () => {
 
 gulp.task('clean-defs', () => {
   return gulp.src('defs.d.ts', {read: false})
-    .pipe(plugins.clean());
+    .pipe(clean());
 });
 
 gulp.task('tsc-prod', ['clean-defs'], () => {
   const cwd = process.cwd();
   let tsResult = gulp.src(config.ts)
-    .pipe(plugins.typescript(config.tsProject))
-    .on('error', plugins.notify.onError({
+    .pipe(ts(config.tsProject))
+    .on('error', notify.onError({
       message: '<%= error.message %>',
       title: 'Typescript compilation error'
     }));
 
   return eventStream.merge(
     tsResult.js
-      .pipe(plugins.concat(config.js))
+      .pipe(concat(config.js))
       .pipe(gulp.dest('.'))
       .pipe(uglify())
       .pipe(rename('hawkular-charts.min.js'))
@@ -117,21 +119,21 @@ gulp.task('tsc-prod', ['clean-defs'], () => {
 gulp.task('tsc-dev', ['clean-defs'], () => {
   const cwd = process.cwd();
   let tsResult = gulp.src(config.ts)
-    .pipe(plugins.typescript(config.tsProject))
-    .on('error', plugins.notify.onError({
+    .pipe(ts(config.tsProject))
+    .on('error', notify.onError({
       message: '<%= error.message %>',
       title: 'Typescript compilation error'
     }));
 
   return eventStream.merge(
     tsResult.js
-      .pipe(plugins.concat(config.js))
+      .pipe(concat(config.js))
       .pipe(gulp.dest('.'))
       .pipe(reload()),
 
     tsResult.dts
       .pipe(gulp.dest('d.ts')))
-    .pipe(map((buf, filename) =>{
+    .pipe(map((buf, filename) => {
       if (!s.endsWith(filename, 'd.ts')) {
         return buf;
       }
@@ -151,8 +153,8 @@ gulp.task('tslint', () => {
 
 gulp.task('less', () => {
   gulp.src(config.less)
-    .pipe(plugins.less())
-    .pipe(plugins.concat('css/hawkular-charts.css'))
+    .pipe(less())
+    .pipe(concat('css/hawkular-charts.css'))
     .pipe(gulp.dest('.'))
     .pipe(reload());
 });
@@ -161,14 +163,14 @@ gulp.task('less', () => {
 gulp.task('concat', () => {
   const gZipSize = size(gZippedSizeOptions);
   return gulp.src([config.js])
-    .pipe(plugins.concat(config.js))
+    .pipe(concat(config.js))
     .pipe(size(normalSizeOptions))
     .pipe(gZipSize);
 });
 
 gulp.task('clean', () => {
   return gulp.src([config.js], {read: false})
-    .pipe(plugins.clean());
+    .pipe(clean());
 });
 
 gulp.task('server', ['build', 'watch'], () => {
