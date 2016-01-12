@@ -17,35 +17,39 @@
 
 'use strict';
 
-const gulp = require('gulp'),
-  wiredep = require('wiredep').stream,
-  eventStream = require('event-stream'),
-  gulpLoadPlugins = require('gulp-load-plugins'),
-  map = require('vinyl-map'),
-  express = require('express'),
-  fs = require('fs'),
-  path = require('path'),
-  filesize = require('gulp-filesize'),
-  rename = require('gulp-rename'),
-  s = require('underscore.string'),
-  size = require('gulp-size'),
-  ts = require('gulp-typescript'),
-  merge = require('merge2'),
-  uglify = require('gulp-uglify'),
-  gutil = require('gulp-util'),
-  browsersync = require('browser-sync'),
-  tslint = require('gulp-tslint');
+import browsersync from 'browser-sync';
+import clean from 'gulp-clean';
+import concat from 'gulp-concat';
+import express from 'express';
+import eventStream  from 'event-stream';
+import fs from 'fs';
+import gulp from 'gulp';
+import gutil from 'gulp-util';
+import less from 'gulp-less';
+import map from 'vinyl-map';
+import merge from 'merge2';
+import notify from 'gulp-notify';
+import path from 'path';
+import rename from  'gulp-rename';
+import s from  'underscore.string';
+import size from 'gulp-size';
+import ts from 'gulp-typescript';
+import tslint from  'gulp-tslint';
+import uglify from 'gulp-uglify';
+import wiredeps from 'wiredep';
+
+import pkg from './package.json';
+
+const wiredep = wiredeps.stream;
 
 let server;
-const plugins = gulpLoadPlugins({});
-const pkg = require('./package.json');
 
 const config = {
   main: '.',
   ts: ['src/**/*.ts'],
   less: ['src/**/*.less'],
   js: pkg.name + '.js',
-  tsProject: plugins.typescript.createProject({
+  tsProject: ts.createProject({
     target: 'ES5',
     module: 'commonjs',
     declarationFiles: true,
@@ -60,16 +64,16 @@ const normalSizeOptions = {
   gzip: true
 };
 
-gulp.task('bower', function () {
+gulp.task('bower', () => {
   gulp.src('index.html')
     .pipe(wiredep({}))
     .pipe(gulp.dest('.'));
 });
 
 /** Adjust the reference path of any typescript-built plugin this project depends on */
-gulp.task('path-adjust', function () {
+gulp.task('path-adjust', () => {
   gulp.src('libs/**/includes.d.ts')
-    .pipe(map(function (buf, filename) {
+    .pipe(map((buf, filename) => {
       const textContent = buf.toString();
       const newTextContent = textContent.replace(/"\.\.\/libs/gm, '"../../../libs');
       //console.log("Filename: ", filename, " old: ", textContent, " new:", newTextContent);
@@ -78,23 +82,23 @@ gulp.task('path-adjust', function () {
     .pipe(gulp.dest('libs'));
 });
 
-gulp.task('clean-defs', function () {
+gulp.task('clean-defs', () => {
   return gulp.src('defs.d.ts', {read: false})
-    .pipe(plugins.clean());
+    .pipe(clean());
 });
 
-gulp.task('tsc-prod', ['clean-defs'], function () {
+gulp.task('tsc-prod', ['clean-defs'], () => {
   const cwd = process.cwd();
   let tsResult = gulp.src(config.ts)
-    .pipe(plugins.typescript(config.tsProject))
-    .on('error', plugins.notify.onError({
+    .pipe(ts(config.tsProject))
+    .on('error', notify.onError({
       message: '<%= error.message %>',
       title: 'Typescript compilation error'
     }));
 
   return eventStream.merge(
     tsResult.js
-      .pipe(plugins.concat(config.js))
+      .pipe(concat(config.js))
       .pipe(gulp.dest('.'))
       .pipe(uglify())
       .pipe(rename('hawkular-charts.min.js'))
@@ -102,7 +106,7 @@ gulp.task('tsc-prod', ['clean-defs'], function () {
 
     tsResult.dts
       .pipe(gulp.dest('d.ts')))
-    .pipe(map(function (buf, filename) {
+    .pipe(map((buf, filename) => {
       if (!s.endsWith(filename, 'd.ts')) {
         return buf;
       }
@@ -112,24 +116,24 @@ gulp.task('tsc-prod', ['clean-defs'], function () {
     }));
 });
 
-gulp.task('tsc-dev', ['clean-defs'], function () {
+gulp.task('tsc-dev', ['clean-defs'], () => {
   const cwd = process.cwd();
   let tsResult = gulp.src(config.ts)
-    .pipe(plugins.typescript(config.tsProject))
-    .on('error', plugins.notify.onError({
+    .pipe(ts(config.tsProject))
+    .on('error', notify.onError({
       message: '<%= error.message %>',
       title: 'Typescript compilation error'
     }));
 
   return eventStream.merge(
     tsResult.js
-      .pipe(plugins.concat(config.js))
+      .pipe(concat(config.js))
       .pipe(gulp.dest('.'))
       .pipe(reload()),
 
     tsResult.dts
       .pipe(gulp.dest('d.ts')))
-    .pipe(map(function (buf, filename) {
+    .pipe(map((buf, filename) => {
       if (!s.endsWith(filename, 'd.ts')) {
         return buf;
       }
@@ -140,39 +144,36 @@ gulp.task('tsc-dev', ['clean-defs'], function () {
 });
 
 
-
-gulp.task('tslint', function () {
+gulp.task('tslint', () => {
   gulp.src(config.ts)
     .pipe(tslint())
     .pipe(tslint.report('verbose'));
 });
 
 
-
-gulp.task('less', function(){
+gulp.task('less', () => {
   gulp.src(config.less)
-    .pipe(plugins.less())
-    .pipe(plugins.concat('css/hawkular-charts.css'))
+    .pipe(less())
+    .pipe(concat('css/hawkular-charts.css'))
     .pipe(gulp.dest('.'))
     .pipe(reload());
 });
 
 
-
-gulp.task('concat', function () {
+gulp.task('concat', () => {
   const gZipSize = size(gZippedSizeOptions);
   return gulp.src([config.js])
-    .pipe(plugins.concat(config.js))
+    .pipe(concat(config.js))
     .pipe(size(normalSizeOptions))
     .pipe(gZipSize);
 });
 
-gulp.task('clean', function () {
+gulp.task('clean', () => {
   return gulp.src([config.js], {read: false})
-    .pipe(plugins.clean());
+    .pipe(clean());
 });
 
-gulp.task('server', ['build', 'watch'], function () {
+gulp.task('server', ['build', 'watch'], () => {
   server = express();
   server.use(express.static('.'));
   server.listen(8000);
@@ -181,7 +182,7 @@ gulp.task('server', ['build', 'watch'], function () {
 
 gulp.task('dev-build', ['bower', 'path-adjust', 'less', 'tslint', 'tsc-dev', 'concat', 'clean']);
 
-gulp.task('watch', function () {
+gulp.task('watch', () => {
   gulp.watch(config.less, ['less']);
   gulp.watch(config.ts, ['tsc-dev']);
 });
@@ -192,8 +193,8 @@ gulp.task('default', ['server']);
 
 
 function reload() {
-  if(server) {
-    return browsersync.reload({stream:true});
+  if (server) {
+    return browsersync.reload({stream: true});
   }
   return gutil.noop();
 }
