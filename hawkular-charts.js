@@ -772,6 +772,7 @@ var Charts;
 /// <reference path='../../vendor/vendor.d.ts' />
 var Charts;
 (function (Charts) {
+    //import ChartCore = Charts.ChartCore;
     'use strict';
     var debug = false;
     // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
@@ -801,9 +802,6 @@ var Charts;
                 previousRangeDataPoints = attrs.previousRangeData;
                 annotationData = attrs.annotationData;
                 var startIntervalPromise;
-                function xMidPointStartPosition(d) {
-                    return timeScale(d.timestamp);
-                }
                 function getChartWidth() {
                     //return angular.element('#' + chartContext.chartHandle).width();
                     return CHART_WIDTH;
@@ -1106,8 +1104,7 @@ var Charts;
                     }
                     else {
                         // we should hide high-low values.. or remove if existing
-                        svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').
-                            remove();
+                        svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').remove();
                     }
                 }
                 function buildHighBar(selection) {
@@ -1164,10 +1161,10 @@ var Charts;
                         return !Charts.isEmptyDataPoint(d);
                     })
                         .attr('x1', function (d) {
-                        return xMidPointStartPosition(d);
+                        return Charts.xMidPointStartPosition(d, timeScale);
                     })
                         .attr('x2', function (d) {
-                        return xMidPointStartPosition(d);
+                        return Charts.xMidPointStartPosition(d, timeScale);
                     })
                         .attr('y1', function (d) {
                         return yScale(d.max);
@@ -1189,10 +1186,10 @@ var Charts;
                     })
                         .attr('class', 'histogramBottomStem')
                         .attr('x1', function (d) {
-                        return xMidPointStartPosition(d);
+                        return Charts.xMidPointStartPosition(d, timeScale);
                     })
                         .attr('x2', function (d) {
-                        return xMidPointStartPosition(d);
+                        return Charts.xMidPointStartPosition(d, timeScale);
                     })
                         .attr('y1', function (d) {
                         return yScale(d.avg);
@@ -1213,10 +1210,10 @@ var Charts;
                     })
                         .attr('class', 'histogramTopCross')
                         .attr('x1', function (d) {
-                        return xMidPointStartPosition(d) - 3;
+                        return Charts.xMidPointStartPosition(d, timeScale) - 3;
                     })
                         .attr('x2', function (d) {
-                        return xMidPointStartPosition(d) + 3;
+                        return Charts.xMidPointStartPosition(d, timeScale) + 3;
                     })
                         .attr('y1', function (d) {
                         return yScale(d.max);
@@ -1241,10 +1238,10 @@ var Charts;
                     })
                         .attr('class', 'histogramBottomCross')
                         .attr('x1', function (d) {
-                        return xMidPointStartPosition(d) - 3;
+                        return Charts.xMidPointStartPosition(d, timeScale) - 3;
                     })
                         .attr('x2', function (d) {
-                        return xMidPointStartPosition(d) + 3;
+                        return Charts.xMidPointStartPosition(d, timeScale) + 3;
                     })
                         .attr('y1', function (d) {
                         return yScale(d.min);
@@ -1331,31 +1328,6 @@ var Charts;
                         lineHistoBottomCross.exit().remove();
                     }
                 }
-                function createHawkularMetricChart() {
-                    var metricChartLine = d3.svg.line()
-                        .interpolate(interpolation)
-                        .defined(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .x(function (d) {
-                        return timeScale(d.timestamp);
-                    })
-                        .y(function (d) {
-                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                    });
-                    var pathMetric = svg.selectAll('path.metricLine').data([chartData]);
-                    // update existing
-                    pathMetric.attr('class', 'metricLine')
-                        .transition()
-                        .attr('d', metricChartLine);
-                    // add new ones
-                    pathMetric.enter().append('path')
-                        .attr('class', 'metricLine')
-                        .transition()
-                        .attr('d', metricChartLine);
-                    // remove old ones
-                    pathMetric.exit().remove();
-                }
                 function createMultiLineChart(multiDataPoints) {
                     var colorScale = d3.scale.category10(), g = 0;
                     if (multiDataPoints) {
@@ -1408,454 +1380,6 @@ var Charts;
                     else {
                         $log.warn('No multi-data set for multiline chart');
                     }
-                }
-                function createAreaChart() {
-                    var highArea = d3.svg.area()
-                        .interpolate(interpolation)
-                        .defined(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .x(function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .y(function (d) {
-                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
-                    })
-                        .y0(function (d) {
-                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                    }), avgArea = d3.svg.area()
-                        .interpolate(interpolation)
-                        .defined(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .x(function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .y(function (d) {
-                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                    }).
-                        y0(function (d) {
-                        return hideHighLowValues ? height : yScale(d.min);
-                    }), lowArea = d3.svg.area()
-                        .interpolate(interpolation)
-                        .defined(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .x(function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .y(function (d) {
-                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
-                    })
-                        .y0(function () {
-                        return height;
-                    });
-                    if (!hideHighLowValues) {
-                        var highAreaPath = svg.selectAll('path.highArea').data([chartData]);
-                        // update existing
-                        highAreaPath.attr('class', 'highArea')
-                            .attr('d', highArea);
-                        // add new ones
-                        highAreaPath.enter().append('path')
-                            .attr('class', 'highArea')
-                            .attr('d', highArea);
-                        // remove old ones
-                        highAreaPath.exit().remove();
-                        var lowAreaPath = svg.selectAll('path.lowArea').data([chartData]);
-                        // update existing
-                        lowAreaPath.attr('class', 'lowArea')
-                            .attr('d', lowArea);
-                        // add new ones
-                        lowAreaPath.enter().append('path')
-                            .attr('class', 'lowArea')
-                            .attr('d', lowArea);
-                        // remove old ones
-                        lowAreaPath.exit().remove();
-                    }
-                    var avgAreaPath = svg.selectAll('path.avgArea').data([chartData]);
-                    // update existing
-                    avgAreaPath.attr('class', 'avgArea')
-                        .transition()
-                        .attr('d', avgArea);
-                    // add new ones
-                    avgAreaPath.enter().append('path')
-                        .attr('class', 'avgArea')
-                        .transition()
-                        .attr('d', avgArea);
-                    // remove old ones
-                    avgAreaPath.exit().remove();
-                }
-                function createScatterChart() {
-                    if (!hideHighLowValues) {
-                        var highDotCircle = svg.selectAll('.highDot').data(chartData);
-                        // update existing
-                        highDotCircle.attr('class', 'highDot')
-                            .filter(function (d) {
-                            return !Charts.isEmptyDataPoint(d);
-                        })
-                            .attr('r', 3)
-                            .attr('cx', function (d) {
-                            return xMidPointStartPosition(d);
-                        })
-                            .attr('cy', function (d) {
-                            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
-                        })
-                            .style('fill', function () {
-                            return '#ff1a13';
-                        }).on('mouseover', function (d, i) {
-                            tip.show(d, i);
-                        }).on('mouseout', function () {
-                            tip.hide();
-                        });
-                        // add new ones
-                        highDotCircle.enter().append('circle')
-                            .filter(function (d) {
-                            return !Charts.isEmptyDataPoint(d);
-                        })
-                            .attr('class', 'highDot')
-                            .attr('r', 3)
-                            .attr('cx', function (d) {
-                            return xMidPointStartPosition(d);
-                        })
-                            .attr('cy', function (d) {
-                            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
-                        })
-                            .style('fill', function () {
-                            return '#ff1a13';
-                        }).on('mouseover', function (d, i) {
-                            tip.show(d, i);
-                        }).on('mouseout', function () {
-                            tip.hide();
-                        });
-                        // remove old ones
-                        highDotCircle.exit().remove();
-                        var lowDotCircle = svg.selectAll('.lowDot').data(chartData);
-                        // update existing
-                        lowDotCircle.attr('class', 'lowDot')
-                            .filter(function (d) {
-                            return !Charts.isEmptyDataPoint(d);
-                        })
-                            .attr('r', 3)
-                            .attr('cx', function (d) {
-                            return xMidPointStartPosition(d);
-                        })
-                            .attr('cy', function (d) {
-                            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
-                        })
-                            .style('fill', function () {
-                            return '#70c4e2';
-                        }).on('mouseover', function (d, i) {
-                            tip.show(d, i);
-                        }).on('mouseout', function () {
-                            tip.hide();
-                        });
-                        // add new ones
-                        lowDotCircle.enter().append('circle')
-                            .filter(function (d) {
-                            return !Charts.isEmptyDataPoint(d);
-                        })
-                            .attr('class', 'lowDot')
-                            .attr('r', 3)
-                            .attr('cx', function (d) {
-                            return xMidPointStartPosition(d);
-                        })
-                            .attr('cy', function (d) {
-                            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
-                        })
-                            .style('fill', function () {
-                            return '#70c4e2';
-                        }).on('mouseover', function (d, i) {
-                            tip.show(d, i);
-                        }).on('mouseout', function () {
-                            tip.hide();
-                        });
-                        // remove old ones
-                        lowDotCircle.exit().remove();
-                    }
-                    else {
-                        // we should hide high-low values.. or remove if existing
-                        svg.selectAll('.highDot, .lowDot').remove();
-                    }
-                    var avgDotCircle = svg.selectAll('.avgDot').data(chartData);
-                    // update existing
-                    avgDotCircle.attr('class', 'avgDot')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('r', 3)
-                        .attr('cx', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('cy', function (d) {
-                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                    })
-                        .style('fill', function () {
-                        return '#FFF';
-                    }).on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                    // add new ones
-                    avgDotCircle.enter().append('circle')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('class', 'avgDot')
-                        .attr('r', 3)
-                        .attr('cx', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('cy', function (d) {
-                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                    })
-                        .style('fill', function () {
-                        return '#FFF';
-                    }).on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                    // remove old ones
-                    avgDotCircle.exit().remove();
-                }
-                function createScatterLineChart() {
-                    var lineScatterTopStem = svg.selectAll('.scatterLineTopStem').data(chartData);
-                    // update existing
-                    lineScatterTopStem.attr('class', 'scatterLineTopStem')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('x1', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('x2', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('y1', function (d) {
-                        return yScale(d.max);
-                    })
-                        .attr('y2', function (d) {
-                        return yScale(d.avg);
-                    })
-                        .attr('stroke', function (d) {
-                        return '#000';
-                    });
-                    // add new ones
-                    lineScatterTopStem.enter().append('line')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('class', 'scatterLineTopStem')
-                        .attr('x1', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('x2', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('y1', function (d) {
-                        return yScale(d.max);
-                    })
-                        .attr('y2', function (d) {
-                        return yScale(d.avg);
-                    })
-                        .attr('stroke', function (d) {
-                        return '#000';
-                    });
-                    // remove old ones
-                    lineScatterTopStem.exit().remove();
-                    var lineScatterBottomStem = svg.selectAll('.scatterLineBottomStem').data(chartData);
-                    // update existing
-                    lineScatterBottomStem.attr('class', 'scatterLineBottomStem')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('x1', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('x2', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('y1', function (d) {
-                        return yScale(d.avg);
-                    })
-                        .attr('y2', function (d) {
-                        return yScale(d.min);
-                    })
-                        .attr('stroke', function (d) {
-                        return '#000';
-                    });
-                    // add new ones
-                    lineScatterBottomStem.enter().append('line')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('class', 'scatterLineBottomStem')
-                        .attr('x1', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('x2', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('y1', function (d) {
-                        return yScale(d.avg);
-                    })
-                        .attr('y2', function (d) {
-                        return yScale(d.min);
-                    })
-                        .attr('stroke', function (d) {
-                        return '#000';
-                    });
-                    // remove old ones
-                    lineScatterBottomStem.exit().remove();
-                    var lineScatterTopCross = svg.selectAll('.scatterLineTopCross').data(chartData);
-                    // update existing
-                    lineScatterTopCross.attr('class', 'scatterLineTopCross')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('x1', function (d) {
-                        return xMidPointStartPosition(d) - 3;
-                    })
-                        .attr('x2', function (d) {
-                        return xMidPointStartPosition(d) + 3;
-                    })
-                        .attr('y1', function (d) {
-                        return yScale(d.max);
-                    })
-                        .attr('y2', function (d) {
-                        return yScale(d.max);
-                    })
-                        .attr('stroke', function (d) {
-                        return '#000';
-                    })
-                        .attr('stroke-width', function (d) {
-                        return '0.5';
-                    });
-                    // add new ones
-                    lineScatterTopCross.enter().append('line')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('class', 'scatterLineTopCross')
-                        .attr('x1', function (d) {
-                        return xMidPointStartPosition(d) - 3;
-                    })
-                        .attr('x2', function (d) {
-                        return xMidPointStartPosition(d) + 3;
-                    })
-                        .attr('y1', function (d) {
-                        return yScale(d.max);
-                    })
-                        .attr('y2', function (d) {
-                        return yScale(d.max);
-                    })
-                        .attr('stroke', function (d) {
-                        return '#000';
-                    })
-                        .attr('stroke-width', function (d) {
-                        return '0.5';
-                    });
-                    // remove old ones
-                    lineScatterTopCross.exit().remove();
-                    var lineScatterBottomCross = svg.selectAll('.scatterLineBottomCross').data(chartData);
-                    // update existing
-                    lineScatterBottomCross.attr('class', 'scatterLineBottomCross')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('x1', function (d) {
-                        return xMidPointStartPosition(d) - 3;
-                    })
-                        .attr('x2', function (d) {
-                        return xMidPointStartPosition(d) + 3;
-                    })
-                        .attr('y1', function (d) {
-                        return yScale(d.min);
-                    })
-                        .attr('y2', function (d) {
-                        return yScale(d.min);
-                    })
-                        .attr('stroke', function (d) {
-                        return '#000';
-                    })
-                        .attr('stroke-width', function (d) {
-                        return '0.5';
-                    });
-                    // add new ones
-                    lineScatterBottomCross.enter().append('line')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('class', 'scatterLineBottomCross')
-                        .attr('x1', function (d) {
-                        return xMidPointStartPosition(d) - 3;
-                    })
-                        .attr('x2', function (d) {
-                        return xMidPointStartPosition(d) + 3;
-                    })
-                        .attr('y1', function (d) {
-                        return yScale(d.min);
-                    })
-                        .attr('y2', function (d) {
-                        return yScale(d.min);
-                    })
-                        .attr('stroke', function (d) {
-                        return '#000';
-                    })
-                        .attr('stroke-width', function (d) {
-                        return '0.5';
-                    });
-                    // remove old ones
-                    lineScatterBottomCross.exit().remove();
-                    var circleScatterDot = svg.selectAll('.scatterDot').data(chartData);
-                    // update existing
-                    circleScatterDot.attr('class', 'scatterDot')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('r', 3)
-                        .attr('cx', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('cy', function (d) {
-                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                    })
-                        .style('fill', function () {
-                        return '#70c4e2';
-                    })
-                        .style('opacity', function () {
-                        return '1';
-                    }).on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                    // add new ones
-                    circleScatterDot.enter().append('circle')
-                        .filter(function (d) {
-                        return !Charts.isEmptyDataPoint(d);
-                    })
-                        .attr('class', 'scatterDot')
-                        .attr('r', 3)
-                        .attr('cx', function (d) {
-                        return xMidPointStartPosition(d);
-                    })
-                        .attr('cy', function (d) {
-                        return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                    })
-                        .style('fill', function () {
-                        return '#70c4e2';
-                    })
-                        .style('opacity', function () {
-                        return '1';
-                    }).on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
-                        tip.hide();
-                    });
-                    // remove old ones
-                    circleScatterDot.exit().remove();
                 }
                 function createYAxisGridLines() {
                     // create the y axis grid lines
@@ -2114,25 +1638,25 @@ var Charts;
                             createHistogramChart(false);
                             break;
                         case 'line':
-                            createHawkularMetricChart();
+                            Charts.createLineChart(svg, timeScale, yScale, chartData, height, interpolation);
                             break;
                         case 'hawkularmetric':
-                            console.info('DEPRECATION WARNING: The chart type hawkularmetric has been deprecated and will be' +
+                            $log.info('DEPRECATION WARNING: The chart type hawkularmetric has been deprecated and will be' +
                                 ' removed in a future' +
                                 ' release. Please use the line chart type in its place');
-                            createHawkularMetricChart();
+                            Charts.createLineChart(svg, timeScale, yScale, chartData, height, interpolation);
                             break;
                         case 'multiline':
                             createMultiLineChart(multiDataPoints);
                             break;
                         case 'area':
-                            createAreaChart();
+                            Charts.createAreaChart(svg, timeScale, yScale, chartData, height, interpolation, hideHighLowValues);
                             break;
                         case 'scatter':
-                            createScatterChart();
+                            Charts.createScatterChart(svg, timeScale, yScale, chartData, height, interpolation, hideHighLowValues);
                             break;
                         case 'scatterline':
-                            createScatterLineChart();
+                            Charts.createScatterLineChart(svg, timeScale, yScale, chartData, height, interpolation, hideHighLowValues);
                             break;
                         default:
                             $log.warn('chart-type is not valid. Must be in' +
@@ -2519,6 +2043,10 @@ var Charts;
             .append('path').attr('d', 'M 0 0 6 0');
     }
     Charts.createSvgDefs = createSvgDefs;
+    function xMidPointStartPosition(d, timeScale) {
+        return timeScale(d.timestamp);
+    }
+    Charts.xMidPointStartPosition = xMidPointStartPosition;
     // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
     function hashString(str) {
         var hash = 0, i, chr, len;
@@ -2532,4 +2060,505 @@ var Charts;
         return hash;
     }
     Charts.hashString = hashString;
+})(Charts || (Charts = {}));
+
+/// <reference path='../../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
+    function createAreaChart(svg, timeScale, yScale, chartData, height, interpolation, hideHighLowValues) {
+        console.log('Creating Area Chart');
+        var highArea = d3.svg.area()
+            .interpolate(interpolation)
+            .defined(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .x(function (d) {
+            return timeScale(d);
+        })
+            .y(function (d) {
+            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+        })
+            .y0(function (d) {
+            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        }), avgArea = d3.svg.area()
+            .interpolate(interpolation)
+            .defined(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .x(function (d) {
+            return timeScale(d);
+        })
+            .y(function (d) {
+            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        }).y0(function (d) {
+            return hideHighLowValues ? height : yScale(d.min);
+        }), lowArea = d3.svg.area()
+            .interpolate(interpolation)
+            .defined(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .x(function (d) {
+            return timeScale(d);
+        })
+            .y(function (d) {
+            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+        })
+            .y0(function () {
+            return height;
+        });
+        if (!hideHighLowValues) {
+            var highAreaPath = svg.selectAll('path.highArea').data(chartData);
+            // update existing
+            highAreaPath.attr('class', 'highArea')
+                .attr('d', highArea);
+            // add new ones
+            highAreaPath.enter().append('path')
+                .attr('class', 'highArea')
+                .attr('d', highArea);
+            // remove old ones
+            highAreaPath.exit().remove();
+            var lowAreaPath = svg.selectAll('path.lowArea').data(chartData);
+            // update existing
+            lowAreaPath.attr('class', 'lowArea')
+                .attr('d', lowArea);
+            // add new ones
+            lowAreaPath.enter().append('path')
+                .attr('class', 'lowArea')
+                .attr('d', lowArea);
+            // remove old ones
+            lowAreaPath.exit().remove();
+        }
+        var avgAreaPath = svg.selectAll('path.avgArea').data(chartData);
+        // update existing
+        avgAreaPath.attr('class', 'avgArea')
+            .transition()
+            .attr('d', avgArea);
+        // add new ones
+        avgAreaPath.enter().append('path')
+            .attr('class', 'avgArea')
+            .transition()
+            .attr('d', avgArea);
+        // remove old ones
+        avgAreaPath.exit().remove();
+    }
+    Charts.createAreaChart = createAreaChart;
+})(Charts || (Charts = {}));
+
+/// <reference path='../../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
+    function createLineChart(svg, timeScale, yScale, chartData, height, interpolation) {
+        var metricChartLine = d3.svg.line()
+            .interpolate(interpolation)
+            .defined(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .x(function (d) {
+            return timeScale(d.timestamp);
+        })
+            .y(function (d) {
+            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        });
+        var pathMetric = svg.selectAll('path.metricLine').data([chartData]);
+        // update existing
+        pathMetric.attr('class', 'metricLine')
+            .transition()
+            .attr('d', metricChartLine);
+        // add new ones
+        pathMetric.enter().append('path')
+            .attr('class', 'metricLine')
+            .transition()
+            .attr('d', metricChartLine);
+        // remove old ones
+        pathMetric.exit().remove();
+    }
+    Charts.createLineChart = createLineChart;
+})(Charts || (Charts = {}));
+
+/// <reference path='../../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
+    function createScatterChart(svg, timeScale, yScale, chartData, height, interpolation, hideHighLowValues) {
+        if (!hideHighLowValues) {
+            var highDotCircle = svg.selectAll('.highDot').data(chartData);
+            // update existing
+            highDotCircle.attr('class', 'highDot')
+                .filter(function (d) {
+                return !Charts.isEmptyDataPoint(d);
+            })
+                .attr('r', 3)
+                .attr('cx', function (d) {
+                return Charts.xMidPointStartPosition(d, timeScale);
+            })
+                .attr('cy', function (d) {
+                return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+            })
+                .style('fill', function () {
+                return '#ff1a13';
+            }).on('mouseover', function (d, i) {
+                //tip.show(d, i);
+            }).on('mouseout', function () {
+                //tip.hide();
+            });
+            // add new ones
+            highDotCircle.enter().append('circle')
+                .filter(function (d) {
+                return !Charts.isEmptyDataPoint(d);
+            })
+                .attr('class', 'highDot')
+                .attr('r', 3)
+                .attr('cx', function (d) {
+                return Charts.xMidPointStartPosition(d, timeScale);
+            })
+                .attr('cy', function (d) {
+                return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+            })
+                .style('fill', function () {
+                return '#ff1a13';
+            }).on('mouseover', function (d, i) {
+                //tip.show(d, i);
+            }).on('mouseout', function () {
+                //tip.hide();
+            });
+            // remove old ones
+            highDotCircle.exit().remove();
+            var lowDotCircle = svg.selectAll('.lowDot').data(chartData);
+            // update existing
+            lowDotCircle.attr('class', 'lowDot')
+                .filter(function (d) {
+                return !Charts.isEmptyDataPoint(d);
+            })
+                .attr('r', 3)
+                .attr('cx', function (d) {
+                return Charts.xMidPointStartPosition(d, timeScale);
+            })
+                .attr('cy', function (d) {
+                return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+            })
+                .style('fill', function () {
+                return '#70c4e2';
+            }).on('mouseover', function (d, i) {
+                //tip.show(d, i);
+            }).on('mouseout', function () {
+                //tip.hide();
+            });
+            // add new ones
+            lowDotCircle.enter().append('circle')
+                .filter(function (d) {
+                return !Charts.isEmptyDataPoint(d);
+            })
+                .attr('class', 'lowDot')
+                .attr('r', 3)
+                .attr('cx', function (d) {
+                return Charts.xMidPointStartPosition(d, timeScale);
+            })
+                .attr('cy', function (d) {
+                return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+            })
+                .style('fill', function () {
+                return '#70c4e2';
+            }).on('mouseover', function (d, i) {
+                //tip.show(d, i);
+            }).on('mouseout', function () {
+                //tip.hide();
+            });
+            // remove old ones
+            lowDotCircle.exit().remove();
+        }
+        else {
+            // we should hide high-low values.. or remove if existing
+            svg.selectAll('.highDot, .lowDot').remove();
+        }
+        var avgDotCircle = svg.selectAll('.avgDot').data(chartData);
+        // update existing
+        avgDotCircle.attr('class', 'avgDot')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('r', 3)
+            .attr('cx', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('cy', function (d) {
+            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        })
+            .style('fill', function () {
+            return '#FFF';
+        }).on('mouseover', function (d, i) {
+            //tip.show(d, i);
+        }).on('mouseout', function () {
+            //tip.hide();
+        });
+        // add new ones
+        avgDotCircle.enter().append('circle')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('class', 'avgDot')
+            .attr('r', 3)
+            .attr('cx', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('cy', function (d) {
+            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        })
+            .style('fill', function () {
+            return '#FFF';
+        }).on('mouseover', function (d, i) {
+            //tip.show(d, i);
+        }).on('mouseout', function () {
+            //tip.hide();
+        });
+        // remove old ones
+        avgDotCircle.exit().remove();
+    }
+    Charts.createScatterChart = createScatterChart;
+})(Charts || (Charts = {}));
+
+/// <reference path='../../../vendor/vendor.d.ts' />
+var Charts;
+(function (Charts) {
+    'use strict';
+    function createScatterLineChart(svg, timeScale, yScale, chartData, height, interpolation, hideHighLowValues) {
+        var lineScatterTopStem = svg.selectAll('.scatterLineTopStem').data(chartData);
+        // update existing
+        lineScatterTopStem.attr('class', 'scatterLineTopStem')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('x1', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('x2', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('y1', function (d) {
+            return yScale(d.max);
+        })
+            .attr('y2', function (d) {
+            return yScale(d.avg);
+        })
+            .attr('stroke', function (d) {
+            return '#000';
+        });
+        // add new ones
+        lineScatterTopStem.enter().append('line')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('class', 'scatterLineTopStem')
+            .attr('x1', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('x2', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('y1', function (d) {
+            return yScale(d.max);
+        })
+            .attr('y2', function (d) {
+            return yScale(d.avg);
+        })
+            .attr('stroke', function (d) {
+            return '#000';
+        });
+        // remove old ones
+        lineScatterTopStem.exit().remove();
+        var lineScatterBottomStem = svg.selectAll('.scatterLineBottomStem').data(chartData);
+        // update existing
+        lineScatterBottomStem.attr('class', 'scatterLineBottomStem')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('x1', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('x2', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('y1', function (d) {
+            return yScale(d.avg);
+        })
+            .attr('y2', function (d) {
+            return yScale(d.min);
+        })
+            .attr('stroke', function (d) {
+            return '#000';
+        });
+        // add new ones
+        lineScatterBottomStem.enter().append('line')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('class', 'scatterLineBottomStem')
+            .attr('x1', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('x2', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('y1', function (d) {
+            return yScale(d.avg);
+        })
+            .attr('y2', function (d) {
+            return yScale(d.min);
+        })
+            .attr('stroke', function (d) {
+            return '#000';
+        });
+        // remove old ones
+        lineScatterBottomStem.exit().remove();
+        var lineScatterTopCross = svg.selectAll('.scatterLineTopCross').data(chartData);
+        // update existing
+        lineScatterTopCross.attr('class', 'scatterLineTopCross')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('x1', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale) - 3;
+        })
+            .attr('x2', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale) + 3;
+        })
+            .attr('y1', function (d) {
+            return yScale(d.max);
+        })
+            .attr('y2', function (d) {
+            return yScale(d.max);
+        })
+            .attr('stroke', function (d) {
+            return '#000';
+        })
+            .attr('stroke-width', function (d) {
+            return '0.5';
+        });
+        // add new ones
+        lineScatterTopCross.enter().append('line')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('class', 'scatterLineTopCross')
+            .attr('x1', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale) - 3;
+        })
+            .attr('x2', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale) + 3;
+        })
+            .attr('y1', function (d) {
+            return yScale(d.max);
+        })
+            .attr('y2', function (d) {
+            return yScale(d.max);
+        })
+            .attr('stroke', function (d) {
+            return '#000';
+        })
+            .attr('stroke-width', function (d) {
+            return '0.5';
+        });
+        // remove old ones
+        lineScatterTopCross.exit().remove();
+        var lineScatterBottomCross = svg.selectAll('.scatterLineBottomCross').data(chartData);
+        // update existing
+        lineScatterBottomCross.attr('class', 'scatterLineBottomCross')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('x1', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale) - 3;
+        })
+            .attr('x2', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale) + 3;
+        })
+            .attr('y1', function (d) {
+            return yScale(d.min);
+        })
+            .attr('y2', function (d) {
+            return yScale(d.min);
+        })
+            .attr('stroke', function (d) {
+            return '#000';
+        })
+            .attr('stroke-width', function (d) {
+            return '0.5';
+        });
+        // add new ones
+        lineScatterBottomCross.enter().append('line')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('class', 'scatterLineBottomCross')
+            .attr('x1', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale) - 3;
+        })
+            .attr('x2', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale) + 3;
+        })
+            .attr('y1', function (d) {
+            return yScale(d.min);
+        })
+            .attr('y2', function (d) {
+            return yScale(d.min);
+        })
+            .attr('stroke', function (d) {
+            return '#000';
+        })
+            .attr('stroke-width', function (d) {
+            return '0.5';
+        });
+        // remove old ones
+        lineScatterBottomCross.exit().remove();
+        var circleScatterDot = svg.selectAll('.scatterDot').data(chartData);
+        // update existing
+        circleScatterDot.attr('class', 'scatterDot')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('r', 3)
+            .attr('cx', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('cy', function (d) {
+            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        })
+            .style('fill', function () {
+            return '#70c4e2';
+        })
+            .style('opacity', function () {
+            return '1';
+        }).on('mouseover', function (d, i) {
+            //tip.show(d, i);
+        }).on('mouseout', function () {
+            //tip.hide();
+        });
+        // add new ones
+        circleScatterDot.enter().append('circle')
+            .filter(function (d) {
+            return !Charts.isEmptyDataPoint(d);
+        })
+            .attr('class', 'scatterDot')
+            .attr('r', 3)
+            .attr('cx', function (d) {
+            return Charts.xMidPointStartPosition(d, timeScale);
+        })
+            .attr('cy', function (d) {
+            return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        })
+            .style('fill', function () {
+            return '#70c4e2';
+        })
+            .style('opacity', function () {
+            return '1';
+        }).on('mouseover', function (d, i) {
+            //tip.show(d, i);
+        }).on('mouseout', function () {
+            //tip.hide();
+        });
+        // remove old ones
+        circleScatterDot.exit().remove();
+    }
+    Charts.createScatterLineChart = createScatterLineChart;
 })(Charts || (Charts = {}));

@@ -80,7 +80,7 @@ namespace Charts {
             .attr('width', width + margin.left + margin.right)
             .attr('height', innerChartHeight)
             .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top +
-            margin.bottom + Y_AXIS_HEIGHT ))
+              margin.bottom + Y_AXIS_HEIGHT ))
             .attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
@@ -109,7 +109,7 @@ namespace Charts {
 
           svg.selectAll('g.axis').remove();
 
-          let yMin = d3.min(dataPoints, (d)  => {
+          let yMin = d3.min(dataPoints, (d) => {
             return d.avg;
           });
           let yMax = d3.max(dataPoints, (d) => {

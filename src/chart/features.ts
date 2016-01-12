@@ -4,12 +4,11 @@ namespace Charts {
   'use strict';
 
 
-
   export function createDataPoints(svg:any,
-                            timeScale:any,
-                            yScale:any,
-                            tip:any,
-                            dataPoints:IChartDataPoint[]) {
+                                   timeScale:any,
+                                   yScale:any,
+                                   tip:any,
+                                   dataPoints:IChartDataPoint[]) {
     let radius = 1;
     let dotDatapoint = svg.selectAll('.dataPointDot').data(dataPoints);
     // update existing
