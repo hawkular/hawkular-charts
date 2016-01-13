@@ -17,6 +17,7 @@
 
 'use strict';
 
+import autoprefixer from 'gulp-autoprefixer';
 import browsersync from 'browser-sync';
 import concat from 'gulp-concat';
 import express from 'express';
@@ -150,6 +151,7 @@ gulp.task('tslint', () => {
 gulp.task('less', () => {
   gulp.src(config.less)
     .pipe(less())
+    .pipe(autoprefixer())
     .pipe(concat('css/hawkular-charts.css'))
     .pipe(gulp.dest('.'))
     .pipe(reload());
