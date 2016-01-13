@@ -30,6 +30,7 @@ import merge from 'merge2';
 import notify from 'gulp-notify';
 import path from 'path';
 import rename from  'gulp-rename';
+import runSequence from  'run-sequence';
 import s from  'underscore.string';
 import size from 'gulp-size';
 import ts from 'gulp-typescript';
@@ -63,7 +64,7 @@ const normalSizeOptions = {
   gzip: true
 };
 
-gulp.task('bower', () => {
+gulp.task('wiredep', () => {
   gulp.src('index.html')
     .pipe(wiredep({}))
     .pipe(gulp.dest('.'));
@@ -154,7 +155,6 @@ gulp.task('less', () => {
     .pipe(reload());
 });
 
-
 gulp.task('concat', () => {
   const gZipSize = size(gZippedSizeOptions);
   return gulp.src([config.js])
@@ -163,24 +163,46 @@ gulp.task('concat', () => {
     .pipe(gZipSize);
 });
 
-
-gulp.task('server', ['build', 'watch'], () => {
+gulp.task('browserSync', ['build'], () => {
   server = express();
   server.use(express.static('.'));
   server.listen(8000);
   browsersync({proxy: 'localhost:8000'})
 });
 
-gulp.task('dev-build', ['bower', 'path-adjust', 'less', 'tslint', 'tsc-dev', 'concat' ]);
 
 gulp.task('watch', () => {
   gulp.watch(config.less, ['less']);
   gulp.watch(config.ts, ['tsc-dev']);
 });
 
+gulp.task('build', function(cb) {
+  runSequence(
+    ['wiredep', 'path-adjust'],
+    ['less', 'tslint'],
+    'tsc-prod',
+    'concat',
+    cb
+  );
+});
 
-gulp.task('build', ['bower', 'path-adjust', 'less', 'tslint', 'tsc-prod', 'concat']);
-gulp.task('default', ['server']);
+gulp.task('dev-build', function(cb) {
+  runSequence(
+    ['wiredep', 'path-adjust'],
+    ['less', 'tslint'],
+    'tsc-dev',
+    'concat',
+    cb
+  );
+});
+
+gulp.task('default', function(cb) {
+  runSequence(
+    'browserSync',
+    'watch',
+    cb
+  );
+});
 
 
 function reload() {
