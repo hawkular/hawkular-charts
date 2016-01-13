@@ -17,8 +17,10 @@
 
 'use strict';
 
+import autoprefixer from 'gulp-autoprefixer';
 import browsersync from 'browser-sync';
 import concat from 'gulp-concat';
+import del from 'del';
 import express from 'express';
 import eventStream  from 'event-stream';
 import fs from 'fs';
@@ -83,7 +85,12 @@ gulp.task('path-adjust', () => {
 });
 
 
-gulp.task('tsc-prod', [], () => {
+gulp.task('clean-defs', () => {
+  del('defs.d.ts');
+});
+
+
+gulp.task('tsc-prod', ['clean-defs'], () => {
   const cwd = process.cwd();
   let tsResult = gulp.src(config.ts)
     .pipe(ts(config.tsProject))
@@ -112,7 +119,7 @@ gulp.task('tsc-prod', [], () => {
     }));
 });
 
-gulp.task('tsc-dev', [], () => {
+gulp.task('tsc-dev', ['clean-defs'], () => {
   const cwd = process.cwd();
   let tsResult = gulp.src(config.ts)
     .pipe(ts(config.tsProject))
@@ -150,6 +157,7 @@ gulp.task('tslint', () => {
 gulp.task('less', () => {
   gulp.src(config.less)
     .pipe(less())
+    .pipe(autoprefixer())
     .pipe(concat('css/hawkular-charts.css'))
     .pipe(gulp.dest('.'))
     .pipe(reload());
@@ -176,7 +184,7 @@ gulp.task('watch', () => {
   gulp.watch(config.ts, ['tsc-dev']);
 });
 
-gulp.task('build', function(cb) {
+gulp.task('build', function (cb) {
   runSequence(
     ['wiredep', 'path-adjust'],
     ['less', 'tslint'],
@@ -186,7 +194,7 @@ gulp.task('build', function(cb) {
   );
 });
 
-gulp.task('dev-build', function(cb) {
+gulp.task('dev-build', function (cb) {
   runSequence(
     ['wiredep', 'path-adjust'],
     ['less', 'tslint'],
@@ -196,7 +204,7 @@ gulp.task('dev-build', function(cb) {
   );
 });
 
-gulp.task('default', function(cb) {
+gulp.task('default', function (cb) {
   runSequence(
     'browserSync',
     'watch',
