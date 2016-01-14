@@ -10,8 +10,14 @@ namespace Charts {
   let debug:boolean = false;
 
   // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
-  const DEFAULT_Y_SCALE = 10;
-  const Y_AXIS_HEIGHT = 25;
+  export const DEFAULT_Y_SCALE = 10;
+  export const Y_AXIS_HEIGHT = 25;
+  export const CHART_HEIGHT = 250;
+  export const CHART_WIDTH = 750;
+  export const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
+  export const BAR_OFFSET = 2;
+  export const margin = {top: 10, right: 5, bottom: 5, left: 90};
+  export let width = CHART_WIDTH - margin.left - margin.right;
 
 
   /**
@@ -32,9 +38,7 @@ namespace Charts {
 
           function link(scope, element, attrs) {
 
-            const CHART_HEIGHT = 250,
-              CHART_WIDTH = 750,
-              HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
+
 
             // data specific vars
             let dataPoints:IChartDataPoint[] = [],
@@ -66,19 +70,14 @@ namespace Charts {
               useZeroMinValue = false;
 
             // chart specific vars
-            let margin = {top: 10, right: 5, bottom: 5, left: 90},
-              width = CHART_WIDTH - margin.left - margin.right,
-              adjustedChartHeight = CHART_HEIGHT - 50,
+
+            let adjustedChartHeight = CHART_HEIGHT - 50,
               height = adjustedChartHeight - margin.top - margin.bottom,
               smallChartThresholdInPixels = 600,
               titleHeight = 30, titleSpace = 10,
               innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom,
               adjustedChartHeight2 = +titleHeight + titleSpace + margin.top,
-              barOffset = 2,
               chartData,
-              calcBarWidth,
-              calcBarWidthAdjusted,
-              calcBarXPos,
               yScale,
               timeScale,
               yAxis,
@@ -195,22 +194,6 @@ namespace Charts {
                 }
 
                 setupFilteredData(dataPoints);
-
-                calcBarWidth = () => {
-                  return (width / chartData.length - barOffset);
-                };
-
-                // Calculates the bar width adjusted so that the first and last are half-width of the others
-                // see https://issues.jboss.org/browse/HAWKULAR-809 for info on why this is needed
-                calcBarWidthAdjusted = (i) => {
-                  return (i === 0 || i === chartData.length - 1) ? calcBarWidth() / 2 : calcBarWidth();
-                };
-
-                // Calculates the bar X position. When using calcBarWidthAdjusted, it is required to push bars
-                // other than the first half bar to the left, to make up for the first being just half width
-                calcBarXPos = (d, i) => {
-                  return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth() / 2);
-                };
 
                 yScale = d3.scale.linear()
                   .clamp(true)
@@ -466,338 +449,15 @@ namespace Charts {
             }
 
 
-            function createHistogramChart(stacked?:boolean) {
-
-              let barClass = stacked ? 'leaderBar' : 'histogram';
-
-              let rectHistogram = svg.selectAll('rect.' + barClass).data(chartData);
-
-              function buildBars(selection) {
-                selection
-                  .attr('class', barClass)
-                  .on('mouseover', (d, i) => {
-                    tip.show(d, i);
-                  }).on('mouseout', () => {
-                    tip.hide();
-                  })
-                  .transition()
-                  .attr('x', (d, i) => {
-                    return calcBarXPos(d, i);
-                  })
-                  .attr('width', (d, i) => {
-                    return calcBarWidthAdjusted(i);
-                  })
-                  .attr('y', (d) => {
-                    return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
-                  })
-                  .attr('height', (d) => {
-                    return height - yScale(isEmptyDataPoint(d) ? yScale(visuallyAdjustedMax) : d.avg);
-                  })
-                  .attr('opacity', stacked ? '.6' : '1')
-                  .attr('fill', (d, i) => {
-                    return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
-                  })
-                  .attr('stroke', (d) => {
-                    return '#777';
-                  })
-                  .attr('stroke-width', (d) => {
-                    return '0';
-                  })
-                  .attr('data-hawkular-value', (d) => {
-                    return d.avg;
-                  });
-
-              }
-
-              // update existing
-              rectHistogram.call(buildBars);
-
-              // add new ones
-              rectHistogram.enter()
-                .append('rect')
-                .call(buildBars);
-
-              // remove old ones
-              rectHistogram.exit().remove();
-
-              if (!hideHighLowValues) {
-                createHistogramHighLowValues(stacked);
-              }
-              else {
-                // we should hide high-low values.. or remove if existing
-                svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').remove();
-              }
-
-            }
-
-            function buildHighBar(selection) {
-              selection
-                .attr('class', (d) => {
-                  return d.min === d.max ? 'singleValue' : 'high';
-                })
-                .attr('x', (d, i) => {
-                  return calcBarXPos(d, i);
-                })
-                .attr('y', (d) => {
-                  return isNaN(d.max) ? yScale(visuallyAdjustedMin) : yScale(d.max);
-                })
-                .attr('height', (d) => {
-                  return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
-                })
-                .attr('width', (d, i) => {
-                  return calcBarWidthAdjusted(i);
-                })
-                .attr('opacity', 0.9)
-                .on('mouseover', (d, i) => {
-                  tip.show(d, i);
-                }).on('mouseout', () => {
-                tip.hide();
-              });
-            }
-
-            function buildLowerBar(selection) {
-              selection
-                .attr('class', 'low')
-                .attr('x', (d, i) => {
-                  return calcBarXPos(d, i);
-                })
-                .attr('y', (d) => {
-                  return isNaN(d.avg) ? height : yScale(d.avg);
-                })
-                .attr('height', (d) => {
-                  return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
-                })
-                .attr('width', (d, i) => {
-                  return calcBarWidthAdjusted(i);
-                })
-                .attr('opacity', 0.9)
-                .on('mouseover', (d, i) => {
-                  tip.show(d, i);
-                }).on('mouseout', () => {
-                tip.hide();
-              });
-
-            }
-
-            let strokeOpacity = 0.6;
-
-            function buildTopStem(selection) {
-              selection
-                .attr('class', 'histogramTopStem')
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('x1', (d) => {
-                  return xMidPointStartPosition(d, timeScale);
-                })
-                .attr('x2', (d) => {
-                  return xMidPointStartPosition(d, timeScale);
-                })
-                .attr('y1', (d) => {
-                  return yScale(d.max);
-                })
-                .attr('y2', (d) => {
-                  return yScale(d.avg);
-                })
-                .attr('stroke', (d) => {
-                  return 'red';
-                })
-                .attr('stroke-opacity', (d) => {
-                  return strokeOpacity;
-                });
-            }
-
-            function buildLowStem(selection) {
-              selection
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramBottomStem')
-                .attr('x1', (d) => {
-                  return xMidPointStartPosition(d, timeScale);
-                })
-                .attr('x2', (d) => {
-                  return xMidPointStartPosition(d, timeScale);
-                })
-                .attr('y1', (d) => {
-                  return yScale(d.avg);
-                })
-                .attr('y2', (d) => {
-                  return yScale(d.min);
-                })
-                .attr('stroke', (d) => {
-                  return 'red';
-                }).attr('stroke-opacity', (d) => {
-                return strokeOpacity;
-              });
-
-            }
-
-            function buildTopCross(selection) {
-              selection
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramTopCross')
-                .attr('x1', function (d) {
-                  return xMidPointStartPosition(d, timeScale) - 3;
-                })
-                .attr('x2', function (d) {
-                  return xMidPointStartPosition(d, timeScale) + 3;
-                })
-                .attr('y1', function (d) {
-                  return yScale(d.max);
-                })
-                .attr('y2', function (d) {
-                  return yScale(d.max);
-                })
-                .attr('stroke', function (d) {
-                  return 'red';
-                })
-                .attr('stroke-width', function (d) {
-                  return '0.5';
-                })
-                .attr('stroke-opacity', function (d) {
-                  return strokeOpacity;
-                });
-            }
-
-            function buildBottomCross(selection) {
-              selection
-                .filter((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .attr('class', 'histogramBottomCross')
-                .attr('x1', function (d) {
-                  return xMidPointStartPosition(d, timeScale) - 3;
-                })
-                .attr('x2', function (d) {
-                  return xMidPointStartPosition(d, timeScale) + 3;
-                })
-                .attr('y1', function (d) {
-                  return yScale(d.min);
-                })
-                .attr('y2', function (d) {
-                  return yScale(d.min);
-                })
-                .attr('stroke', function (d) {
-                  return 'red';
-                })
-                .attr('stroke-width', function (d) {
-                  return '0.5';
-                })
-                .attr('stroke-opacity', function (d) {
-                  return strokeOpacity;
-                });
-            }
-
-
-            function createHistogramHighLowValues(stacked?:boolean) {
-              if (stacked) {
-                // upper portion representing avg to high
-                let rectHigh = svg.selectAll('rect.high, rect.singleValue').data(chartData);
-
-
-                // update existing
-                rectHigh.call(buildHighBar);
-
-                // add new ones
-                rectHigh
-                  .enter()
-                  .append('rect')
-                  .call(buildHighBar);
-
-                // remove old ones
-                rectHigh.exit().remove();
-
-
-                // lower portion representing avg to low
-                let rectLow = svg.selectAll('rect.low').data(chartData);
-
-                // update existing
-                rectLow.call(buildLowerBar);
-
-                // add new ones
-                rectLow
-                  .enter()
-                  .append('rect')
-                  .call(buildLowerBar);
-
-                // remove old ones
-                rectLow.exit().remove();
-              }
-              else {
-                const strokeOpacity = '0.6';
-
-                let lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartData);
-
-                // update existing
-                lineHistoHighStem.call(buildTopStem);
-
-
-                // add new ones
-                lineHistoHighStem
-                  .enter()
-                  .append('line')
-                  .call(buildTopStem);
-
-                // remove old ones
-                lineHistoHighStem.exit().remove();
-
-                let lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartData);
-
-                // update existing
-                lineHistoLowStem.call(buildLowStem);
-
-                // add new ones
-                lineHistoLowStem
-                  .enter()
-                  .append('line')
-                  .call(buildLowStem);
-
-                // remove old ones
-                lineHistoLowStem.exit().remove();
-
-
-                let lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartData);
-
-                // update existing
-                lineHistoTopCross.call(buildTopCross);
-
-                // add new ones
-                lineHistoTopCross
-                  .enter()
-                  .append('line')
-                  .call(buildTopCross);
-
-                // remove old ones
-                lineHistoTopCross.exit().remove();
-
-                let lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartData);
-                // update existing
-                lineHistoBottomCross.call(buildBottomCross);
-
-                // add new ones
-                lineHistoBottomCross
-                  .enter()
-                  .append('line')
-                  .call(buildBottomCross);
-
-                // remove old ones
-                lineHistoBottomCross.exit().remove();
-              }
-            }
-
-
             function createMultiLineChart(multiDataPoints:IMultiDataPoint[]) {
               let colorScale = d3.scale.category10(),
                 g = 0;
 
               if (multiDataPoints) {
                 // before updating, let's remove those missing from datapoints (if any)
-                svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath) => {
+                svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath:any) => {
                   let stillExists = false;
-                  multiDataPoints.forEach((singleChartData) => {
+                  multiDataPoints.forEach((singleChartData:any) => {
                     singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
                     if (existingPath.getAttribute('id') === singleChartData.keyHash) {
                       stillExists = true;
@@ -808,7 +468,7 @@ namespace Charts {
                   }
                 });
 
-                multiDataPoints.forEach((singleChartData) => {
+                multiDataPoints.forEach((singleChartData:any) => {
                   if (singleChartData && singleChartData.values) {
                     singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
                     let pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash).data([singleChartData.values]);
@@ -1153,10 +813,24 @@ namespace Charts {
 
               switch (chartType) {
                 case 'rhqbar' :
-                  createHistogramChart(true);
+                  createHistogramChart(svg,
+                    timeScale,
+                    yScale,
+                    chartData,
+                    height,
+                    true,
+                    visuallyAdjustedMax,
+                    hideHighLowValues);
                   break;
                 case 'histogram' :
-                  createHistogramChart(false);
+                  createHistogramChart(svg,
+                    timeScale,
+                    yScale,
+                    chartData,
+                    height,
+                    false,
+                    visuallyAdjustedMax,
+                    hideHighLowValues);
                   break;
                 case 'line' :
                   createLineChart(svg,

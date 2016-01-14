@@ -3,6 +3,24 @@
 namespace Charts {
   'use strict';
 
+  export function calcBarWidth(width:number, length:number, barOffset = BAR_OFFSET) {
+    return (width / length - barOffset);
+  }
+
+  // Calculates the bar width adjusted so that the first and last are half-width of the others
+  // see https://issues.jboss.org/browse/HAWKULAR-809 for info on why this is needed
+  export function calcBarWidthAdjusted(i, length:number) {
+    return (i === 0 || i === length - 1) ? calcBarWidth(width, length, BAR_OFFSET) / 2 :
+      calcBarWidth(width, length, BAR_OFFSET);
+  }
+
+  // Calculates the bar X position. When using calcBarWidthAdjusted, it is required to push bars
+  // other than the first half bar to the left, to make up for the first being just half width
+  export function calcBarXPos(d, i, timeScale:any, length:number) {
+    return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth(width, length, BAR_OFFSET) / 2);
+  }
+
+
   /**
    * An empty datapoint has 'empty' attribute set to true. Used to distinguish from real 0 values.
    * @param d
