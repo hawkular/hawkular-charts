@@ -1,5 +1,8 @@
 /// <reference path="../../vendor/vendor.d.ts" />
 declare namespace Charts {
+    function calcBarWidth(width: number, length: number, barOffset?: number): number;
+    function calcBarWidthAdjusted(i: any, length: number): number;
+    function calcBarXPos(d: any, i: any, timeScale: any, length: number): number;
     /**
      * An empty datapoint has 'empty' attribute set to true. Used to distinguish from real 0 values.
      * @param d
