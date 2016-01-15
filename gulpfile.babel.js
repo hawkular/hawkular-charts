@@ -35,6 +35,7 @@ import rename from  'gulp-rename';
 import runSequence from  'run-sequence';
 import s from  'underscore.string';
 import size from 'gulp-size';
+import sourcemaps from 'gulp-sourcemaps';
 import ts from 'gulp-typescript';
 import tslint from  'gulp-tslint';
 import uglify from 'gulp-uglify';
@@ -121,7 +122,8 @@ gulp.task('tsc-prod', ['clean-defs'], () => {
 
 gulp.task('tsc-dev', ['clean-defs'], () => {
   const cwd = process.cwd();
-  let tsResult = gulp.src(config.ts)
+  var tsResult = gulp.src(config.ts)
+    .pipe(sourcemaps.init({loadMaps: true}))
     .pipe(ts(config.tsProject))
     .on('error', notify.onError({
       message: '<%= error.message %>',
@@ -131,6 +133,7 @@ gulp.task('tsc-dev', ['clean-defs'], () => {
   return eventStream.merge(
     tsResult.js
       .pipe(concat(config.js))
+      .pipe(sourcemaps.write())
       .pipe(gulp.dest('.'))
       .pipe(reload()),
 
@@ -163,15 +166,7 @@ gulp.task('less', () => {
     .pipe(reload());
 });
 
-gulp.task('concat', () => {
-  const gZipSize = size(gZippedSizeOptions);
-  return gulp.src([config.js])
-    .pipe(concat(config.js))
-    .pipe(size(normalSizeOptions))
-    .pipe(gZipSize);
-});
-
-gulp.task('browserSync', ['build'], () => {
+gulp.task('browserSync', ['dev-build'], () => {
   server = express();
   server.use(express.static('.'));
   server.listen(8000);
@@ -189,7 +184,6 @@ gulp.task('build', function (cb) {
     ['wiredep', 'path-adjust'],
     ['less', 'tslint'],
     'tsc-prod',
-    'concat',
     cb
   );
 });
@@ -199,7 +193,6 @@ gulp.task('dev-build', function (cb) {
     ['wiredep', 'path-adjust'],
     ['less', 'tslint'],
     'tsc-dev',
-    'concat',
     cb
   );
 });
