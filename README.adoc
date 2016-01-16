@@ -23,12 +23,14 @@ The quickest way to start using the charts is to fire up a http server and start
 
  `npm install && bower install`
 
- `gulp server`
+ `gulp`
 
 This command will startup a web server and launch the default browser to that page -- listening for any
 changes in your code and automatically refreshing the browser with changes. Additionally, it will sync the
 changes to all of the browsers with localhost:3000/* open -- making it easy to check across multiple browsers and
 even mobile browsers for responsive layout changes!
+
+IMPORTANT: Gulp version 3.9.0+ is required (since we use an ES6 gulpfile)
 
 Then start playing around the the examples (each has data in the example):
 
