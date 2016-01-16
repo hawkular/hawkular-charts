@@ -1,10 +1,12 @@
-= http://github.com/hawkular/hawkular-charts[Hawkular Charting Directives]
+= http://github.com/hawkular/hawkular-charts[Angular Directives for Metrics Visualization]
 
-__"Legos of Metrics Visualizations"__
+__"Legos for Metrics Visualization"__
 
 This project provides AngularJS directives for displaying custom visual representations of time series data as charts.
 It uses http://d3js.org[D3] as its charting toolkit and tries to simplify creating advanced metrics visualizations
-with Angular.js.
+with Angular.js directives.
+
+While designed for use in the Hawkular UI console, it is a general purpose, metrics charting library designed to work with any array of data as long as it can be transformed into a tuple of datetime/value pairs.
 
 == About
 
@@ -21,9 +23,10 @@ little effort.
 The quickest way to start using the charts is to fire up a http server and start playing with the code. To run the
  examples, from the _hawkular-charts_ root directory:
 
- `npm install && bower install`
+`npm install && bower install`
 
- `gulp`
+`gulp`
+ 
 
 This command will startup a web server and launch the default browser to that page -- listening for any
 changes in your code and automatically refreshing the browser with changes. Additionally, it will sync the
@@ -48,6 +51,7 @@ Please see https://github.com/hawkular/hawkular/tree/master/console for more rea
 Chart types are set via the *chart-type* attribute of the *hawkular-chart* directive.
 The following chart types are available:
 
+* *line:* this is the default chart type if not specified and is recommended for most metrics display
 * *hawkularmetric:* specifically tailored toward Single Metrics Display (default if you don't specify) __DEPRECATION WARNING: this will be replaced with *line* in the future__
 * *histogram:* histogram bar chart (used in Hawkular GC chart)
 * *area:* standard area chart with hawkular extensions
