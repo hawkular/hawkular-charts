@@ -20,6 +20,7 @@
 import autoprefixer from 'gulp-autoprefixer';
 import browsersync from 'browser-sync';
 import concat from 'gulp-concat';
+import cssnano from 'gulp-cssnano';
 import del from 'del';
 import express from 'express';
 import eventStream  from 'event-stream';
@@ -159,9 +160,14 @@ gulp.task('tslint', () => {
 
 gulp.task('less', () => {
   gulp.src(config.less)
+    .pipe(sourcemaps.init())
     .pipe(less())
     .pipe(autoprefixer())
     .pipe(concat('css/hawkular-charts.css'))
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('.'))
+    .pipe(cssnano())
+    .pipe(concat('css/hawkular-charts.min.css'))
     .pipe(gulp.dest('.'))
     .pipe(reload());
 });
