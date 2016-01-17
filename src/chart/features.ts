@@ -1,5 +1,4 @@
-/// <reference path='../../vendor/vendor.d.ts' />
-
+/// <reference path='../../typings/tsd.d.ts' />
 namespace Charts {
   'use strict';
 

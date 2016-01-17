@@ -1,4 +1,4 @@
-/// <reference path="../../vendor/vendor.d.ts" />
+/// <reference path="../../typings/tsd.d.ts" />
 declare namespace Charts {
     const DEFAULT_Y_SCALE: number;
     const Y_AXIS_HEIGHT: number;

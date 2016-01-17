@@ -1,10 +1,9 @@
-/// <reference path='../../../vendor/vendor.d.ts' />
+/// <reference path='../../../typings/tsd.d.ts' />
 
 namespace Charts {
   'use strict';
 
-  declare let d3:any;
-
+  import IChartDataPoint = Charts.IChartDataPoint;
 
   export function createLineChart(svg:any,
                                   timeScale:any,
@@ -15,13 +14,13 @@ namespace Charts {
 
     let metricChartLine = d3.svg.line()
       .interpolate(interpolation)
-      .defined((d) => {
+      .defined((d:any) => {
         return !isEmptyDataPoint(d);
       })
-      .x((d) => {
+      .x((d:any) => {
         return timeScale(d.timestamp);
       })
-      .y((d) => {
+      .y((d:any) => {
         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
       });
 

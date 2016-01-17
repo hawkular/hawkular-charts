@@ -1,9 +1,9 @@
-/// <reference path='../../../vendor/vendor.d.ts' />
+/// <reference path='../../../typings/tsd.d.ts' />
 
 namespace Charts {
   'use strict';
 
-  declare let d3:any;
+  import IChartDataPoint = Charts.IChartDataPoint;
 
   export function createScatterLineChart(svg:any,
                                          timeScale:any,
@@ -15,7 +15,7 @@ namespace Charts {
     let lineScatterTopStem = svg.selectAll('.scatterLineTopStem').data(chartData);
     // update existing
     lineScatterTopStem.attr('class', 'scatterLineTopStem')
-      .filter((d) => {
+      .filter((d:any) => {
         return !isEmptyDataPoint(d);
       })
       .attr('x1', (d) => {

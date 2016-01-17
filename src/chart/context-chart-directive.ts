@@ -1,16 +1,10 @@
-/// <reference path='../../vendor/vendor.d.ts' />
+/// <reference path='../../typings/tsd.d.ts' />
 
 namespace Charts {
   'use strict';
+  import IChartDataPoint = Charts.IChartDataPoint;
 
-  declare let angular:ng.IAngularStatic;
-
-  declare let d3:any;
-  declare let console:any;
-
-
-  let _module = angular.module('hawkular.charts');
-
+  const _module = angular.module('hawkular.charts');
 
   export class ContextChartDirective {
 
@@ -131,28 +125,28 @@ namespace Charts {
 
           let area = d3.svg.area()
             .interpolate('cardinal')
-            .defined((d) => {
+            .defined((d:any) => {
               return !d.empty;
             })
-            .x((d:IChartDataPoint) => {
+            .x((d:any) => {
               return timeScale(d.timestamp);
             })
-            .y0((d:IChartDataPoint) => {
+            .y0((d:any) => {
               return height;
             })
-            .y1((d:IChartDataPoint) => {
+            .y1((d:any) => {
               return yScale(d.avg);
             });
 
           let contextLine = d3.svg.line()
             .interpolate('cardinal')
-            .defined((d) => {
+            .defined((d:any) => {
               return !d.empty;
             })
-            .x((d) => {
+            .x((d:any) => {
               return timeScale(d.timestamp);
             })
-            .y((d) => {
+            .y((d:any) => {
               return yScale(d.avg);
             });
 

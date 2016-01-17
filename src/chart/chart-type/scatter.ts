@@ -1,9 +1,9 @@
-/// <reference path='../../../vendor/vendor.d.ts' />
+/// <reference path='../../../typings/tsd.d.ts' />
 
 namespace Charts {
   'use strict';
 
-  declare let d3:any;
+  import IChartDataPoint = Charts.IChartDataPoint;
 
   export function createScatterChart(svg:any,
                                      timeScale:any,
@@ -18,7 +18,7 @@ namespace Charts {
       let highDotCircle = svg.selectAll('.highDot').data(chartData);
       // update existing
       highDotCircle.attr('class', 'highDot')
-        .filter((d) => {
+        .filter((d:any) => {
           return !isEmptyDataPoint(d);
         })
         .attr('r', 3)

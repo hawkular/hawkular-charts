@@ -1,9 +1,9 @@
-/// <reference path='../../../vendor/vendor.d.ts' />
+/// <reference path='../../../typings/tsd.d.ts' />
 
 namespace Charts {
   'use strict';
 
-  declare let d3:any;
+  import IChartDataPoint = Charts.IChartDataPoint;
 
   export function createAreaChart(svg:any,
                                   timeScale:any,
@@ -13,46 +13,44 @@ namespace Charts {
                                   interpolation?:string,
                                   hideHighLowValues?:boolean) {
 
-    console.log('Creating Area Chart');
-
     let highArea = d3.svg.area()
       .interpolate(interpolation)
-      .defined((d) => {
+      .defined((d:any) => {
         return !isEmptyDataPoint(d);
       })
       .x((d) => {
         return timeScale(d);
       })
-      .y((d) => {
+      .y((d:any) => {
         return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
       })
-      .y0((d) => {
+      .y0((d:any) => {
         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
       }),
 
       avgArea = d3.svg.area()
         .interpolate(interpolation)
-        .defined((d) => {
+        .defined((d:any) => {
           return !isEmptyDataPoint(d);
         })
         .x((d) => {
           return timeScale(d);
         })
-        .y((d) => {
+        .y((d:any) => {
           return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-        }).y0((d) => {
+        }).y0((d:any) => {
           return hideHighLowValues ? height : yScale(d.min);
         }),
 
       lowArea = d3.svg.area()
         .interpolate(interpolation)
-        .defined((d) => {
+        .defined((d:any) => {
           return !isEmptyDataPoint(d);
         })
         .x((d) => {
           return timeScale(d);
         })
-        .y((d) => {
+        .y((d:any) => {
           return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
         })
         .y0(() => {
@@ -87,12 +85,10 @@ namespace Charts {
     let avgAreaPath = svg.selectAll('path.avgArea').data(chartData);
     // update existing
     avgAreaPath.attr('class', 'avgArea')
-      .transition()
       .attr('d', avgArea);
     // add new ones
     avgAreaPath.enter().append('path')
       .attr('class', 'avgArea')
-      .transition()
       .attr('d', avgArea);
     // remove old ones
     avgAreaPath.exit().remove();

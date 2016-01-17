@@ -1,4 +1,4 @@
-/// <reference path="../../vendor/vendor.d.ts" />
+/// <reference path="../../typings/tsd.d.ts" />
 declare namespace Charts {
     class AvailStatus {
         value: string;

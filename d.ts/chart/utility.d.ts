@@ -1,4 +1,4 @@
-/// <reference path="../../vendor/vendor.d.ts" />
+/// <reference path="../../typings/tsd.d.ts" />
 declare namespace Charts {
     function calcBarWidth(width: number, length: number, barOffset?: number): number;
     function calcBarWidthAdjusted(i: any, length: number): number;

@@ -1,17 +1,11 @@
-/// <reference path='../../vendor/vendor.d.ts' />
-
+/// <reference path='../../typings/tsd.d.ts' />
 namespace Charts {
   'use strict';
 
-  declare let angular:ng.IAngularStatic;
-
-  declare let d3:any;
-  declare let console:any;
+  import IChartDataPoint = Charts.IChartDataPoint;
 
   const Y_AXIS_HEIGHT = 15;
-
-
-  let _module = angular.module('hawkular.charts');
+  const _module = angular.module('hawkular.charts');
 
 
   export class SparklineChartDirective {
@@ -135,29 +129,29 @@ namespace Charts {
           let interpolationType = 'basis';
           let area = d3.svg.area()
             .interpolate(interpolationType)
-            .defined((d) => {
+            .defined((d:any) => {
               return !d.empty;
             })
-            .x((d:IChartDataPoint) => {
+            .x((d:any) => {
               return timeScale(d.timestamp);
             })
-            .y0((d:IChartDataPoint) => {
+            .y0((d:any) => {
               return SparklineChartDirective._CHART_HEIGHT - Y_AXIS_HEIGHT;
             })
-            .y1((d:IChartDataPoint) => {
+            .y1((d:any) => {
               return yScale(d.avg);
             });
 
           // this is the line that caps the area
           let sparklineLine = d3.svg.line()
             .interpolate(interpolationType)
-            .defined((d) => {
+            .defined((d:any) => {
               return !d.empty;
             })
-            .x((d) => {
+            .x((d:any) => {
               return timeScale(d.timestamp);
             })
-            .y((d) => {
+            .y((d:any) => {
               // -2 pixels to keep the 2 pixel line from crossing over the x-axis
               return yScale(d.avg) - 2;
             });

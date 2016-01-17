@@ -1,5 +1,6 @@
-/// <reference path="../../vendor/vendor.d.ts" />
+/// <reference path="../../typings/tsd.d.ts" />
 declare namespace Charts {
+    import IChartDataPoint = Charts.IChartDataPoint;
     class SparklineChartDirective {
         private static _CHART_WIDTH;
         private static _CHART_HEIGHT;

@@ -1,9 +1,7 @@
-/// <reference path='../../../vendor/vendor.d.ts' />
-
+/// <reference path='../../../typings/tsd.d.ts' />
 namespace Charts {
   'use strict';
 
-  declare let d3:any;
 
   export function createHistogramChart(svg:any,
                                        timeScale:any,

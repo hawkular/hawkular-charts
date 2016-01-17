@@ -1,15 +1,10 @@
-/// <reference path='../../vendor/vendor.d.ts' />
-
+/// <reference path='../../typings/tsd.d.ts' />
 namespace Charts {
   'use strict';
 
-  declare let angular:ng.IAngularStatic;
-
   declare let d3:any;
-  declare let console:any;
 
-
-  let _module = angular.module('hawkular.charts');
+  const _module = angular.module('hawkular.charts');
 
   export class AvailStatus {
 
