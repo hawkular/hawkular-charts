@@ -1,7 +1,6 @@
-/// <reference path='../../vendor/vendor.d.ts' />
+/// <reference path='../../typings/tsd.d.ts' />
 
 namespace Charts {
-  //import ChartCore = Charts.ChartCore;
   'use strict';
 
   declare let d3:any;
