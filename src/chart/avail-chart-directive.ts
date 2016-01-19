@@ -445,7 +445,6 @@ namespace Charts {
 
             //svg.classed('selecting', !d3.event.target.empty());
             if (dragSelectionDelta >= 60000) {
-              console.log('Drag: AvailTimeRangeChanged:' + extent);
               $rootScope.$broadcast(EventNames.AVAIL_CHART_TIMERANGE_CHANGED.toString(), extent);
             }
             brushGroup.call(brush.clear());
@@ -453,7 +452,6 @@ namespace Charts {
         }
 
         scope.$watchCollection('data', (newData) => {
-          console.log('Avail Chart Data Changed');
           if (newData) {
             this.transformedDataPoints = formatTransformedDataPoints(angular.fromJson(newData));
             scope.render(this.transformedDataPoints);
@@ -461,25 +459,21 @@ namespace Charts {
         });
 
         scope.$watchGroup(['startTimestamp', 'endTimestamp'], (newTimestamp) => {
-          console.log('Avail Chart Start/End Timestamp Changed');
           startTimestamp = +newTimestamp[0] || startTimestamp;
           endTimestamp = +newTimestamp[1] || endTimestamp;
           scope.render(this.transformedDataPoints);
         });
 
         scope.render = (transformedAvailDataPoint:ITransformedAvailDataPoint[]) => {
-          console.log('Starting Avail Chart Directive Render');
           if (transformedAvailDataPoint && transformedAvailDataPoint.length > 0) {
-            console.group('Render Avail Chart');
-            console.time('availChartRender');
+            //console.time('availChartRender');
             ///NOTE: layering order is important!
             oneTimeChartSetup();
             determineAvailScale(transformedAvailDataPoint);
             createXandYAxes();
             createXAxisBrush();
             createAvailabilityChart(transformedAvailDataPoint);
-            console.timeEnd('availChartRender');
-            console.groupEnd();
+            //console.timeEnd('availChartRender');
           }
         };
       };

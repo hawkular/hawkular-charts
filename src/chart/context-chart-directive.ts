@@ -72,7 +72,7 @@ namespace Charts {
 
 
         function createContextChart(dataPoints:IChartDataPoint[]) {
-          console.log('dataPoints.length: ' + dataPoints.length);
+          //console.log('dataPoints.length: ' + dataPoints.length);
 
           timeScale = d3.time.scale()
             .range([0, width - 10])
@@ -214,7 +214,6 @@ namespace Charts {
 
             /// We ignore drag selections under a minute
             if (dragSelectionDelta >= 60000) {
-              console.log('Drag: ContextChartTimeRangeChanged:' + brushExtent);
               $rootScope.$broadcast(EventNames.CONTEXT_CHART_TIMERANGE_CHANGED.toString(), brushExtent);
             }
             //brushGroup.call(brush.clear());
@@ -222,7 +221,6 @@ namespace Charts {
         }
 
         scope.$watchCollection('data', (newData) => {
-          console.log('Context Chart Data Changed');
           if (newData) {
             this.dataPoints = formatBucketedChartOutput(angular.fromJson(newData));
             scope.render(this.dataPoints);
@@ -251,14 +249,13 @@ namespace Charts {
 
         scope.render = (dataPoints:IChartDataPoint[]) => {
           if (dataPoints && dataPoints.length > 0) {
-            console.group('Render Context Chart');
-            console.time('contextChartRender');
+            //console.time('contextChartRender');
+
             ///NOTE: layering order is important!
             setup();
             createContextChart(dataPoints);
             createXAxisBrush();
-            console.timeEnd('contextChartRender');
-            console.groupEnd();
+            //console.timeEnd('contextChartRender');
           }
         };
       };
