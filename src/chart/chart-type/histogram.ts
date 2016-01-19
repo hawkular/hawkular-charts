@@ -7,6 +7,7 @@ namespace Charts {
                                        timeScale:any,
                                        yScale:any,
                                        chartData:IChartDataPoint[],
+                                       tip:any,
                                        height?:number,
                                        stacked?:boolean,
                                        visuallyAdjustedMax?:number,
@@ -20,9 +21,9 @@ namespace Charts {
       selection
         .attr('class', barClass)
         .on('mouseover', (d, i) => {
-          //tip.show(d, i);
+          tip.show(d, i);
         }).on('mouseout', () => {
-          //tip.hide();
+          tip.hide();
         })
         .transition()
         .attr('x', (d, i) => {
@@ -72,9 +73,9 @@ namespace Charts {
         })
         .attr('opacity', 0.9)
         .on('mouseover', (d, i) => {
-          //tip.show(d, i);
+          tip.show(d, i);
         }).on('mouseout', () => {
-        //tip.hide();
+        tip.hide();
       });
     }
 
@@ -95,9 +96,9 @@ namespace Charts {
         })
         .attr('opacity', 0.9)
         .on('mouseover', (d, i) => {
-          //tip.show(d, i);
+          tip.show(d, i);
         }).on('mouseout', () => {
-        //tip.hide();
+        tip.hide();
       });
 
     }
