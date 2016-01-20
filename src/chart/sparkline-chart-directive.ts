@@ -206,7 +206,6 @@ namespace Charts {
         }
 
         scope.$watchCollection('data', (newData) => {
-          console.log('Sparkline Chart Data Changed');
           if (newData) {
             this.dataPoints = formatBucketedChartOutput(angular.fromJson(newData));
             scope.render(this.dataPoints);
@@ -214,7 +213,6 @@ namespace Charts {
         });
 
         scope.$watchCollection('alertValue', (newAlertValue) => {
-          console.log('Sparkline AlertValue Changed');
           if (newAlertValue) {
             alertValue = newAlertValue;
             if (this.dataPoints) {
@@ -245,13 +243,13 @@ namespace Charts {
 
         scope.render = (dataPoints:IChartDataPoint[]) => {
           if (dataPoints && dataPoints.length > 0) {
-            console.group('Render Sparkline Chart');
-            console.time('SparklineChartRender');
+            //console.group('Render Sparkline Chart');
+            //console.time('SparklineChartRender');
             ///NOTE: layering order is important!
             setup();
             createSparklineChart(dataPoints);
-            console.timeEnd('SparklineChartRender');
-            console.groupEnd();
+            //console.timeEnd('SparklineChartRender');
+            //console.groupEnd();
           }
         };
       };
