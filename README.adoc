@@ -55,7 +55,7 @@ Chart types are set via the *chart-type* attribute of the *hawkular-chart* direc
 The following chart types are available:
 
 * *line:* this is the default chart type if not specified and is recommended for most metrics display
-* *hawkularmetric:* specifically tailored toward Single Metrics Display (default if you don't specify) __DEPRECATION WARNING: this will be replaced with *line* in the future__
+* _hawkularmetric:_ specifically tailored toward Single Metrics Display (default if you don't specify) __DEPRECATION WARNING: this will be replaced with *line* in the future__
 * *histogram:* histogram bar chart (used in Hawkular GC chart)
 * *area:* standard area chart with hawkular extensions
 * *scatter:* regular scatter plot supporting avg/high/low
