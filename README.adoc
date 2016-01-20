@@ -2,6 +2,10 @@
 
 __"Legos for Metrics Visualization"__
 
+image::https://www.bithound.io/github/hawkular/hawkular-charts/badges/score.svg[link="https://www.bithound.io/github/hawkular/hawkular-charts"] 
+image::https://www.bithound.io/github/hawkular/hawkular-charts/badges/dependencies.svg[link="https://www.bithound.io/github/hawkular/hawkular-charts/master/dependencies/npm"]
+
+
 This project provides AngularJS directives for displaying custom visual representations of time series data as charts.
 It uses http://d3js.org[D3] as its charting toolkit and tries to simplify creating advanced metrics visualizations
 with Angular.js directives.
@@ -14,8 +18,7 @@ Hawkular Charts is a direct result of wanting metric visualizations for the pare
 http://github.com/hawkular/hawkular[Hawkular] - _An Open Source
 Monitoring Tool_. The console in Hawkular uses these charting components and will further push the development
 of these charting components into the future with additional features and specialized chart types.
-This will also make adhoc development quicker/easier with components that can render Hawkular Metrics charts with very
-little effort.
+This will also make adhoc development quicker/easier with components that can render Hawkular Metrics (or any other metrics) charts with very little effort.
 
 
 == Quickstart
