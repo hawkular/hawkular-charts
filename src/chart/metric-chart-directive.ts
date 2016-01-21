@@ -724,16 +724,16 @@ namespace Charts {
 
             }
 
-            scope.$watchCollection('data', (newData) => {
-              if (newData) {
-                processedNewData = angular.fromJson(newData);
+            scope.$watchCollection('data', (newData, oldData) => {
+              if (newData || oldData) {
+                processedNewData = angular.fromJson(newData || []);
                 scope.render(processedNewData, processedPreviousRangeData);
               }
             });
 
-            scope.$watch('multiData', (newMultiData) => {
-              if (newMultiData) {
-                multiDataPoints = angular.fromJson(newMultiData);
+            scope.$watch('multiData', (newMultiData, oldMultiData) => {
+              if (newMultiData || oldMultiData) {
+                multiDataPoints = angular.fromJson(newMultiData || []);
                 scope.render(processedNewData, processedPreviousRangeData);
               }
             }, true);
