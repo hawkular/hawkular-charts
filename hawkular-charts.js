@@ -1792,7 +1792,7 @@ var Charts;
             return !Charts.isEmptyDataPoint(d);
         })
             .x(function (d) {
-            return timeScale(d);
+            return timeScale(d.timestamp);
         })
             .y(function (d) {
             return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.max);
@@ -1805,7 +1805,7 @@ var Charts;
             return !Charts.isEmptyDataPoint(d);
         })
             .x(function (d) {
-            return timeScale(d);
+            return timeScale(d.timestamp);
         })
             .y(function (d) {
             return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -1817,7 +1817,7 @@ var Charts;
             return !Charts.isEmptyDataPoint(d);
         })
             .x(function (d) {
-            return timeScale(d);
+            return timeScale(d.timestamp);
         })
             .y(function (d) {
             return Charts.isRawMetric(d) ? yScale(d.value) : yScale(d.min);
@@ -1826,7 +1826,7 @@ var Charts;
             return height;
         });
         if (!hideHighLowValues) {
-            var highAreaPath = svg.selectAll('path.highArea').data(chartData);
+            var highAreaPath = svg.selectAll('path.highArea').data([chartData]);
             // update existing
             highAreaPath.attr('class', 'highArea')
                 .attr('d', highArea);
@@ -1836,7 +1836,7 @@ var Charts;
                 .attr('d', highArea);
             // remove old ones
             highAreaPath.exit().remove();
-            var lowAreaPath = svg.selectAll('path.lowArea').data(chartData);
+            var lowAreaPath = svg.selectAll('path.lowArea').data([chartData]);
             // update existing
             lowAreaPath.attr('class', 'lowArea')
                 .attr('d', lowArea);
@@ -1847,7 +1847,7 @@ var Charts;
             // remove old ones
             lowAreaPath.exit().remove();
         }
-        var avgAreaPath = svg.selectAll('path.avgArea').data(chartData);
+        var avgAreaPath = svg.selectAll('path.avgArea').data([chartData]);
         // update existing
         avgAreaPath.attr('class', 'avgArea')
             .attr('d', avgArea);
