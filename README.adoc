@@ -2,7 +2,7 @@
 
 __"Legos for Metrics Visualization"__
 
-image::https://www.bithound.io/github/hawkular/hawkular-charts/badges/score.svg[link="https://www.bithound.io/github/hawkular/hawkular-charts"] 
+image::https://www.bithound.io/github/hawkular/hawkular-charts/badges/score.svg[link="https://www.bithound.io/github/hawkular/hawkular-charts"]
 image::https://www.bithound.io/github/hawkular/hawkular-charts/badges/dependencies.svg[link="https://www.bithound.io/github/hawkular/hawkular-charts/master/dependencies/npm"]
 
 
@@ -29,7 +29,7 @@ The quickest way to start using the charts is to fire up a http server and start
 `npm install && bower install`
 
 `gulp`
- 
+
 
 This command will startup a web server and launch the default browser to that page -- listening for any
 changes in your code and automatically refreshing the browser with changes. Additionally, it will sync the
@@ -65,7 +65,7 @@ The following chart types are available:
 All of the chart types are either in the process of being approved by Red Hat UxD, or have been approved.
 
 
-==== Metrics Chart Type
+==== Metrics Chart
 image::img/hawkular-metric-charts.png[Hawkular Metrics Chart Type]
 
 _Sample code for this chart:_
@@ -85,7 +85,17 @@ capabilities that standard charting libraries don't provide.
 Need to change the threshold alert value or chart-type just use Angular's two way binding to bind to a field on the
 screen and watch the dynamics unfold.
 
-Explore an actual implementation in Hawkular Console: https://github.com/hawkular/hawkular/blob/master/ui/console/src/main/scripts/plugins/metrics/plugins/metrics/html/response-time.html[here]
+===== Forecasting Feature
+
+image::img/forecast.png[Hawkular Metrics Chart with Forecasting]
+
+
+The metrics chart has the ability to display forecasting (of data into the future) with the addition of the
+*forecastData* attribute. These future datapoints show in the chart as a dashed line. This data attribute uses the same
+data format as *data* but only *timestamp* and *value*
+fields are required. The *forecastData* can provide as many or as little data points as desired (but the spacing
+between timestamps should be the same as with the *data* points to keep visual consistency.
+
 
 ==== Availability Chart Type
 image::img/avail-chart.png[Hawkular Availability Chart Type]
@@ -376,6 +386,13 @@ If you don't want to retrieve data directly from the REST Url, we have an API th
 
 https://github.com/hawkular/hawkular-ui-services
 
+
+== FAQ
+
+.Questions about Hawkular-charts
+* There used to be a width and height attribute in the charting directives, what happened to those?
+_Answer_: Hawkular-charts is now fully responsive so height and width no longer make sense. Height and width is now
+determined by the container surrounding the chart directive (a div for example).
 
 == Contributing
 
