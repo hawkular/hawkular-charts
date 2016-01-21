@@ -18,8 +18,8 @@ namespace Charts {
       .defined((d:any) => {
         return !isEmptyDataPoint(d);
       })
-      .x((d) => {
-        return timeScale(d);
+      .x((d:any) => {
+        return timeScale(d.timestamp);
       })
       .y((d:any) => {
         return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
@@ -33,8 +33,8 @@ namespace Charts {
         .defined((d:any) => {
           return !isEmptyDataPoint(d);
         })
-        .x((d) => {
-          return timeScale(d);
+        .x((d:any) => {
+          return timeScale(d.timestamp);
         })
         .y((d:any) => {
           return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
@@ -47,8 +47,8 @@ namespace Charts {
         .defined((d:any) => {
           return !isEmptyDataPoint(d);
         })
-        .x((d) => {
-          return timeScale(d);
+        .x((d:any) => {
+          return timeScale(d.timestamp);
         })
         .y((d:any) => {
           return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
@@ -59,7 +59,7 @@ namespace Charts {
 
 
     if (!hideHighLowValues) {
-      let highAreaPath = svg.selectAll('path.highArea').data(chartData);
+      let highAreaPath = svg.selectAll('path.highArea').data([chartData]);
       // update existing
       highAreaPath.attr('class', 'highArea')
         .attr('d', highArea);
@@ -70,7 +70,7 @@ namespace Charts {
       // remove old ones
       highAreaPath.exit().remove();
 
-      let lowAreaPath = svg.selectAll('path.lowArea').data(chartData);
+      let lowAreaPath = svg.selectAll('path.lowArea').data([chartData]);
       // update existing
       lowAreaPath.attr('class', 'lowArea')
         .attr('d', lowArea);
@@ -82,7 +82,7 @@ namespace Charts {
       lowAreaPath.exit().remove();
     }
 
-    let avgAreaPath = svg.selectAll('path.avgArea').data(chartData);
+    let avgAreaPath = svg.selectAll('path.avgArea').data([chartData]);
     // update existing
     avgAreaPath.attr('class', 'avgArea')
       .attr('d', avgArea);
