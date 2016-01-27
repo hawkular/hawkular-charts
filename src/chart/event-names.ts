@@ -20,7 +20,7 @@ namespace Charts {
   'use strict';
 
 
-/// NOTE: this pattern is used because enums cant be used with strings
+  /// NOTE: this pattern is used because enums cant be used with strings
   export class EventNames {
 
     public static CHART_TIMERANGE_CHANGED = new EventNames('ChartTimeRangeChanged');
@@ -28,11 +28,11 @@ namespace Charts {
     public static CONTEXT_CHART_TIMERANGE_CHANGED = new EventNames('ContextChartTimeRangeChanged');
 
 
-    constructor(public value:string) {
+    constructor(public value: string) {
       // empty
     }
 
-    public toString():string {
+    public toString(): string {
       return this.value;
     }
   }

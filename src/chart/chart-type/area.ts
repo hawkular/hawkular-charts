@@ -5,52 +5,52 @@ namespace Charts {
 
   import IChartDataPoint = Charts.IChartDataPoint;
 
-  export function createAreaChart(svg:any,
-                                  timeScale:any,
-                                  yScale:any,
-                                  chartData:IChartDataPoint[],
-                                  height?:number,
-                                  interpolation?:string,
-                                  hideHighLowValues?:boolean) {
+  export function createAreaChart(svg: any,
+    timeScale: any,
+    yScale: any,
+    chartData: IChartDataPoint[],
+    height?: number,
+    interpolation?: string,
+    hideHighLowValues?: boolean) {
 
     let highArea = d3.svg.area()
       .interpolate(interpolation)
-      .defined((d:any) => {
+      .defined((d: any) => {
         return !isEmptyDataPoint(d);
       })
-      .x((d:any) => {
+      .x((d: any) => {
         return timeScale(d.timestamp);
       })
-      .y((d:any) => {
+      .y((d: any) => {
         return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
       })
-      .y0((d:any) => {
+      .y0((d: any) => {
         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
       }),
 
       avgArea = d3.svg.area()
         .interpolate(interpolation)
-        .defined((d:any) => {
+        .defined((d: any) => {
           return !isEmptyDataPoint(d);
         })
-        .x((d:any) => {
+        .x((d: any) => {
           return timeScale(d.timestamp);
         })
-        .y((d:any) => {
+        .y((d: any) => {
           return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-        }).y0((d:any) => {
+        }).y0((d: any) => {
           return hideHighLowValues ? height : yScale(d.min);
         }),
 
       lowArea = d3.svg.area()
         .interpolate(interpolation)
-        .defined((d:any) => {
+        .defined((d: any) => {
           return !isEmptyDataPoint(d);
         })
-        .x((d:any) => {
+        .x((d: any) => {
           return timeScale(d.timestamp);
         })
-        .y((d:any) => {
+        .y((d: any) => {
           return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
         })
         .y0(() => {

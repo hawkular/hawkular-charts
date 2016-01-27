@@ -3,20 +3,20 @@
 namespace Charts {
   'use strict';
 
-  export function calcBarWidth(width:number, length:number, barOffset = BAR_OFFSET) {
+  export function calcBarWidth(width: number, length: number, barOffset = BAR_OFFSET) {
     return (width / length - barOffset);
   }
 
   // Calculates the bar width adjusted so that the first and last are half-width of the others
   // see https://issues.jboss.org/browse/HAWKULAR-809 for info on why this is needed
-  export function calcBarWidthAdjusted(i, length:number) {
+  export function calcBarWidthAdjusted(i, length: number) {
     return (i === 0 || i === length - 1) ? calcBarWidth(width, length, BAR_OFFSET) / 2 :
       calcBarWidth(width, length, BAR_OFFSET);
   }
 
   // Calculates the bar X position. When using calcBarWidthAdjusted, it is required to push bars
   // other than the first half bar to the left, to make up for the first being just half width
-  export function calcBarXPos(d, i, timeScale:any, length:number) {
+  export function calcBarXPos(d, i, timeScale: any, length: number) {
     return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth(width, length, BAR_OFFSET) / 2);
   }
 
@@ -26,7 +26,7 @@ namespace Charts {
    * @param d
    * @returns {boolean}
    */
-  export function isEmptyDataPoint(d:IChartDataPoint):boolean {
+  export function isEmptyDataPoint(d: IChartDataPoint): boolean {
     return d.empty;
   }
 
@@ -35,7 +35,7 @@ namespace Charts {
    * @param d
    * @returns {boolean}
    */
-  export function isRawMetric(d:IChartDataPoint):boolean {
+  export function isRawMetric(d: IChartDataPoint): boolean {
     return typeof d.avg === 'undefined';
   }
 
@@ -105,13 +105,13 @@ namespace Charts {
 
   }
 
-  export function xMidPointStartPosition(d, timeScale:any) {
+  export function xMidPointStartPosition(d, timeScale: any) {
     return timeScale(d.timestamp);
   }
 
 
   // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
-  export function hashString(str:string):number {
+  export function hashString(str: string): number {
     let hash = 0, i, chr, len;
     if (str.length == 0) return hash;
     for (i = 0, len = str.length; i < len; i++) {

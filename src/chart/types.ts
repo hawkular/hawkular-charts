@@ -3,7 +3,7 @@
 namespace Charts {
   'use strict';
 
-// Type values and ID types
+  // Type values and ID types
   export type AlertThreshold = number;
   export type TimeInMillis = number;
   export type UrlType = number;

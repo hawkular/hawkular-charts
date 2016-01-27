@@ -20,22 +20,22 @@ namespace Charts {
       showYAxisValues: '='
     };
 
-    public link:(scope:any, element:ng.IAugmentedJQuery, attrs:any) => void;
+    public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
 
-    public dataPoints:IChartDataPoint[];
+    public dataPoints: IChartDataPoint[];
 
-    constructor($rootScope:ng.IRootScopeService) {
+    constructor($rootScope: ng.IRootScopeService) {
 
       this.link = (scope, element, attrs) => {
 
-        const margin = {top: 0, right: 5, bottom: 5, left: 90};
+        const margin = { top: 0, right: 5, bottom: 5, left: 90 };
 
         // data specific vars
         let chartHeight = ContextChartDirective._CHART_HEIGHT,
           width = ContextChartDirective._CHART_WIDTH - margin.left - margin.right,
           height = chartHeight - margin.top - margin.bottom,
           innerChartHeight = height + margin.top,
-          showYAxisValues:boolean,
+          showYAxisValues: boolean,
           yScale,
           yAxis,
           yAxisGroup,
@@ -53,7 +53,7 @@ namespace Charts {
         }
 
 
-        function setup():void {
+        function setup(): void {
           // destroy any previous charts
           if (chart) {
             chartParent.selectAll('*').remove();
@@ -71,7 +71,7 @@ namespace Charts {
         }
 
 
-        function createContextChart(dataPoints:IChartDataPoint[]) {
+        function createContextChart(dataPoints: IChartDataPoint[]) {
           //console.log('dataPoints.length: ' + dataPoints.length);
 
           timeScale = d3.time.scale()
@@ -125,28 +125,28 @@ namespace Charts {
 
           let area = d3.svg.area()
             .interpolate('cardinal')
-            .defined((d:any) => {
+            .defined((d: any) => {
               return !d.empty;
             })
-            .x((d:any) => {
+            .x((d: any) => {
               return timeScale(d.timestamp);
             })
-            .y0((d:any) => {
+            .y0((d: any) => {
               return height;
             })
-            .y1((d:any) => {
+            .y1((d: any) => {
               return yScale(d.avg);
             });
 
           let contextLine = d3.svg.line()
             .interpolate('cardinal')
-            .defined((d:any) => {
+            .defined((d: any) => {
               return !d.empty;
             })
-            .x((d:any) => {
+            .x((d: any) => {
               return timeScale(d.timestamp);
             })
-            .y((d:any) => {
+            .y((d: any) => {
               return yScale(d.avg);
             });
 
@@ -228,11 +228,11 @@ namespace Charts {
         });
 
 
-        function formatBucketedChartOutput(response):IChartDataPoint[] {
+        function formatBucketedChartOutput(response): IChartDataPoint[] {
           //  The schema is different for bucketed output
           if (response) {
-            return response.map((point:IChartDataPoint) => {
-              let timestamp:TimeInMillis = point.timestamp || (point.start + (point.end - point.start) / 2);
+            return response.map((point: IChartDataPoint) => {
+              let timestamp: TimeInMillis = point.timestamp || (point.start + (point.end - point.start) / 2);
               return {
                 timestamp: timestamp,
                 //date: new Date(timestamp),
@@ -247,7 +247,7 @@ namespace Charts {
         }
 
 
-        scope.render = (dataPoints:IChartDataPoint[]) => {
+        scope.render = (dataPoints: IChartDataPoint[]) => {
           if (dataPoints && dataPoints.length > 0) {
             //console.time('contextChartRender');
 
@@ -262,7 +262,7 @@ namespace Charts {
     }
 
     public static Factory() {
-      let directive = ($rootScope:ng.IRootScopeService) => {
+      let directive = ($rootScope: ng.IRootScopeService) => {
         return new ContextChartDirective($rootScope);
       };
 
@@ -275,6 +275,3 @@ namespace Charts {
 
   _module.directive('hawkularContextChart', ContextChartDirective.Factory());
 }
-
-
-

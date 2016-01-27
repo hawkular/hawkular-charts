@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 Red Hat, Inc. and/or its affiliates
+ * Copyright 2015-2016 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,6 +89,11 @@ gulp.task('path-adjust', () => {
 
 gulp.task('clean-defs', () => {
   del('defs.d.ts');
+});
+
+
+gulp.task('clean', () => {
+  del('chart');
 });
 
 
@@ -187,6 +192,7 @@ gulp.task('watch', () => {
 
 gulp.task('build', function (cb) {
   runSequence(
+    'clean',
     ['wiredep', 'path-adjust'],
     ['less', 'tslint'],
     'tsc-prod',
@@ -196,6 +202,7 @@ gulp.task('build', function (cb) {
 
 gulp.task('dev-build', function (cb) {
   runSequence(
+    'clean',
     ['wiredep', 'path-adjust'],
     ['less', 'tslint'],
     'tsc-dev',
