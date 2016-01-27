@@ -2,22 +2,21 @@
 namespace Charts {
   'use strict';
 
-
-  export function createHistogramChart(svg:any,
-                                       timeScale:any,
-                                       yScale:any,
-                                       chartData:IChartDataPoint[],
-                                       tip:any,
-                                       height?:number,
-                                       stacked?:boolean,
-                                       visuallyAdjustedMax?:number,
-                                       hideHighLowValues?:boolean) {
+  export function createHistogramChart(svg: any,
+    timeScale: any,
+    yScale: any,
+    chartData: IChartDataPoint[],
+    tip: any,
+    height?: number,
+    stacked?: boolean,
+    visuallyAdjustedMax?: number,
+    hideHighLowValues?: boolean) {
 
     const barClass = stacked ? 'leaderBar' : 'histogram';
 
     const rectHistogram = svg.selectAll('rect.' + barClass).data(chartData);
 
-    function buildBars(selection:d3.Selection<any>) {
+    function buildBars(selection: d3.Selection<any>) {
       selection
         .attr('class', barClass)
         .on('mouseover', (d, i) => {
@@ -54,12 +53,12 @@ namespace Charts {
 
     }
 
-    function buildHighBar(selection:d3.Selection<any>) {
+    function buildHighBar(selection: d3.Selection<any>) {
       selection
         .attr('class', (d) => {
           return d.min === d.max ? 'singleValue' : 'high';
         })
-        .attr('x', function (d, i) {
+        .attr('x', function(d, i) {
           return calcBarXPos(d, i, timeScale, chartData.length);
         })
         .attr('y', (d) => {
@@ -75,11 +74,11 @@ namespace Charts {
         .on('mouseover', (d, i) => {
           tip.show(d, i);
         }).on('mouseout', () => {
-        tip.hide();
-      });
+          tip.hide();
+        });
     }
 
-    function buildLowerBar(selection:d3.Selection<any>) {
+    function buildLowerBar(selection: d3.Selection<any>) {
       selection
         .attr('class', 'low')
         .attr('x', (d, i) => {
@@ -98,12 +97,12 @@ namespace Charts {
         .on('mouseover', (d, i) => {
           tip.show(d, i);
         }).on('mouseout', () => {
-        tip.hide();
-      });
+          tip.hide();
+        });
 
     }
 
-    function buildTopStem(selection:d3.Selection<any>) {
+    function buildTopStem(selection: d3.Selection<any>) {
       selection
         .attr('class', 'histogramTopStem')
         .filter((d) => {
@@ -129,7 +128,7 @@ namespace Charts {
         });
     }
 
-    function buildLowStem(selection:d3.Selection<any>) {
+    function buildLowStem(selection: d3.Selection<any>) {
       selection
         .filter((d) => {
           return !isEmptyDataPoint(d);
@@ -150,12 +149,12 @@ namespace Charts {
         .attr('stroke', (d) => {
           return 'red';
         }).attr('stroke-opacity', (d) => {
-        return 0.6;
-      });
+          return 0.6;
+        });
 
     }
 
-    function buildTopCross(selection:d3.Selection<any>) {
+    function buildTopCross(selection: d3.Selection<any>) {
       selection
         .filter((d) => {
           return !isEmptyDataPoint(d);
@@ -184,7 +183,7 @@ namespace Charts {
         });
     }
 
-    function buildBottomCross(selection:d3.Selection<any>) {
+    function buildBottomCross(selection: d3.Selection<any>) {
       selection
         .filter((d) => {
           return !isEmptyDataPoint(d);
@@ -213,11 +212,10 @@ namespace Charts {
         });
     }
 
-    function createHistogramHighLowValues(svg:any, chartData:IChartDataPoint[], stacked?:boolean) {
+    function createHistogramHighLowValues(svg: any, chartData: IChartDataPoint[], stacked?: boolean) {
       if (stacked) {
         // upper portion representing avg to high
         const rectHigh = svg.selectAll('rect.high, rect.singleValue').data(chartData);
-
 
         // update existing
         rectHigh.call(buildHighBar);
@@ -230,7 +228,6 @@ namespace Charts {
 
         // remove old ones
         rectHigh.exit().remove();
-
 
         // lower portion representing avg to low
         const rectLow = svg.selectAll('rect.low').data(chartData);
@@ -246,14 +243,12 @@ namespace Charts {
 
         // remove old ones
         rectLow.exit().remove();
-      }
-      else {
+      } else {
 
         const lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartData);
 
         // update existing
         lineHistoHighStem.call(buildTopStem);
-
 
         // add new ones
         lineHistoHighStem
@@ -277,7 +272,6 @@ namespace Charts {
 
         // remove old ones
         lineHistoLowStem.exit().remove();
-
 
         const lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartData);
 
@@ -321,13 +315,11 @@ namespace Charts {
 
     if (!hideHighLowValues) {
       createHistogramHighLowValues(svg, chartData, stacked);
-    }
-    else {
+    } else {
       // we should hide high-low values.. or remove if existing
       svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').remove();
     }
 
   }
-
 
 }

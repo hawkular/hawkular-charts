@@ -7,7 +7,6 @@ namespace Charts {
   const Y_AXIS_HEIGHT = 15;
   const _module = angular.module('hawkular.charts');
 
-
   export class SparklineChartDirective {
 
     private static _CHART_WIDTH = 300;
@@ -23,23 +22,23 @@ namespace Charts {
       alertValue: '@',
     };
 
-    public link:(scope:any, element:ng.IAugmentedJQuery, attrs:any) => void;
+    public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
 
-    public dataPoints:IChartDataPoint[];
+    public dataPoints: IChartDataPoint[];
 
-    constructor($rootScope:ng.IRootScopeService) {
+    constructor($rootScope: ng.IRootScopeService) {
 
       this.link = (scope, element, attrs) => {
 
-        const margin = {top: 10, right: 5, bottom: 5, left: 45};
+        const margin = { top: 10, right: 5, bottom: 5, left: 45 };
 
         // data specific vars
         let chartHeight = SparklineChartDirective._CHART_HEIGHT,
           width = SparklineChartDirective._CHART_WIDTH - margin.left - margin.right,
           height = chartHeight - margin.top - margin.bottom,
           innerChartHeight = height + margin.top,
-          showXAxisValues:boolean,
-          showYAxisValues:boolean,
+          showXAxisValues: boolean,
+          showYAxisValues: boolean,
           yScale,
           yAxis,
           yAxisGroup,
@@ -51,20 +50,19 @@ namespace Charts {
           svg,
           alertValue;
 
-        if (typeof attrs.alertValue != 'undefined') {
+        if (typeof attrs.alertValue !== 'undefined') {
           alertValue = +attrs.alertValue;
         }
 
-        if (typeof attrs.showXAxisValues != 'undefined') {
+        if (typeof attrs.showXAxisValues !== 'undefined') {
           showXAxisValues = attrs.showXAxisValues === 'true';
         }
 
-        if (typeof attrs.showYAxisValues != 'undefined') {
+        if (typeof attrs.showYAxisValues !== 'undefined') {
           showYAxisValues = attrs.showYAxisValues === 'true';
         }
 
-
-        function setup():void {
+        function setup(): void {
           // destroy any previous charts
           if (chart) {
             chartParent.selectAll('*').remove();
@@ -74,7 +72,7 @@ namespace Charts {
             .attr('width', width + margin.left + margin.right)
             .attr('height', innerChartHeight)
             .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top +
-              margin.bottom + Y_AXIS_HEIGHT ))
+              margin.bottom + Y_AXIS_HEIGHT))
             .attr('preserveAspectRatio', 'xMinYMin meet');
 
           svg = chart.append('g')
@@ -83,14 +81,12 @@ namespace Charts {
 
         }
 
-
-        function createSparklineChart(dataPoints:IChartDataPoint[]) {
+        function createSparklineChart(dataPoints: IChartDataPoint[]) {
 
           timeScale = d3.time.scale()
             .range([0, width - 10])
             .nice()
             .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
-
 
           let numberOfXTicks = showXAxisValues ? 2 : 0;
 
@@ -124,34 +120,34 @@ namespace Charts {
             .scale(yScale)
             .ticks(numberOfYTicks)
             .tickSize(3, 0)
-            .orient("left");
+            .orient('left');
 
           let interpolationType = 'basis';
           let area = d3.svg.area()
             .interpolate(interpolationType)
-            .defined((d:any) => {
+            .defined((d: any) => {
               return !d.empty;
             })
-            .x((d:any) => {
+            .x((d: any) => {
               return timeScale(d.timestamp);
             })
-            .y0((d:any) => {
+            .y0((d: any) => {
               return SparklineChartDirective._CHART_HEIGHT - Y_AXIS_HEIGHT;
             })
-            .y1((d:any) => {
+            .y1((d: any) => {
               return yScale(d.avg);
             });
 
           // this is the line that caps the area
           let sparklineLine = d3.svg.line()
             .interpolate(interpolationType)
-            .defined((d:any) => {
+            .defined((d: any) => {
               return !d.empty;
             })
-            .x((d:any) => {
+            .x((d: any) => {
               return timeScale(d.timestamp);
             })
-            .y((d:any) => {
+            .y((d: any) => {
               // -2 pixels to keep the 2 pixel line from crossing over the x-axis
               return yScale(d.avg) - 2;
             });
@@ -173,16 +169,15 @@ namespace Charts {
           // remove old ones
           pathSparklineLine.exit().remove();
 
+          let sparklineArea = svg.append('g')
+            .attr('class', 'sparkline');
 
-          let sparklineArea = svg.append("g")
-            .attr("class", "sparkline");
-
-          sparklineArea.append("path")
+          sparklineArea.append('path')
             .datum(dataPoints)
             .transition()
             .duration(500)
-            .attr("class", "sparklineArea")
-            .attr("d", area);
+            .attr('class', 'sparklineArea')
+            .attr('d', area);
 
           //if (alertValue && (alertValue >= yMin && alertValue <= yMax)) {
           //  let alertBounds: AlertBound[] = extractAlertRanges(dataPoints, alertValue);
@@ -221,12 +216,11 @@ namespace Charts {
           }
         });
 
-
-        function formatBucketedChartOutput(response):IChartDataPoint[] {
+        function formatBucketedChartOutput(response): IChartDataPoint[] {
           //  The schema is different for bucketed output
           if (response) {
-            return response.map((point:IChartDataPoint) => {
-              let timestamp:TimeInMillis = point.timestamp || (point.start + (point.end - point.start) / 2);
+            return response.map((point: IChartDataPoint) => {
+              let timestamp: TimeInMillis = point.timestamp || (point.start + (point.end - point.start) / 2);
               return {
                 timestamp: timestamp,
                 //date: new Date(timestamp),
@@ -240,8 +234,7 @@ namespace Charts {
           }
         }
 
-
-        scope.render = (dataPoints:IChartDataPoint[]) => {
+        scope.render = (dataPoints: IChartDataPoint[]) => {
           if (dataPoints && dataPoints.length > 0) {
             //console.group('Render Sparkline Chart');
             //console.time('SparklineChartRender');
@@ -256,7 +249,7 @@ namespace Charts {
     }
 
     public static Factory() {
-      let directive = ($rootScope:ng.IRootScopeService) => {
+      let directive = ($rootScope: ng.IRootScopeService) => {
         return new SparklineChartDirective($rootScope);
       };
 
@@ -269,6 +262,3 @@ namespace Charts {
 
   _module.directive('hawkularSparklineChart', SparklineChartDirective.Factory());
 }
-
-
-

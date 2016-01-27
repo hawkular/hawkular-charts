@@ -5,22 +5,22 @@ namespace Charts {
 
   import IChartDataPoint = Charts.IChartDataPoint;
 
-  export function createLineChart(svg:any,
-                                  timeScale:any,
-                                  yScale:any,
-                                  chartData:IChartDataPoint[],
-                                  height?:number,
-                                  interpolation?:string) {
+  export function createLineChart(svg: any,
+    timeScale: any,
+    yScale: any,
+    chartData: IChartDataPoint[],
+    height?: number,
+    interpolation?: string) {
 
     let metricChartLine = d3.svg.line()
       .interpolate(interpolation)
-      .defined((d:any) => {
+      .defined((d: any) => {
         return !isEmptyDataPoint(d);
       })
-      .x((d:any) => {
+      .x((d: any) => {
         return timeScale(d.timestamp);
       })
-      .y((d:any) => {
+      .y((d: any) => {
         return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
       });
 

@@ -3,13 +3,12 @@
 namespace Charts {
   'use strict';
 
-// Type values and ID types
+  // Type values and ID types
   export type AlertThreshold = number;
   export type TimeInMillis = number;
   export type UrlType = number;
   export type MetricId = string;
   export type MetricValue = number;
-
 
   /**
    * Metrics Response from Hawkular Metrics
@@ -50,7 +49,6 @@ namespace Charts {
     percentile95th: MetricValue;
     median: MetricValue;
   }
-
 
   /**
    * Data structure for a Multi-Metric chart. Composed of IChartDataDataPoint[].

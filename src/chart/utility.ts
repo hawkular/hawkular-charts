@@ -3,30 +3,31 @@
 namespace Charts {
   'use strict';
 
-  export function calcBarWidth(width:number, length:number, barOffset = BAR_OFFSET) {
+  /* tslint:disable:no-bitwise */
+
+  export function calcBarWidth(width: number, length: number, barOffset = BAR_OFFSET) {
     return (width / length - barOffset);
   }
 
   // Calculates the bar width adjusted so that the first and last are half-width of the others
   // see https://issues.jboss.org/browse/HAWKULAR-809 for info on why this is needed
-  export function calcBarWidthAdjusted(i, length:number) {
+  export function calcBarWidthAdjusted(i, length: number) {
     return (i === 0 || i === length - 1) ? calcBarWidth(width, length, BAR_OFFSET) / 2 :
       calcBarWidth(width, length, BAR_OFFSET);
   }
 
   // Calculates the bar X position. When using calcBarWidthAdjusted, it is required to push bars
   // other than the first half bar to the left, to make up for the first being just half width
-  export function calcBarXPos(d, i, timeScale:any, length:number) {
+  export function calcBarXPos(d, i, timeScale: any, length: number) {
     return timeScale(d.timestamp) - (i === 0 ? 0 : calcBarWidth(width, length, BAR_OFFSET) / 2);
   }
-
 
   /**
    * An empty datapoint has 'empty' attribute set to true. Used to distinguish from real 0 values.
    * @param d
    * @returns {boolean}
    */
-  export function isEmptyDataPoint(d:IChartDataPoint):boolean {
+  export function isEmptyDataPoint(d: IChartDataPoint): boolean {
     return d.empty;
   }
 
@@ -35,34 +36,34 @@ namespace Charts {
    * @param d
    * @returns {boolean}
    */
-  export function isRawMetric(d:IChartDataPoint):boolean {
+  export function isRawMetric(d: IChartDataPoint): boolean {
     return typeof d.avg === 'undefined';
   }
 
   export function xAxisTimeFormats() {
     return d3.time.format.multi([
-      [".%L", (d) => {
+      ['.%L', (d) => {
         return d.getMilliseconds();
       }],
-      [":%S", (d) => {
+      [':%S', (d) => {
         return d.getSeconds();
       }],
-      ["%H:%M", (d) => {
-        return d.getMinutes()
+      ['%H:%M', (d) => {
+        return d.getMinutes();
       }],
-      ["%H:%M", (d) => {
+      ['%H:%M', (d) => {
         return d.getHours();
       }],
-      ["%a %d", (d) => {
-        return d.getDay() && d.getDate() != 1;
+      ['%a %d', (d) => {
+        return d.getDay() && d.getDate() !== 1;
       }],
-      ["%b %d", (d) => {
-        return d.getDate() != 1;
+      ['%b %d', (d) => {
+        return d.getDate() !== 1;
       }],
-      ["%B", (d) => {
+      ['%B', (d) => {
         return d.getMonth();
       }],
-      ["%Y", () => {
+      ['%Y', () => {
         return true;
       }]
     ]);
@@ -105,15 +106,16 @@ namespace Charts {
 
   }
 
-  export function xMidPointStartPosition(d, timeScale:any) {
+  export function xMidPointStartPosition(d, timeScale: any) {
     return timeScale(d.timestamp);
   }
 
-
   // adapted from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
-  export function hashString(str:string):number {
+  export function hashString(str: string): number {
     let hash = 0, i, chr, len;
-    if (str.length == 0) return hash;
+    if (str.length === 0) {
+      return hash;
+    }
     for (i = 0, len = str.length; i < len; i++) {
       chr = str.charCodeAt(i);
       hash = ((hash << 5) - hash) + chr;

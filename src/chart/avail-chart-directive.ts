@@ -2,7 +2,7 @@
 namespace Charts {
   'use strict';
 
-  declare let d3:any;
+  declare let d3: any;
 
   const _module = angular.module('hawkular.charts');
 
@@ -12,12 +12,11 @@ namespace Charts {
     public static DOWN = 'down';
     public static UNKNOWN = 'unknown';
 
-
-    constructor(public value:string) {
+    constructor(public value: string) {
       // empty
     }
 
-    public toString():string {
+    public toString(): string {
       return this.value;
     }
   }
@@ -26,32 +25,32 @@ namespace Charts {
    * This is the input data format, directly from Metrics.
    */
   export interface IAvailDataPoint {
-    timestamp:number;
-    value:string;
+    timestamp: number;
+    value: string;
   }
 
   /**
    * This is the transformed output data format. Formatted to work with availability chart (basically a DTO).
    */
   export interface ITransformedAvailDataPoint {
-    start:number;
-    end:number;
-    value:string;
-    startDate?:Date; /// Mainly for debugger human readable dates instead of a number
-    endDate?:Date;
-    duration?:string;
-    message?:string;
+    start: number;
+    end: number;
+    value: string;
+    startDate?: Date; /// Mainly for debugger human readable dates instead of a number
+    endDate?: Date;
+    duration?: string;
+    message?: string;
   }
 
   export class TransformedAvailDataPoint implements ITransformedAvailDataPoint {
 
-    constructor(public start:number,
-                public end:number,
-                public value:string,
-                public startDate?:Date,
-                public endDate?:Date,
-                public duration?:string,
-                public message?:string) {
+    constructor(public start: number,
+      public end: number,
+      public value: string,
+      public startDate?: Date,
+      public endDate?: Date,
+      public duration?: string,
+      public message?: string) {
 
       this.duration = moment(end).from(moment(start), true);
       this.startDate = new Date(start);
@@ -60,11 +59,10 @@ namespace Charts {
 
   }
 
-
   export class AvailabilityChartDirective {
 
-    private static  _CHART_HEIGHT = 150;
-    private static  _CHART_WIDTH = 750;
+    private static _CHART_HEIGHT = 150;
+    private static _CHART_WIDTH = 750;
 
     public restrict = 'E';
     public replace = true;
@@ -76,26 +74,24 @@ namespace Charts {
       endTimestamp: '@',
       timeLabel: '@',
       dateLabel: '@',
-      noDataLabel: '@',
       chartTitle: '@'
     };
 
-    public link:(scope:any, element:ng.IAugmentedJQuery, attrs:any) => void;
+    public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
 
-    public transformedDataPoints:ITransformedAvailDataPoint[];
+    public transformedDataPoints: ITransformedAvailDataPoint[];
 
-    constructor($rootScope:ng.IRootScopeService) {
+    constructor($rootScope: ng.IRootScopeService) {
 
       this.link = (scope, element, attrs) => {
 
         // data specific vars
-        let startTimestamp:number = +attrs.startTimestamp,
-          endTimestamp:number = +attrs.endTimestamp,
-          chartHeight =  AvailabilityChartDirective._CHART_HEIGHT,
-          noDataLabel = attrs.noDataLabel || 'No Data'; //@todo: add No Data handling
+        let startTimestamp: number = +attrs.startTimestamp,
+          endTimestamp: number = +attrs.endTimestamp,
+          chartHeight = AvailabilityChartDirective._CHART_HEIGHT;
 
         // chart specific vars
-        let margin = {top: 10, right: 5, bottom: 5, left: 90},
+        let margin = { top: 10, right: 5, bottom: 5, left: 90 },
           width = AvailabilityChartDirective._CHART_WIDTH - margin.left - margin.right,
           adjustedChartHeight = chartHeight - 50,
           height = adjustedChartHeight - margin.top - margin.bottom,
@@ -115,21 +111,20 @@ namespace Charts {
           chartParent,
           svg;
 
-
-        function buildAvailHover(d:ITransformedAvailDataPoint) {
+        function buildAvailHover(d: ITransformedAvailDataPoint) {
           return `<div class='chartHover'>
-            <div class="info-item">
+            <div class='info-item'>
               <span class='chartHoverLabel'>Status:</span>
               <span class='chartHoverValue'>${d.value.toUpperCase()}</span>
             </div>
-            <div class="info-item before-separator">
+            <div class='info-item before-separator'>
               <span class='chartHoverLabel'>Duration:</span>
               <span class='chartHoverValue'>${d.duration}</span>
             </div>
           </div>`;
         }
 
-        function oneTimeChartSetup():void {
+        function oneTimeChartSetup(): void {
           // destroy any previous charts
           if (chart) {
             chartParent.selectAll('*').remove();
@@ -141,7 +136,7 @@ namespace Charts {
           tip = d3.tip()
             .attr('class', 'd3-tip')
             .offset([-10, 0])
-            .html((d:ITransformedAvailDataPoint) => {
+            .html((d: ITransformedAvailDataPoint) => {
               return buildAvailHover(d);
             });
 
@@ -165,11 +160,11 @@ namespace Charts {
           svg.call(tip);
         }
 
+        function determineAvailScale(transformedAvailDataPoint: ITransformedAvailDataPoint[]) {
+          let adjustedTimeRange: number[] = [];
 
-        function determineAvailScale(transformedAvailDataPoint:ITransformedAvailDataPoint[]) {
-          let adjustedTimeRange:number[] = [];
-
-          startTimestamp = +attrs.startTimestamp || d3.min(transformedAvailDataPoint, (d:ITransformedAvailDataPoint) => {
+          startTimestamp = +attrs.startTimestamp ||
+            d3.min(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
               return d.start;
             }) || +moment().subtract(1, 'hour');
 
@@ -202,24 +197,23 @@ namespace Charts {
           }
         }
 
-
-        function isUp(d:ITransformedAvailDataPoint) {
+        function isUp(d: ITransformedAvailDataPoint) {
           return d.value === AvailStatus.UP.toString();
         }
 
-        function isDown(d:ITransformedAvailDataPoint) {
-          return d.value === AvailStatus.DOWN.toString();
-        }
+        //function isDown(d: ITransformedAvailDataPoint) {
+        //  return d.value === AvailStatus.DOWN.toString();
+        //}
 
-        function isUnknown(d:ITransformedAvailDataPoint) {
+        function isUnknown(d: ITransformedAvailDataPoint) {
           return d.value === AvailStatus.UNKNOWN.toString();
         }
 
-        function formatTransformedDataPoints(inAvailData:IAvailDataPoint[]):ITransformedAvailDataPoint[] {
-          let outputData:ITransformedAvailDataPoint[] = [];
+        function formatTransformedDataPoints(inAvailData: IAvailDataPoint[]): ITransformedAvailDataPoint[] {
+          let outputData: ITransformedAvailDataPoint[] = [];
           let itemCount = inAvailData.length;
 
-          function sortByTimestamp(a:IAvailDataPoint, b:IAvailDataPoint) {
+          function sortByTimestamp(a: IAvailDataPoint, b: IAvailDataPoint) {
             if (a.timestamp < b.timestamp) {
               return -1;
             }
@@ -230,7 +224,6 @@ namespace Charts {
           }
 
           inAvailData.sort(sortByTimestamp);
-
 
           if (inAvailData && itemCount > 0 && inAvailData[0].timestamp) {
             let now = new Date().getTime();
@@ -244,8 +237,7 @@ namespace Charts {
                 availItem.timestamp, AvailStatus.UNKNOWN.toString()));
               // and the determined value up until the end.
               outputData.push(new TransformedAvailDataPoint(availItem.timestamp, now, availItem.value));
-            }
-            else {
+            } else {
               let backwardsEndTime = now;
 
               for (let i = inAvailData.length; i > 0; i--) {
@@ -257,8 +249,7 @@ namespace Charts {
                   outputData.push(new TransformedAvailDataPoint(startTimestamp,
                     backwardsEndTime, inAvailData[i - 1].value));
                   break;
-                }
-                else {
+                } else {
                   outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp,
                     backwardsEndTime, inAvailData[i - 1].value));
                   backwardsEndTime = inAvailData[i - 1].timestamp;
@@ -268,7 +259,6 @@ namespace Charts {
           }
           return outputData;
         }
-
 
         function createSideYAxisLabels() {
           ///@Todo: move out to stylesheet
@@ -294,43 +284,42 @@ namespace Charts {
 
         }
 
-
-        function createAvailabilityChart(transformedAvailDataPoint:ITransformedAvailDataPoint[]) {
-          let xAxisMin = d3.min(transformedAvailDataPoint, (d:ITransformedAvailDataPoint) => {
-              return +d.start;
-            }),
-            xAxisMax = d3.max(transformedAvailDataPoint, (d:ITransformedAvailDataPoint) => {
-              return +d.end;
-            });
+        function createAvailabilityChart(transformedAvailDataPoint: ITransformedAvailDataPoint[]) {
+          //let xAxisMin = d3.min(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
+          //  return +d.start;
+          //}),
+          let xAxisMax = d3.max(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
+            return +d.end;
+          });
 
           let availTimeScale = d3.time.scale()
-              .range([0, width])
-              .domain([startTimestamp, endTimestamp || xAxisMax]),
+            .range([0, width])
+            .domain([startTimestamp, endTimestamp || xAxisMax]),
 
             yScale = d3.scale.linear()
               .clamp(true)
               .range([height, 0])
-              .domain([0, 4]),
+              .domain([0, 4]);
 
-            availXAxis = d3.svg.axis()
-              .scale(availTimeScale)
-              .ticks(8)
-              .tickSize(13, 0)
-              .orient('top');
+          //availXAxis = d3.svg.axis()
+          //  .scale(availTimeScale)
+          //  .ticks(8)
+          //  .tickSize(13, 0)
+          //  .orient('top');
 
           // For each datapoint calculate the Y offset for the bar
           // Up or Unknown: offset 0, Down: offset 35
-          function calcBarY(d:ITransformedAvailDataPoint) {
+          function calcBarY(d: ITransformedAvailDataPoint) {
             return height - yScale(0) + ((isUp(d) || isUnknown(d)) ? 0 : 35);
           }
 
           // For each datapoint calculate the Y removed height for the bar
           // Unknown: full height 15, Up or Down: half height, 50
-          function calcBarHeight(d:ITransformedAvailDataPoint) {
+          function calcBarHeight(d: ITransformedAvailDataPoint) {
             return yScale(0) - (isUnknown(d) ? 15 : 50);
           }
 
-          function calcBarFill(d:ITransformedAvailDataPoint) {
+          function calcBarFill(d: ITransformedAvailDataPoint) {
             if (isUp(d)) {
               return '#54A24E'; // green
             } else if (isUnknown(d)) {
@@ -344,20 +333,20 @@ namespace Charts {
             .data(transformedAvailDataPoint)
             .enter().append('rect')
             .attr('class', 'availBars')
-            .attr('x', (d:ITransformedAvailDataPoint) => {
+            .attr('x', (d: ITransformedAvailDataPoint) => {
               return availTimeScale(+d.start);
             })
-            .attr('y', (d:ITransformedAvailDataPoint) => {
+            .attr('y', (d: ITransformedAvailDataPoint) => {
               return calcBarY(d);
             })
             .attr('height', (d) => {
               return calcBarHeight(d);
             })
-            .attr('width', (d:ITransformedAvailDataPoint) => {
+            .attr('width', (d: ITransformedAvailDataPoint) => {
               let dEnd = endTimestamp ? (Math.min(+d.end, endTimestamp)) : (+d.end);
               return availTimeScale(dEnd) - availTimeScale(+d.start);
             })
-            .attr('fill', (d:ITransformedAvailDataPoint) => {
+            .attr('fill', (d: ITransformedAvailDataPoint) => {
               return calcBarFill(d);
             })
             .attr('opacity', () => {
@@ -369,7 +358,7 @@ namespace Charts {
               tip.hide();
             })
             .on('mousedown', () => {
-              let brushElem = svg.select(".brush").node();
+              let brushElem = svg.select('.brush').node();
               let clickEvent: any = new Event('mousedown');
               clickEvent.pageX = d3.event.pageX;
               clickEvent.clientX = d3.event.clientX;
@@ -378,7 +367,7 @@ namespace Charts {
               brushElem.dispatchEvent(clickEvent);
             })
             .on('mouseup', () => {
-              let brushElem = svg.select(".brush").node();
+              let brushElem = svg.select('.brush').node();
               let clickEvent: any = new Event('mouseup');
               clickEvent.pageX = d3.event.pageX;
               clickEvent.clientX = d3.event.clientX;
@@ -389,16 +378,15 @@ namespace Charts {
 
           // The bottom line of the availability chart
           svg.append('line')
-            .attr("x1", 0)
-            .attr("y1", 70)
-            .attr("x2", 655)
-            .attr("y2", 70)
-            .attr("stroke-width", 0.5)
-            .attr("stroke", "#D0D0D0");
+            .attr('x1', 0)
+            .attr('y1', 70)
+            .attr('x2', 655)
+            .attr('y2', 70)
+            .attr('stroke-width', 0.5)
+            .attr('stroke', '#D0D0D0');
 
           createSideYAxisLabels();
         }
-
 
         function createXandYAxes() {
 
@@ -414,7 +402,6 @@ namespace Charts {
             .attr('class', 'y axis')
             .call(yAxis);
         }
-
 
         function createXAxisBrush() {
 
@@ -435,7 +422,6 @@ namespace Charts {
           function brushStart() {
             svg.classed('selecting', true);
           }
-
 
           function brushEnd() {
             let extent = brush.extent(),
@@ -464,7 +450,7 @@ namespace Charts {
           scope.render(this.transformedDataPoints);
         });
 
-        scope.render = (transformedAvailDataPoint:ITransformedAvailDataPoint[]) => {
+        scope.render = (transformedAvailDataPoint: ITransformedAvailDataPoint[]) => {
           if (transformedAvailDataPoint && transformedAvailDataPoint.length > 0) {
             //console.time('availChartRender');
             ///NOTE: layering order is important!
@@ -480,7 +466,7 @@ namespace Charts {
     }
 
     public static Factory() {
-      let directive = ($rootScope:ng.IRootScopeService) => {
+      let directive = ($rootScope: ng.IRootScopeService) => {
         return new AvailabilityChartDirective($rootScope);
       };
 
@@ -493,6 +479,3 @@ namespace Charts {
 
   _module.directive('availabilityChart', AvailabilityChartDirective.Factory());
 }
-
-
-

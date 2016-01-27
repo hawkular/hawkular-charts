@@ -5,20 +5,20 @@ namespace Charts {
 
   import IChartDataPoint = Charts.IChartDataPoint;
 
-  export function createScatterChart(svg:any,
-                                     timeScale:any,
-                                     yScale:any,
-                                     chartData:IChartDataPoint[],
-                                     height?:number,
-                                     interpolation?:string,
-                                     hideHighLowValues?:boolean) {
+  export function createScatterChart(svg: any,
+    timeScale: any,
+    yScale: any,
+    chartData: IChartDataPoint[],
+    height?: number,
+    interpolation?: string,
+    hideHighLowValues?: boolean) {
 
     if (!hideHighLowValues) {
 
       let highDotCircle = svg.selectAll('.highDot').data(chartData);
       // update existing
       highDotCircle.attr('class', 'highDot')
-        .filter((d:any) => {
+        .filter((d: any) => {
           return !isEmptyDataPoint(d);
         })
         .attr('r', 3)
@@ -31,10 +31,10 @@ namespace Charts {
         .style('fill', () => {
           return '#ff1a13';
         }).on('mouseover', (d, i) => {
-        //tip.show(d, i);
-      }).on('mouseout', () => {
-        //tip.hide();
-      });
+          //tip.show(d, i);
+        }).on('mouseout', () => {
+          //tip.hide();
+        });
       // add new ones
       highDotCircle.enter().append('circle')
         .filter((d) => {
@@ -51,10 +51,10 @@ namespace Charts {
         .style('fill', () => {
           return '#ff1a13';
         }).on('mouseover', (d, i) => {
-        //tip.show(d, i);
-      }).on('mouseout', () => {
-        //tip.hide();
-      });
+          //tip.show(d, i);
+        }).on('mouseout', () => {
+          //tip.hide();
+        });
       // remove old ones
       highDotCircle.exit().remove();
 
@@ -74,10 +74,10 @@ namespace Charts {
         .style('fill', () => {
           return '#70c4e2';
         }).on('mouseover', (d, i) => {
-        //tip.show(d, i);
-      }).on('mouseout', () => {
-        //tip.hide();
-      });
+          //tip.show(d, i);
+        }).on('mouseout', () => {
+          //tip.hide();
+        });
       // add new ones
       lowDotCircle.enter().append('circle')
         .filter((d) => {
@@ -94,14 +94,14 @@ namespace Charts {
         .style('fill', () => {
           return '#70c4e2';
         }).on('mouseover', (d, i) => {
-        //tip.show(d, i);
-      }).on('mouseout', () => {
-        //tip.hide();
-      });
+          //tip.show(d, i);
+        }).on('mouseout', () => {
+          //tip.hide();
+        });
       // remove old ones
       lowDotCircle.exit().remove();
-    }
-    else {
+
+    } else {
       // we should hide high-low values.. or remove if existing
       svg.selectAll('.highDot, .lowDot').remove();
     }
@@ -122,10 +122,10 @@ namespace Charts {
       .style('fill', () => {
         return '#FFF';
       }).on('mouseover', (d, i) => {
-      //tip.show(d, i);
-    }).on('mouseout', () => {
-      //tip.hide();
-    });
+        //tip.show(d, i);
+      }).on('mouseout', () => {
+        //tip.hide();
+      });
     // add new ones
     avgDotCircle.enter().append('circle')
       .filter((d) => {
@@ -142,14 +142,13 @@ namespace Charts {
       .style('fill', () => {
         return '#FFF';
       }).on('mouseover', (d, i) => {
-      //tip.show(d, i);
-    }).on('mouseout', () => {
-      //tip.hide();
-    });
+        //tip.show(d, i);
+      }).on('mouseout', () => {
+        //tip.hide();
+      });
     // remove old ones
     avgDotCircle.exit().remove();
 
   }
-
 
 }

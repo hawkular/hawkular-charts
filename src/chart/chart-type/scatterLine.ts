@@ -5,17 +5,17 @@ namespace Charts {
 
   import IChartDataPoint = Charts.IChartDataPoint;
 
-  export function createScatterLineChart(svg:any,
-                                         timeScale:any,
-                                         yScale:any,
-                                         chartData:IChartDataPoint[],
-                                         height?:number,
-                                         interpolation?:string,
-                                         hideHighLowValues?:boolean) {
+  export function createScatterLineChart(svg: any,
+    timeScale: any,
+    yScale: any,
+    chartData: IChartDataPoint[],
+    height?: number,
+    interpolation?: string,
+    hideHighLowValues?: boolean) {
     let lineScatterTopStem = svg.selectAll('.scatterLineTopStem').data(chartData);
     // update existing
     lineScatterTopStem.attr('class', 'scatterLineTopStem')
-      .filter((d:any) => {
+      .filter((d: any) => {
         return !isEmptyDataPoint(d);
       })
       .attr('x1', (d) => {
@@ -223,10 +223,10 @@ namespace Charts {
       .style('opacity', () => {
         return '1';
       }).on('mouseover', (d, i) => {
-      //tip.show(d, i);
-    }).on('mouseout', () => {
-      //tip.hide();
-    });
+        //tip.show(d, i);
+      }).on('mouseout', () => {
+        //tip.hide();
+      });
     // add new ones
     circleScatterDot.enter().append('circle')
       .filter((d) => {
@@ -246,13 +246,12 @@ namespace Charts {
       .style('opacity', () => {
         return '1';
       }).on('mouseover', (d, i) => {
-      //tip.show(d, i);
-    }).on('mouseout', () => {
-      //tip.hide();
-    });
+        //tip.show(d, i);
+      }).on('mouseout', () => {
+        //tip.hide();
+      });
     // remove old ones
     circleScatterDot.exit().remove();
-
 
   }
 
