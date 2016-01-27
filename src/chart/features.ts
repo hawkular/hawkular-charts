@@ -2,7 +2,6 @@
 namespace Charts {
   'use strict';
 
-
   export function createDataPoints(svg: any,
     timeScale: any,
     yScale: any,

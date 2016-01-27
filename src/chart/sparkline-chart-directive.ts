@@ -7,7 +7,6 @@ namespace Charts {
   const Y_AXIS_HEIGHT = 15;
   const _module = angular.module('hawkular.charts');
 
-
   export class SparklineChartDirective {
 
     private static _CHART_WIDTH = 300;
@@ -51,18 +50,17 @@ namespace Charts {
           svg,
           alertValue;
 
-        if (typeof attrs.alertValue != 'undefined') {
+        if (typeof attrs.alertValue !== 'undefined') {
           alertValue = +attrs.alertValue;
         }
 
-        if (typeof attrs.showXAxisValues != 'undefined') {
+        if (typeof attrs.showXAxisValues !== 'undefined') {
           showXAxisValues = attrs.showXAxisValues === 'true';
         }
 
-        if (typeof attrs.showYAxisValues != 'undefined') {
+        if (typeof attrs.showYAxisValues !== 'undefined') {
           showYAxisValues = attrs.showYAxisValues === 'true';
         }
-
 
         function setup(): void {
           // destroy any previous charts
@@ -83,14 +81,12 @@ namespace Charts {
 
         }
 
-
         function createSparklineChart(dataPoints: IChartDataPoint[]) {
 
           timeScale = d3.time.scale()
             .range([0, width - 10])
             .nice()
             .domain([dataPoints[0].timestamp, dataPoints[dataPoints.length - 1].timestamp]);
-
 
           let numberOfXTicks = showXAxisValues ? 2 : 0;
 
@@ -124,7 +120,7 @@ namespace Charts {
             .scale(yScale)
             .ticks(numberOfYTicks)
             .tickSize(3, 0)
-            .orient("left");
+            .orient('left');
 
           let interpolationType = 'basis';
           let area = d3.svg.area()
@@ -173,16 +169,15 @@ namespace Charts {
           // remove old ones
           pathSparklineLine.exit().remove();
 
+          let sparklineArea = svg.append('g')
+            .attr('class', 'sparkline');
 
-          let sparklineArea = svg.append("g")
-            .attr("class", "sparkline");
-
-          sparklineArea.append("path")
+          sparklineArea.append('path')
             .datum(dataPoints)
             .transition()
             .duration(500)
-            .attr("class", "sparklineArea")
-            .attr("d", area);
+            .attr('class', 'sparklineArea')
+            .attr('d', area);
 
           //if (alertValue && (alertValue >= yMin && alertValue <= yMax)) {
           //  let alertBounds: AlertBound[] = extractAlertRanges(dataPoints, alertValue);
@@ -221,7 +216,6 @@ namespace Charts {
           }
         });
 
-
         function formatBucketedChartOutput(response): IChartDataPoint[] {
           //  The schema is different for bucketed output
           if (response) {
@@ -239,7 +233,6 @@ namespace Charts {
             });
           }
         }
-
 
         scope.render = (dataPoints: IChartDataPoint[]) => {
           if (dataPoints && dataPoints.length > 0) {

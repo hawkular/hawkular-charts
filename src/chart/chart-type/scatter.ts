@@ -100,8 +100,8 @@ namespace Charts {
         });
       // remove old ones
       lowDotCircle.exit().remove();
-    }
-    else {
+
+    } else {
       // we should hide high-low values.. or remove if existing
       svg.selectAll('.highDot, .lowDot').remove();
     }
@@ -150,6 +150,5 @@ namespace Charts {
     avgDotCircle.exit().remove();
 
   }
-
 
 }

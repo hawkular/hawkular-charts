@@ -48,7 +48,6 @@ declare namespace Charts {
             endTimestamp: string;
             timeLabel: string;
             dateLabel: string;
-            noDataLabel: string;
             chartTitle: string;
         };
         link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;

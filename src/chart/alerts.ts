@@ -19,7 +19,6 @@ namespace Charts {
 
   }
 
-
   function createAlertLineDef(timeScale: any,
     yScale: any,
     alertValue: number) {
@@ -55,7 +54,6 @@ namespace Charts {
     pathAlertLine.exit().remove();
   }
 
-
   export function extractAlertRanges(chartData: IChartDataPoint[], threshold: AlertThreshold): AlertBound[] {
     let alertBoundAreaItems: AlertBound[];
     let startPoints: number[];
@@ -67,8 +65,7 @@ namespace Charts {
       chartData.forEach((chartItem: IChartDataPoint, i: number) => {
         if (i === 0 && chartItem.avg > threshold) {
           startPoints.push(i);
-        }
-        else {
+        } else {
           prevItem = chartData[i - 1];
           if (chartItem.avg > threshold && prevItem && (!prevItem.avg || prevItem.avg <= threshold)) {
             startPoints.push(prevItem.avg ? (i - 1) : i);
@@ -87,7 +84,6 @@ namespace Charts {
 
       startPoints.forEach((startPointIndex: number) => {
         startItem = chartData[startPointIndex];
-
 
         for (let j = startPointIndex; j < chartData.length - 1; j++) {
           currentItem = chartData[j];
@@ -108,7 +104,7 @@ namespace Charts {
           chartData[chartData.length - 1].timestamp, threshold));
       }
 
-      return alertBoundAreaItems
+      return alertBoundAreaItems;
     }
 
     startPoints = findStartPoints(chartData, threshold);

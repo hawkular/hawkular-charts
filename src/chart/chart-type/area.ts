@@ -57,7 +57,6 @@ namespace Charts {
           return height;
         });
 
-
     if (!hideHighLowValues) {
       let highAreaPath = svg.selectAll('path.highArea').data([chartData]);
       // update existing
@@ -93,6 +92,5 @@ namespace Charts {
     // remove old ones
     avgAreaPath.exit().remove();
   }
-
 
 }

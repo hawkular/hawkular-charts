@@ -1,6 +1,5 @@
 {
   "rules": {
-    "align": [true, "arguments", "parameters", "statements"],
     "class-name": true,
     "curly": true,
     "eofline": true,
@@ -12,6 +11,7 @@
     "member-access": true,
     "no-arg": true,
     "no-bitwise": true,
+    "no-consecutive-blank-lines": true,
     "no-console": [true,
       "trace"
     ],
@@ -24,7 +24,6 @@
     "no-require-imports": true,
     "no-string-literal": false,
     "no-switch-case-fall-through": true,
-    "no-shadowed-variable": true,
     "no-trailing-whitespace": true,
     "no-unused-expression": true,
     "no-unused-variable": true,
@@ -40,7 +39,7 @@
     "quotemark": [true, "single"],
     "radix": true,
     "semicolon": true,
-    "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
+    "trailing-comma": [false, {"multiline": "always", "singleline": "never"}],
     "triple-equals": [true, "allow-null-check"],
     "typedef-whitespace": [true],
     "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],

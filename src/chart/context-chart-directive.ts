@@ -17,7 +17,7 @@ namespace Charts {
     // Can't use 1.4 directive controllers because we need to support 1.3+
     public scope = {
       data: '=',
-      showYAxisValues: '='
+      showYAxisValues: '=',
     };
 
     public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
@@ -48,10 +48,9 @@ namespace Charts {
           chartParent,
           svg;
 
-        if (typeof attrs.showYAxisValues != 'undefined') {
+        if (typeof attrs.showYAxisValues !== 'undefined') {
           showYAxisValues = attrs.showYAxisValues === 'true';
         }
-
 
         function setup(): void {
           // destroy any previous charts
@@ -69,7 +68,6 @@ namespace Charts {
             .attr('class', 'contextChart');
 
         }
-
 
         function createContextChart(dataPoints: IChartDataPoint[]) {
           //console.log('dataPoints.length: ' + dataPoints.length);
@@ -93,7 +91,6 @@ namespace Charts {
             .attr('transform', 'translate(0,' + height + ')')
             .call(xAxis);
 
-
           let yMin = d3.min(dataPoints, (d) => {
             return d.avg;
           });
@@ -110,14 +107,13 @@ namespace Charts {
             .nice()
             .domain([yMin, yMax]);
 
-
           let numberOfTicks = showYAxisValues ? 2 : 0;
 
           yAxis = d3.svg.axis()
             .scale(yScale)
             .ticks(numberOfTicks)
             .tickSize(4, 0)
-            .orient("left");
+            .orient('left');
 
           yAxisGroup = svg.append('g')
             .attr('class', 'y axis')
@@ -166,19 +162,17 @@ namespace Charts {
           // remove old ones
           pathContextLine.exit().remove();
 
+          let contextArea = svg.append('g')
+            .attr('class', 'context');
 
-          let contextArea = svg.append("g")
-            .attr("class", "context");
-
-          contextArea.append("path")
+          contextArea.append('path')
             .datum(dataPoints)
             .transition()
             .duration(500)
-            .attr("class", "contextArea")
-            .attr("d", area);
+            .attr('class', 'contextArea')
+            .attr('d', area);
 
         }
-
 
         function createXAxisBrush() {
 
@@ -205,7 +199,6 @@ namespace Charts {
             svg.classed('selecting', true);
           }
 
-
           function contextBrushEnd() {
             let brushExtent = brush.extent(),
               startTime = Math.round(brushExtent[0].getTime()),
@@ -227,7 +220,6 @@ namespace Charts {
           }
         });
 
-
         function formatBucketedChartOutput(response): IChartDataPoint[] {
           //  The schema is different for bucketed output
           if (response) {
@@ -245,7 +237,6 @@ namespace Charts {
             });
           }
         }
-
 
         scope.render = (dataPoints: IChartDataPoint[]) => {
           if (dataPoints && dataPoints.length > 0) {

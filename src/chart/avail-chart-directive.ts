@@ -12,7 +12,6 @@ namespace Charts {
     public static DOWN = 'down';
     public static UNKNOWN = 'unknown';
 
-
     constructor(public value: string) {
       // empty
     }
@@ -59,7 +58,6 @@ namespace Charts {
     }
 
   }
-
 
   export class AvailabilityChartDirective {
 
@@ -113,14 +111,13 @@ namespace Charts {
           chartParent,
           svg;
 
-
         function buildAvailHover(d: ITransformedAvailDataPoint) {
           return `<div class='chartHover'>
-            <div class="info-item">
+            <div class='info-item'>
               <span class='chartHoverLabel'>Status:</span>
               <span class='chartHoverValue'>${d.value.toUpperCase()}</span>
             </div>
-            <div class="info-item before-separator">
+            <div class='info-item before-separator'>
               <span class='chartHoverLabel'>Duration:</span>
               <span class='chartHoverValue'>${d.duration}</span>
             </div>
@@ -163,13 +160,13 @@ namespace Charts {
           svg.call(tip);
         }
 
-
         function determineAvailScale(transformedAvailDataPoint: ITransformedAvailDataPoint[]) {
           let adjustedTimeRange: number[] = [];
 
-          startTimestamp = +attrs.startTimestamp || d3.min(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
-            return d.start;
-          }) || +moment().subtract(1, 'hour');
+          startTimestamp = +attrs.startTimestamp ||
+            d3.min(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
+              return d.start;
+            }) || +moment().subtract(1, 'hour');
 
           if (transformedAvailDataPoint && transformedAvailDataPoint.length > 0) {
 
@@ -200,14 +197,13 @@ namespace Charts {
           }
         }
 
-
         function isUp(d: ITransformedAvailDataPoint) {
           return d.value === AvailStatus.UP.toString();
         }
 
-        function isDown(d: ITransformedAvailDataPoint) {
-          return d.value === AvailStatus.DOWN.toString();
-        }
+        //function isDown(d: ITransformedAvailDataPoint) {
+        //  return d.value === AvailStatus.DOWN.toString();
+        //}
 
         function isUnknown(d: ITransformedAvailDataPoint) {
           return d.value === AvailStatus.UNKNOWN.toString();
@@ -229,7 +225,6 @@ namespace Charts {
 
           inAvailData.sort(sortByTimestamp);
 
-
           if (inAvailData && itemCount > 0 && inAvailData[0].timestamp) {
             let now = new Date().getTime();
 
@@ -242,8 +237,7 @@ namespace Charts {
                 availItem.timestamp, AvailStatus.UNKNOWN.toString()));
               // and the determined value up until the end.
               outputData.push(new TransformedAvailDataPoint(availItem.timestamp, now, availItem.value));
-            }
-            else {
+            } else {
               let backwardsEndTime = now;
 
               for (let i = inAvailData.length; i > 0; i--) {
@@ -255,8 +249,7 @@ namespace Charts {
                   outputData.push(new TransformedAvailDataPoint(startTimestamp,
                     backwardsEndTime, inAvailData[i - 1].value));
                   break;
-                }
-                else {
+                } else {
                   outputData.push(new TransformedAvailDataPoint(inAvailData[i - 1].timestamp,
                     backwardsEndTime, inAvailData[i - 1].value));
                   backwardsEndTime = inAvailData[i - 1].timestamp;
@@ -266,7 +259,6 @@ namespace Charts {
           }
           return outputData;
         }
-
 
         function createSideYAxisLabels() {
           ///@Todo: move out to stylesheet
@@ -292,14 +284,13 @@ namespace Charts {
 
         }
 
-
         function createAvailabilityChart(transformedAvailDataPoint: ITransformedAvailDataPoint[]) {
-          let xAxisMin = d3.min(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
-            return +d.start;
-          }),
-            xAxisMax = d3.max(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
-              return +d.end;
-            });
+          //let xAxisMin = d3.min(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
+          //  return +d.start;
+          //}),
+          let xAxisMax = d3.max(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
+            return +d.end;
+          });
 
           let availTimeScale = d3.time.scale()
             .range([0, width])
@@ -308,13 +299,13 @@ namespace Charts {
             yScale = d3.scale.linear()
               .clamp(true)
               .range([height, 0])
-              .domain([0, 4]),
+              .domain([0, 4]);
 
-            availXAxis = d3.svg.axis()
-              .scale(availTimeScale)
-              .ticks(8)
-              .tickSize(13, 0)
-              .orient('top');
+          //availXAxis = d3.svg.axis()
+          //  .scale(availTimeScale)
+          //  .ticks(8)
+          //  .tickSize(13, 0)
+          //  .orient('top');
 
           // For each datapoint calculate the Y offset for the bar
           // Up or Unknown: offset 0, Down: offset 35
@@ -367,7 +358,7 @@ namespace Charts {
               tip.hide();
             })
             .on('mousedown', () => {
-              let brushElem = svg.select(".brush").node();
+              let brushElem = svg.select('.brush').node();
               let clickEvent: any = new Event('mousedown');
               clickEvent.pageX = d3.event.pageX;
               clickEvent.clientX = d3.event.clientX;
@@ -376,7 +367,7 @@ namespace Charts {
               brushElem.dispatchEvent(clickEvent);
             })
             .on('mouseup', () => {
-              let brushElem = svg.select(".brush").node();
+              let brushElem = svg.select('.brush').node();
               let clickEvent: any = new Event('mouseup');
               clickEvent.pageX = d3.event.pageX;
               clickEvent.clientX = d3.event.clientX;
@@ -387,16 +378,15 @@ namespace Charts {
 
           // The bottom line of the availability chart
           svg.append('line')
-            .attr("x1", 0)
-            .attr("y1", 70)
-            .attr("x2", 655)
-            .attr("y2", 70)
-            .attr("stroke-width", 0.5)
-            .attr("stroke", "#D0D0D0");
+            .attr('x1', 0)
+            .attr('y1', 70)
+            .attr('x2', 655)
+            .attr('y2', 70)
+            .attr('stroke-width', 0.5)
+            .attr('stroke', '#D0D0D0');
 
           createSideYAxisLabels();
         }
-
 
         function createXandYAxes() {
 
@@ -412,7 +402,6 @@ namespace Charts {
             .attr('class', 'y axis')
             .call(yAxis);
         }
-
 
         function createXAxisBrush() {
 
@@ -433,7 +422,6 @@ namespace Charts {
           function brushStart() {
             svg.classed('selecting', true);
           }
-
 
           function brushEnd() {
             let extent = brush.extent(),

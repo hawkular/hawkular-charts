@@ -253,7 +253,6 @@ namespace Charts {
     // remove old ones
     circleScatterDot.exit().remove();
 
-
   }
 
 }

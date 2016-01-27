@@ -18,7 +18,6 @@ namespace Charts {
   export const margin = { top: 10, right: 5, bottom: 5, left: 90 };
   export let width = CHART_WIDTH - margin.left - margin.right;
 
-
   /**
    * @ngdoc directive
    * @name hawkularChart
@@ -32,12 +31,7 @@ namespace Charts {
         $interval: ng.IIntervalService,
         $log: ng.ILogService): ng.IDirective {
 
-        /// only for the stand alone charts
-        const BASE_URL = '/hawkular/metrics';
-
         function link(scope, element, attrs) {
-
-
 
           // data specific vars
           let dataPoints: IChartDataPoint[] = [],
@@ -89,7 +83,6 @@ namespace Charts {
             svg,
             visuallyAdjustedMin,
             visuallyAdjustedMax,
-            avg,
             peak,
             min,
             processedNewData,
@@ -105,7 +98,6 @@ namespace Charts {
 
           let startIntervalPromise;
 
-
           function getChartWidth(): number {
             //return angular.element('#' + chartContext.chartHandle).width();
             return CHART_WIDTH;
@@ -114,7 +106,6 @@ namespace Charts {
           function useSmallCharts(): boolean {
             return getChartWidth() <= smallChartThresholdInPixels;
           }
-
 
           function initialization(): void {
             // destroy any previous charts
@@ -148,7 +139,6 @@ namespace Charts {
             hasInit = true;
           }
 
-
           function setupFilteredData(dataPoints: IChartDataPoint[]): void {
 
             if (dataPoints) {
@@ -172,7 +162,8 @@ namespace Charts {
             }
 
             /// use default Y scale in case high and low bound are 0 (ie, no values or all 0)
-            visuallyAdjustedMax = !!!visuallyAdjustedMax && !!!visuallyAdjustedMin ? DEFAULT_Y_SCALE : visuallyAdjustedMax;
+            visuallyAdjustedMax = !!!visuallyAdjustedMax && !!!visuallyAdjustedMin ? DEFAULT_Y_SCALE :
+              visuallyAdjustedMax;
           }
 
           function determineScale(dataPoints: IChartDataPoint[]) {
@@ -185,8 +176,7 @@ namespace Charts {
                 width = 250;
                 xTicks = 3;
                 chartData = dataPoints.slice(dataPoints.length - numberOfBarsForSmallGraph, dataPoints.length);
-              }
-              else {
+              } else {
                 //  we use the width already defined above
                 xTicks = 9;
                 chartData = dataPoints;
@@ -232,7 +222,6 @@ namespace Charts {
             }
           }
 
-
           function setupFilteredMultiData(multiDataPoints: IMultiDataPoint[]): any {
             let alertPeak: number,
               highPeak: number;
@@ -261,7 +250,6 @@ namespace Charts {
               return [seriesMin, seriesMax];
             }
 
-
             const minMax = determineMultiDataMinMax();
             peak = minMax[1];
             min = minMax[0];
@@ -275,9 +263,9 @@ namespace Charts {
               visuallyAdjustedMax = peak + ((peak - min) * 0.2);
             }
 
-            return [visuallyAdjustedMin, !!!visuallyAdjustedMax && !!!visuallyAdjustedMin ? DEFAULT_Y_SCALE : visuallyAdjustedMax];
+            return [visuallyAdjustedMin, !!!visuallyAdjustedMax && !!!visuallyAdjustedMin ? DEFAULT_Y_SCALE :
+              visuallyAdjustedMax];
           }
-
 
           function determineMultiScale(multiDataPoints: IMultiDataPoint[]) {
             const xTicks = 9;
@@ -314,7 +302,6 @@ namespace Charts {
             }
           }
 
-
           /**
            * Load metrics data directly from a running Hawkular-Metrics server
            * @param url
@@ -343,7 +330,6 @@ namespace Charts {
             if (startTimestamp >= endTimestamp) {
               $log.log('Start date was after end date');
             }
-
 
             if (url && metricType && metricId) {
 
@@ -387,7 +373,6 @@ namespace Charts {
             }
           }
 
-
           function buildHover(d: IChartDataPoint, i: number) {
             let hover,
               prevTimestamp,
@@ -404,39 +389,44 @@ namespace Charts {
               // nodata
               hover = `<div class='chartHover'>
                 <small class='chartHoverLabel'>${noDataLabel}</small>
-                <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
+                <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>:
+                </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
                 <hr/>
-                <div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
+                <div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>:
+                </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
                 </div>`;
             } else {
               if (isRawMetric(d)) {
                 // raw single value from raw table
                 hover = `<div class='chartHover'>
-                <div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
-                  <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span><span class='chartHoverValue'>${barDuration}</span></small></div>
+                <div><small><span class='chartHoverLabel'>${timestampLabel}</span><span>: </span>
+                <span class='chartHoverValue'>${formattedDateTime}</span></small></div>
+                  <div><small><span class='chartHoverLabel'>${durationLabel}</span><span>: </span>
+                  <span class='chartHoverValue'>${barDuration}</span></small></div>
                   <hr/>
-                  <div><small><span class='chartHoverLabel'>${singleValueLabel}</span><span>: </span><span class='chartHoverValue'>${d3.round(d.value, 2)}</span></small> </div>
+                  <div><small><span class='chartHoverLabel'>${singleValueLabel}</span><span>: </span>
+                  <span class='chartHoverValue'>${d3.round(d.value, 2)}</span></small> </div>
                   </div> `;
               } else {
                 // aggregate with min/avg/max
                 hover = `<div class='chartHover'>
-                    <div class="info-item">
+                    <div class='info-item'>
                       <span class='chartHoverLabel'>${timestampLabel}:</span>
                       <span class='chartHoverValue'>${formattedDateTime}</span>
                     </div>
-                    <div class="info-item before-separator">
+                    <div class='info-item before-separator'>
                       <span class='chartHoverLabel'>${durationLabel}:</span>
                       <span class='chartHoverValue'>${barDuration}</span>
                     </div>
-                    <div class="info-item separator">
+                    <div class='info-item separator'>
                       <span class='chartHoverLabel'>${maxLabel}:</span>
                       <span class='chartHoverValue'>${d3.round(d.max, 2)}</span>
                     </div>
-                    <div class="info-item">
+                    <div class='info-item'>
                       <span class='chartHoverLabel'>${avgLabel}:</span>
                       <span class='chartHoverValue'>${d3.round(d.avg, 2)}</span>
                     </div>
-                    <div class="info-item">
+                    <div class='info-item'>
                       <span class='chartHoverLabel'>${minLabel}:</span>
                       <span class='chartHoverValue'>${d3.round(d.min, 2)}</span>
                     </div>
@@ -447,7 +437,6 @@ namespace Charts {
 
           }
 
-
           function createMultiLineChart(multiDataPoints: IMultiDataPoint[]) {
             let colorScale = d3.scale.category10(),
               g = 0;
@@ -457,7 +446,8 @@ namespace Charts {
               svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath: any) => {
                 let stillExists = false;
                 multiDataPoints.forEach((singleChartData: any) => {
-                  singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
+                  singleChartData.keyHash = singleChartData.keyHash
+                    || ('multiLine' + hashString(singleChartData.key));
                   if (existingPath.getAttribute('id') === singleChartData.keyHash) {
                     stillExists = true;
                   }
@@ -469,8 +459,10 @@ namespace Charts {
 
               multiDataPoints.forEach((singleChartData: any) => {
                 if (singleChartData && singleChartData.values) {
-                  singleChartData.keyHash = singleChartData.keyHash || ('multiLine' + hashString(singleChartData.key));
-                  let pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash).data([singleChartData.values]);
+                  singleChartData.keyHash = singleChartData.keyHash
+                    || ('multiLine' + hashString(singleChartData.key));
+                  let pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash)
+                    .data([singleChartData.values]);
                   // update existing
                   pathMultiLine.attr('id', singleChartData.keyHash)
                     .attr('class', 'multiLine')
@@ -504,7 +496,6 @@ namespace Charts {
 
           }
 
-
           function createYAxisGridLines() {
             // create the y axis grid lines
             if (yScale) {
@@ -530,25 +521,27 @@ namespace Charts {
                 .transition()
                 .delay(250)
                 .duration(750)
-                .attr("opacity", 1.0);
+                .attr('opacity', 1.0);
             }
 
             if (yAxis) {
 
               svg.selectAll('g.axis').remove();
 
+              /* tslint:disable:no-unused-variable */
+
               // create x-axis
               let xAxisGroup = svg.append('g')
                 .attr('class', 'x axis')
                 .attr('transform', 'translate(0,' + height + ')')
-                .attr("opacity", 0.3)
+                .attr('opacity', 0.3)
                 .call(xAxis)
                 .call(axisTransition);
 
               // create y-axis
               let yAxisGroup = svg.append('g')
                 .attr('class', 'y axis')
-                .attr("opacity", 0.3)
+                .attr('opacity', 0.3)
                 .call(yAxis)
                 .call(axisTransition);
 
@@ -559,7 +552,7 @@ namespace Charts {
                   .attr('x', -CHART_HEIGHT / 2)
                   .style('text-anchor', 'start')
                   .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits)
-                  .attr("opacity", 0.3)
+                  .attr('opacity', 0.3)
                   .call(axisTransition);
               }
             }
@@ -599,7 +592,6 @@ namespace Charts {
 
             return line;
           }
-
 
           function createAvgLines() {
             if (chartType === 'bar' || chartType === 'scatterline') {
@@ -694,7 +686,6 @@ namespace Charts {
             }
           }
 
-
           function createForecastLine(newInterpolation) {
             let interpolate = newInterpolation || 'monotone',
               line = d3.svg.line()
@@ -708,7 +699,6 @@ namespace Charts {
 
             return line;
           }
-
 
           function showForecastData(forecastData: ISimpleMetric[]) {
             let forecastPathLine = svg.selectAll('.forecastLine').data([forecastData]);
@@ -737,7 +727,6 @@ namespace Charts {
               scope.render(processedNewData, processedPreviousRangeData);
             }
           }, true);
-
 
           scope.$watch('previousRangeData', (newPreviousRangeValues) => {
             if (newPreviousRangeValues) {
@@ -770,7 +759,6 @@ namespace Charts {
               showAvgLine = (typeof chartAttrs[4] !== 'undefined') ? chartAttrs[4] : showAvgLine;
               scope.render(processedNewData, processedPreviousRangeData);
             });
-
 
           function loadStandAloneMetricsTimeRangeFromNow() {
             endTimestamp = Date.now();
@@ -806,7 +794,6 @@ namespace Charts {
           scope.$on('DateRangeDragChanged', (event, extent) => {
             scope.$emit('GraphTimeRangeChangedEvent', extent);
           });
-
 
           function determineChartType(chartType: string) {
 
@@ -889,15 +876,16 @@ namespace Charts {
             }
           }
 
-
           scope.render = (dataPoints, previousRangeDataPoints) => {
             // if we don't have data, don't bother..
             if (!dataPoints && !multiDataPoints) {
               return;
             }
 
-            debug && console.group('Render Chart');
-            debug && console.time('chartRender');
+            if (debug) {
+              console.group('Render Chart');
+              console.time('chartRender');
+            }
             //NOTE: layering order is important!
             if (!hasInit) {
               initialization();
@@ -938,8 +926,10 @@ namespace Charts {
             if (forecastDataPoints && forecastDataPoints.length > 0) {
               showForecastData(forecastDataPoints);
             }
-            debug && console.timeEnd('chartRender');
-            debug && console.groupEnd('Render Chart');
+            if (debug) {
+              console.timeEnd('chartRender');
+              console.groupEnd('Render Chart');
+            }
           };
         }
 
