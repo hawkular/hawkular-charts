@@ -118,6 +118,7 @@ namespace Charts {
   export function createAlertBoundsArea(svg: any,
     timeScale: any,
     yScale: any,
+    height:number,
     highBound: number,
     alertBounds: AlertBound[]) {
     let rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
@@ -133,7 +134,8 @@ namespace Charts {
         })
         .attr('height', (d: AlertBound) => {
           ///@todo: make the height adjustable
-          return 185;
+          //return 185;
+          return height;
           //return yScale(0) - height;
         })
         .attr('width', (d: AlertBound) => {
