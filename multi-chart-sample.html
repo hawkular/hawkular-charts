@@ -31,7 +31,6 @@
 
   <!-- build:js scripts/vendor.js -->
   <!-- bower:js -->
-  <script src="libs/jquery/dist/jquery.js"></script>
   <script src="libs/angular/angular.js"></script>
   <script src="libs/d3/d3.js"></script>
   <script src="libs/moment/moment.js"></script>
@@ -48,7 +47,7 @@
     app.controller('MultiChartController', function ($scope) {
 
       // load a captured Hawkular Feed for sample data -- simulates loading data
-      $.getJSON('./test-data/multi-chart-data.json', function (jsonData) {
+      d3.json('./test-data/multi-chart-data.json', function (error, jsonData) {
         $scope.nestedData = jsonData;
         $scope.$digest();
       });
