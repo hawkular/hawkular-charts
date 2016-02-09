@@ -118,7 +118,7 @@ namespace Charts {
   export function createAlertBoundsArea(svg: any,
     timeScale: any,
     yScale: any,
-    height:number,
+    height: number,
     highBound: number,
     alertBounds: AlertBound[]) {
     let rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);

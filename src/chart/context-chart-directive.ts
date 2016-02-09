@@ -37,7 +37,7 @@ namespace Charts {
         let chartHeight = ContextChartDirective._CHART_HEIGHT_HINT,
           width = ContextChartDirective._CHART_WIDTH_HINT - margin.left - margin.right,
           height = chartHeight - margin.top - margin.bottom,
-          modifiedInnerChartHeight = height - margin.top - margin.bottom -15,
+          modifiedInnerChartHeight = height - margin.top - margin.bottom - 15,
           innerChartHeight = height + margin.top,
           showYAxisValues: boolean,
           yScale,
@@ -71,10 +71,10 @@ namespace Charts {
 
           modifiedInnerChartHeight = height - margin.top - margin.bottom - ContextChartDirective._XAXIS_HEIGHT,
 
-          //console.log('Context Width: %i',width);
-          //console.log('Context Height: %i',height);
+            //console.log('Context Width: %i',width);
+            //console.log('Context Height: %i',height);
 
-          innerChartHeight = height + margin.top;
+            innerChartHeight = height + margin.top;
 
           chart = chartParent.append('svg')
             .attr('width', width - margin.left - margin.right)
