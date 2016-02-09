@@ -1,6 +1,7 @@
 /// <reference path='../../typings/tsd.d.ts' />
 
 namespace Charts {
+  import createSvgDefs = Charts.createSvgDefs;
   'use strict';
 
   declare let d3: any;
@@ -10,7 +11,7 @@ namespace Charts {
 
   // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
   export const DEFAULT_Y_SCALE = 10;
-  export const Y_AXIS_HEIGHT = 25;
+  export const X_AXIS_HEIGHT = 25; // with room for label
   export const CHART_HEIGHT = 250;
   export const CHART_WIDTH = 750;
   export const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
@@ -64,12 +65,9 @@ namespace Charts {
 
           // chart specific vars
 
-          let adjustedChartHeight = CHART_HEIGHT - 50,
-            height = adjustedChartHeight - margin.top - margin.bottom,
-            smallChartThresholdInPixels = 600,
-            titleHeight = 30, titleSpace = 10,
-            innerChartHeight = height + margin.top - titleHeight - titleSpace + margin.bottom,
-            adjustedChartHeight2 = +titleHeight + titleSpace + margin.top,
+          let height,
+            modifiedInnerChartHeight,
+            innerChartHeight = height + margin.top + margin.bottom,
             chartData,
             yScale,
             timeScale,
@@ -88,8 +86,6 @@ namespace Charts {
             processedNewData,
             processedPreviousRangeData;
 
-          let hasInit = false;
-
           dataPoints = attrs.data;
           forecastDataPoints = attrs.forecastData;
           showDataPoints = attrs.showDataPoints;
@@ -103,26 +99,36 @@ namespace Charts {
             return CHART_WIDTH;
           }
 
-          function useSmallCharts(): boolean {
-            return getChartWidth() <= smallChartThresholdInPixels;
-          }
 
-          function initialization(): void {
+          function resize(): void {
             // destroy any previous charts
             if (chart) {
               chartParent.selectAll('*').remove();
             }
             chartParent = d3.select(element[0]);
-            chart = chartParent.append('svg')
-              .attr('viewBox', '0 0 760 ' + (CHART_HEIGHT + Y_AXIS_HEIGHT))
-              .attr('preserveAspectRatio', 'xMinYMin meet');
 
-            createSvgDefs(chart);
+            console.dir(element[0]);
+
+            const parentNode = element[0].parentNode;
+
+            width = (<any>parentNode).clientWidth;
+            height = (<any>parentNode).clientHeight;
+
+            modifiedInnerChartHeight = height - margin.top - margin.bottom - X_AXIS_HEIGHT,
+
+              //console.log('Metric Width: %i', width);
+              //console.log('Metric Height: %i', height);
+
+              innerChartHeight = height + margin.top;
+
+            chart = chartParent.append('svg')
+              .attr('width', width - margin.left - margin.right)
+              .attr('height', innerChartHeight);
+
+            //createSvgDefs(chart);
 
             svg = chart.append('g')
-              .attr('width', width + margin.left + margin.right)
-              .attr('height', innerChartHeight)
-              .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
+              .attr('transform', 'translate(' + margin.left + ',' + (margin.top) + ')');
 
             tip = d3.tip()
               .attr('class', 'd3-tip')
@@ -136,7 +142,6 @@ namespace Charts {
             // a placeholder for the alerts
             svg.append('g').attr('class', 'alertHolder');
 
-            hasInit = true;
           }
 
           function setupFilteredData(dataPoints: IChartDataPoint[]): void {
@@ -171,22 +176,16 @@ namespace Charts {
 
             if (dataPoints.length > 0) {
 
-              // if window is too small server up small chart
-              if (useSmallCharts()) {
-                width = 250;
-                xTicks = 3;
-                chartData = dataPoints.slice(dataPoints.length - numberOfBarsForSmallGraph, dataPoints.length);
-              } else {
-                //  we use the width already defined above
-                xTicks = 9;
-                chartData = dataPoints;
-              }
+
+              //  we use the width already defined above
+              xTicks = 9;
+              chartData = dataPoints;
 
               setupFilteredData(dataPoints);
 
               yScale = d3.scale.linear()
                 .clamp(true)
-                .rangeRound([height, 0])
+                .rangeRound([modifiedInnerChartHeight, 0])
                 .domain([visuallyAdjustedMin, visuallyAdjustedMax]);
 
               yAxis = d3.svg.axis()
@@ -533,7 +532,7 @@ namespace Charts {
               // create x-axis
               let xAxisGroup = svg.append('g')
                 .attr('class', 'x axis')
-                .attr('transform', 'translate(0,' + height + ')')
+                .attr('transform', 'translate(0,' + modifiedInnerChartHeight + ')')
                 .attr('opacity', 0.3)
                 .call(xAxis)
                 .call(axisTransition);
@@ -546,11 +545,11 @@ namespace Charts {
                 .call(axisTransition);
 
               let yAxisLabel = svg.selectAll('.yAxisUnitsLabel');
-              if (yAxisLabel.empty()) {
+              if (modifiedInnerChartHeight >= 150 && attrs.yAxisUnits) {
                 yAxisLabel = svg.append('text').attr('class', 'yAxisUnitsLabel')
-                  .attr('transform', 'rotate(-90),translate(-10,-50)')
-                  .attr('x', -CHART_HEIGHT / 2)
-                  .style('text-anchor', 'start')
+                  .attr('transform', 'rotate(-90),translate(-20,-50)')
+                  .attr('x', -modifiedInnerChartHeight / 2)
+                  .style('text-anchor', 'center')
                   .text(attrs.yAxisUnits === 'NONE' ? '' : attrs.yAxisUnits)
                   .attr('opacity', 0.3)
                   .call(axisTransition);
@@ -625,7 +624,7 @@ namespace Charts {
             brushGroup.selectAll('.resize').append('path');
 
             brushGroup.selectAll('rect')
-              .attr('height', height);
+              .attr('height', modifiedInnerChartHeight);
 
             function brushStart() {
               svg.classed('selecting', true);
@@ -804,7 +803,7 @@ namespace Charts {
                   yScale,
                   chartData,
                   tip,
-                  height,
+                  modifiedInnerChartHeight,
                   true,
                   visuallyAdjustedMax,
                   hideHighLowValues);
@@ -815,7 +814,7 @@ namespace Charts {
                   yScale,
                   chartData,
                   tip,
-                  height,
+                  modifiedInnerChartHeight,
                   false,
                   visuallyAdjustedMax,
                   hideHighLowValues);
@@ -825,7 +824,7 @@ namespace Charts {
                   timeScale,
                   yScale,
                   chartData,
-                  height,
+                  modifiedInnerChartHeight,
                   interpolation);
                 break;
               case 'hawkularmetric':
@@ -847,7 +846,7 @@ namespace Charts {
                   timeScale,
                   yScale,
                   chartData,
-                  height,
+                  modifiedInnerChartHeight,
                   interpolation,
                   hideHighLowValues);
                 break;
@@ -856,7 +855,7 @@ namespace Charts {
                   timeScale,
                   yScale,
                   chartData,
-                  height,
+                  modifiedInnerChartHeight,
                   interpolation,
                   hideHighLowValues);
                 break;
@@ -865,7 +864,7 @@ namespace Charts {
                   timeScale,
                   yScale,
                   chartData,
-                  height,
+                  modifiedInnerChartHeight,
                   interpolation,
                   hideHighLowValues);
                 break;
@@ -887,9 +886,8 @@ namespace Charts {
               console.time('chartRender');
             }
             //NOTE: layering order is important!
-            if (!hasInit) {
-              initialization();
-            }
+            resize();
+
             if (dataPoints) {
               determineScale(dataPoints);
             }
@@ -900,7 +898,7 @@ namespace Charts {
 
             if (alertValue && (alertValue > visuallyAdjustedMin && alertValue < visuallyAdjustedMax)) {
               const alertBounds: AlertBound[] = extractAlertRanges(chartData, alertValue);
-              createAlertBoundsArea(svg, timeScale, yScale, visuallyAdjustedMax, alertBounds);
+              createAlertBoundsArea(svg, timeScale, yScale, modifiedInnerChartHeight, visuallyAdjustedMax, alertBounds);
             }
             createXAxisBrush();
 

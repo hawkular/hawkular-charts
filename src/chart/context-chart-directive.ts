@@ -6,10 +6,13 @@ namespace Charts {
 
   const _module = angular.module('hawkular.charts');
 
+
   export class ContextChartDirective {
 
-    private static _CHART_WIDTH = 750;
-    private static _CHART_HEIGHT = 50;
+    // these are just starting parameter hints
+    private static _CHART_WIDTH_HINT = 750;
+    private static _CHART_HEIGHT_HINT = 50;
+    private static _XAXIS_HEIGHT = 15;
 
     public restrict = 'E';
     public replace = true;
@@ -31,9 +34,10 @@ namespace Charts {
         const margin = { top: 0, right: 5, bottom: 5, left: 90 };
 
         // data specific vars
-        let chartHeight = ContextChartDirective._CHART_HEIGHT,
-          width = ContextChartDirective._CHART_WIDTH - margin.left - margin.right,
+        let chartHeight = ContextChartDirective._CHART_HEIGHT_HINT,
+          width = ContextChartDirective._CHART_WIDTH_HINT - margin.left - margin.right,
           height = chartHeight - margin.top - margin.bottom,
+          modifiedInnerChartHeight = height - margin.top - margin.bottom - 15,
           innerChartHeight = height + margin.top,
           showYAxisValues: boolean,
           yScale,
@@ -52,16 +56,29 @@ namespace Charts {
           showYAxisValues = attrs.showYAxisValues === 'true';
         }
 
-        function setup(): void {
+        function resize(): void {
           // destroy any previous charts
           if (chart) {
             chartParent.selectAll('*').remove();
           }
           chartParent = d3.select(element[0]);
+
+          console.dir(element[0]);
+          const parentNode = element[0].parentNode;
+
+          width = (<any>parentNode).clientWidth;
+          height = (<any>parentNode).clientHeight;
+
+          modifiedInnerChartHeight = height - margin.top - margin.bottom - ContextChartDirective._XAXIS_HEIGHT,
+
+            //console.log('Context Width: %i',width);
+            //console.log('Context Height: %i',height);
+
+            innerChartHeight = height + margin.top;
+
           chart = chartParent.append('svg')
-            .attr('width', width + margin.left + margin.right)
-            .attr('height', innerChartHeight)
-            .attr('viewBox', '0 0 760 50').attr('preserveAspectRatio', 'xMinYMin meet');
+            .attr('width', width - margin.left - margin.right)
+            .attr('height', innerChartHeight);
 
           svg = chart.append('g')
             .attr('transform', 'translate(' + margin.left + ', 0)')
@@ -70,7 +87,7 @@ namespace Charts {
         }
 
         function createContextChart(dataPoints: IChartDataPoint[]) {
-          //console.log('dataPoints.length: ' + dataPoints.length);
+          //console.warn('dataPoints.length: ' + dataPoints.length);
 
           timeScale = d3.time.scale()
             .range([0, width - 10])
@@ -79,7 +96,6 @@ namespace Charts {
 
           xAxis = d3.svg.axis()
             .scale(timeScale)
-            .ticks(5)
             .tickSize(4, 0)
             .tickFormat(xAxisTimeFormats())
             .orient('bottom');
@@ -88,7 +104,7 @@ namespace Charts {
 
           xAxisGroup = svg.append('g')
             .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + height + ')')
+            .attr('transform', 'translate(0,' + modifiedInnerChartHeight + ')')
             .call(xAxis);
 
           let yMin = d3.min(dataPoints, (d) => {
@@ -103,7 +119,7 @@ namespace Charts {
           yMin = yMin - (yMin * 0.05);
 
           yScale = d3.scale.linear()
-            .rangeRound([ContextChartDirective._CHART_HEIGHT - 10, 0])
+            .rangeRound([modifiedInnerChartHeight, 0])
             .nice()
             .domain([yMin, yMax]);
 
@@ -128,7 +144,7 @@ namespace Charts {
               return timeScale(d.timestamp);
             })
             .y0((d: any) => {
-              return height;
+              return modifiedInnerChartHeight;
             })
             .y1((d: any) => {
               return yScale(d.avg);
@@ -213,6 +229,8 @@ namespace Charts {
           }
         }
 
+        //d3.select(window).on('resize', scope.render(this.dataPoints));
+
         scope.$watchCollection('data', (newData) => {
           if (newData) {
             this.dataPoints = formatBucketedChartOutput(angular.fromJson(newData));
@@ -240,16 +258,17 @@ namespace Charts {
 
         scope.render = (dataPoints: IChartDataPoint[]) => {
           if (dataPoints && dataPoints.length > 0) {
-            //console.time('contextChartRender');
+            console.time('contextChartRender');
 
             ///NOTE: layering order is important!
-            setup();
+            resize();
             createContextChart(dataPoints);
             createXAxisBrush();
-            //console.timeEnd('contextChartRender');
+            console.timeEnd('contextChartRender');
           }
         };
       };
+
     }
 
     public static Factory() {

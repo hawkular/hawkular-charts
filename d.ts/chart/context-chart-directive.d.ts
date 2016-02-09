@@ -2,8 +2,9 @@
 declare namespace Charts {
     import IChartDataPoint = Charts.IChartDataPoint;
     class ContextChartDirective {
-        private static _CHART_WIDTH;
-        private static _CHART_HEIGHT;
+        private static _CHART_WIDTH_HINT;
+        private static _CHART_HEIGHT_HINT;
+        private static _XAXIS_HEIGHT;
         restrict: string;
         replace: boolean;
         scope: {
