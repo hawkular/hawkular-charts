@@ -99,7 +99,6 @@ namespace Charts {
             return CHART_WIDTH;
           }
 
-
           function resize(): void {
             // destroy any previous charts
             if (chart) {
@@ -107,12 +106,19 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
 
-            console.dir(element[0]);
-
             const parentNode = element[0].parentNode;
 
             width = (<any>parentNode).clientWidth;
             height = (<any>parentNode).clientHeight;
+
+            if (width === 0) {
+              console.error(`Error setting up chart. Width is 0 on chart parent container.`);
+              return;
+            }
+            if (height === 0) {
+              console.error(`Error setting up chart. Height is 0 on chart parent container.`);
+              return;
+            }
 
             modifiedInnerChartHeight = height - margin.top - margin.bottom - X_AXIS_HEIGHT,
 
@@ -175,7 +181,6 @@ namespace Charts {
             let xTicks, numberOfBarsForSmallGraph = 20;
 
             if (dataPoints.length > 0) {
-
 
               //  we use the width already defined above
               xTicks = 9;
