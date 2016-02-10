@@ -177,25 +177,29 @@ namespace Charts {
               visuallyAdjustedMax;
           }
 
+          function getYScale(): any {
+            return d3.scale.linear()
+              .clamp(true)
+              .rangeRound([modifiedInnerChartHeight, 0])
+              .domain([visuallyAdjustedMin, visuallyAdjustedMax]);
+          }
+
           function determineScale(dataPoints: IChartDataPoint[]) {
-            let xTicks, numberOfBarsForSmallGraph = 20;
+            let xTicks = determineXAxisTicksFromScreenWidth(width - margin.left - margin.right),
+              yTicks = determineYAxisTicksFromScreenHeight(modifiedInnerChartHeight);
 
             if (dataPoints.length > 0) {
 
               //  we use the width already defined above
-              xTicks = 9;
               chartData = dataPoints;
 
               setupFilteredData(dataPoints);
 
-              yScale = d3.scale.linear()
-                .clamp(true)
-                .rangeRound([modifiedInnerChartHeight, 0])
-                .domain([visuallyAdjustedMin, visuallyAdjustedMax]);
+              yScale = getYScale();
 
               yAxis = d3.svg.axis()
                 .scale(yScale)
-                .ticks(5)
+                .ticks(yTicks)
                 .tickSize(4, 4, 0)
                 .orient('left');
 
@@ -213,7 +217,8 @@ namespace Charts {
               }
 
               timeScale = d3.time.scale()
-                .range([0, width])
+                .range([0, width - margin.left - margin.right])
+                .nice()
                 .domain([timeScaleMin, timeScaleMax]);
 
               xAxis = d3.svg.axis()
@@ -273,7 +278,7 @@ namespace Charts {
 
           function determineMultiScale(multiDataPoints: IMultiDataPoint[]) {
             const xTicks = determineXAxisTicksFromScreenWidth(width - margin.left - margin.right),
-                  yTicks = determineXAxisTicksFromScreenWidth(modifiedInnerChartHeight);
+              yTicks = determineXAxisTicksFromScreenWidth(modifiedInnerChartHeight);
 
             if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
 
@@ -503,6 +508,8 @@ namespace Charts {
 
           function createYAxisGridLines() {
             // create the y axis grid lines
+            yScale = getYScale();
+
             if (yScale) {
               let yAxis = svg.selectAll('g.grid.y_grid');
               if (!yAxis[0].length) {

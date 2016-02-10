@@ -56,6 +56,16 @@
       width:100%;
     }
 
+    .chartWrapperSmall {
+      height: 100px;
+      width:100%;
+    }
+
+    .chartWrapperXSmall {
+      height: 80px;
+      width:250px;
+    }
+
     .contextChartWrapper {
       height: 85px;
       width: 820px;
@@ -237,7 +247,7 @@
   </div>
 
   <div class="metricIdHeader">
-    <span class="metricIdLabel"> ChartType: Line</span>
+    <span class="metricIdLabel"> ChartType: Line (in 3 Sizes)</span>
   </div>
   <div class="chartWrapper">
     <hawkular-chart
@@ -259,6 +269,32 @@
     </div>
     -->
 
+  </div>
+
+
+  <div class="chartWrapperSmall">
+    <hawkular-chart
+      data="myData"
+      forecast-data="myForecastData"
+      chart-type="line"
+      alert-value="{{alertThreshold}}"
+      show-data-points="true"
+      y-axis-units="Response Time (ms)"
+    >
+    </hawkular-chart>
+  </div>
+
+
+
+  <div class="chartWrapperXSmall">
+    <hawkular-chart
+      data="myData"
+      forecast-data="myForecastData"
+      chart-type="line"
+      alert-value="{{alertThreshold}}"
+      y-axis-units="Response Time (ms)"
+    >
+    </hawkular-chart>
   </div>
 
 
