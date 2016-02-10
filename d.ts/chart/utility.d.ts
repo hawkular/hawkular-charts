@@ -19,4 +19,6 @@ declare namespace Charts {
     function createSvgDefs(chart: any): void;
     function xMidPointStartPosition(d: any, timeScale: any): any;
     function hashString(str: string): number;
+    function determineXAxisTicksFromScreenWidth(widthInPixels: number): number;
+    function determineYAxisTicksFromScreenHeight(heightInPixels: number): number;
 }

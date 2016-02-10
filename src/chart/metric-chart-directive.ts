@@ -16,7 +16,7 @@ namespace Charts {
   export const CHART_WIDTH = 750;
   export const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
   export const BAR_OFFSET = 2;
-  export const margin = { top: 10, right: 5, bottom: 5, left: 90 };
+  export const margin = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room for label
   export let width = CHART_WIDTH - margin.left - margin.right;
 
   /**
@@ -272,7 +272,8 @@ namespace Charts {
           }
 
           function determineMultiScale(multiDataPoints: IMultiDataPoint[]) {
-            const xTicks = 9;
+            const xTicks = determineXAxisTicksFromScreenWidth(width - margin.left - margin.right),
+                  yTicks = determineXAxisTicksFromScreenWidth(modifiedInnerChartHeight);
 
             if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
 
@@ -282,17 +283,17 @@ namespace Charts {
 
               yScale = d3.scale.linear()
                 .clamp(true)
-                .rangeRound([height, 0])
+                .rangeRound([modifiedInnerChartHeight, 0])
                 .domain([visuallyAdjustedMin, visuallyAdjustedMax]);
 
               yAxis = d3.svg.axis()
                 .scale(yScale)
-                .ticks(5)
+                .ticks(yTicks)
                 .tickSize(4, 4, 0)
                 .orient('left');
 
               timeScale = d3.time.scale()
-                .range([0, width])
+                .range([0, width - margin.left - margin.right])
                 .domain([d3.min(multiDataPoints, (d) => d3.min(d.values, (p) => p.timestamp)),
                   d3.max(multiDataPoints, (d) => d3.max(d.values, (p) => p.timestamp))]);
 
