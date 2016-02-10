@@ -124,4 +124,24 @@ namespace Charts {
     return hash;
   }
 
+  export function determineXAxisTicksFromScreenWidth(widthInPixels: number): number {
+    let xTicks;
+    if (widthInPixels <= 350) {
+      xTicks = 4;
+    } else {
+      xTicks = 9;
+    }
+    return xTicks;
+  }
+
+  export function determineYAxisTicksFromScreenHeight(heightInPixels: number): number {
+    let yTicks;
+    if (heightInPixels <= 120) {
+      yTicks = 3;
+    } else {
+      yTicks = 9;
+    }
+    return yTicks;
+  }
+
 }

@@ -7,31 +7,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/hawkular-charts.css">
   <style>
-    .metricIdLabel {
-      color: darkred;
-    }
-
-    .metricIdHeader {
-      margin: 20px 0 -45px 90px;
-    }
-
     .metricIdHeader > li {
       margin-left: 40px;
     }
 
-    .itemDescription {
-      color: #999;
-      font-style: italic;
+    .chartWrapperLarge {
+      height: 500px;
+      width: 100%;
     }
 
-    .chartWrapper {
-      height: 250px;
+    .chartWrapperSmall {
+      height: 100px;
+      width: 100%;
     }
   </style>
 
   <!-- build:js scripts/vendor.js -->
   <!-- bower:js -->
-  <script src="libs/jquery/dist/jquery.js"></script>
   <script src="libs/angular/angular.js"></script>
   <script src="libs/d3/d3.js"></script>
   <script src="libs/moment/moment.js"></script>
@@ -48,7 +40,7 @@
     app.controller('MultiChartController', function ($scope) {
 
       // load a captured Hawkular Feed for sample data -- simulates loading data
-      $.getJSON('./test-data/multi-chart-data.json', function (jsonData) {
+      d3.json('./test-data/multi-chart-data.json', function (error, jsonData) {
         $scope.nestedData = jsonData;
         $scope.$digest();
       });
@@ -74,15 +66,19 @@
 
 <div ng-controller="MultiChartController">
 
-  <div class="metricIdHeader"><span class="metricIdLabel"> Chart Attributes:</span>
-    <li> chart-type="multiline" <span class="itemDescription"></span></li>
-  </div>
-  <div class="chartWrapper">
+  <div class="chartWrapperSmall">
     <hawkular-chart
       multi-data="nestedData"
       chart-type="multiline"
-      y-axis-units="Response Time (ms)"
-      chart-height="250">
+      y-axis-units="Response Time (ms)" >
+    </hawkular-chart>
+  </div>
+
+  <div class="chartWrapperLarge">
+    <hawkular-chart
+      multi-data="nestedData"
+      chart-type="multiline"
+      y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
 

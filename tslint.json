@@ -11,7 +11,7 @@
     "member-access": true,
     "no-arg": true,
     "no-bitwise": true,
-    "no-consecutive-blank-lines": false,
+    "no-consecutive-blank-lines": true,
     "no-console": [true,
       "trace"
     ],
@@ -43,7 +43,7 @@
     "triple-equals": [true, "allow-null-check"],
     "typedef-whitespace": [true],
     "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
-    "whitespace": [false,
+    "whitespace": [true,
       "check-decl",
       "check-operator",
       "check-type"

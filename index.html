@@ -56,6 +56,16 @@
       width:100%;
     }
 
+    .chartWrapperSmall {
+      height: 100px;
+      width:100%;
+    }
+
+    .chartWrapperXSmall {
+      height: 80px;
+      width:250px;
+    }
+
     .contextChartWrapper {
       height: 85px;
       width: 820px;
@@ -77,7 +87,6 @@
   <!-- build:js scripts/vendor.js -->
   <!-- bower:js -->
   <script src="libs/angular/angular.js"></script>
-  <script src="libs/jquery/dist/jquery.js"></script>
   <script src="libs/d3/d3.js"></script>
   <script src="libs/moment/moment.js"></script>
   <script src="libs/d3-tip/index.js"></script>
@@ -110,7 +119,7 @@
       ];
 
       // load a captured Hawkular Feed for sample data -- simulates loading data
-      $.getJSON('./test-data/metrics-data.json', function (jsonData) {
+      d3.json('./test-data/metrics-data.json', function (error, jsonData) {
 
         $scope.originalData = jsonData;
         $scope.myData = jsonData;
@@ -123,7 +132,7 @@
         // set our initial timerange based on the data bounds
         $scope.timerange.startTimestamp = myTimeRange[0];
         $scope.timerange.endTimestamp = myTimeRange[1];
-        console.info('Starting time range values: ' + new Date(myTimeRange[0]) + ' - ' + new Date(myTimeRange[1]));
+        console.log('Starting time range values: ' + new Date(myTimeRange[0]) + ' - ' + new Date(myTimeRange[1]));
         $scope.refreshChartWithDateRange();
 
       });
@@ -141,7 +150,7 @@
       });
 
       $scope.refreshChartWithDateRange = function () {
-        console.info('refreshChartWithDateRange');
+        console.log('refreshChartWithDateRange');
         // we already have the data, but perhaps the data is stale and you want to requery
         // also, by just changing the data the charts will automatically update themselves
         $scope.myData = $scope.originalData.filter(function (value) {
@@ -153,7 +162,7 @@
 
       // Drag event on a normal chart
       $scope.$on('ChartTimeRangeChanged', function (event, data) {
-        console.info('Received ChartTimeRangeChanged event: ' + data[0] + ' - ' + data[1]);
+        console.log('Received ChartTimeRangeChanged event: ' + data[0] + ' - ' + data[1]);
         $scope.timerange.startTimestamp = data[0];
         $scope.timerange.endTimestamp = data[1];
         $scope.refreshChartWithDateRange();
@@ -238,7 +247,7 @@
   </div>
 
   <div class="metricIdHeader">
-    <span class="metricIdLabel"> ChartType: Line</span>
+    <span class="metricIdLabel"> ChartType: Line (in 3 Sizes)</span>
   </div>
   <div class="chartWrapper">
     <hawkular-chart
@@ -260,6 +269,32 @@
     </div>
     -->
 
+  </div>
+
+
+  <div class="chartWrapperSmall">
+    <hawkular-chart
+      data="myData"
+      forecast-data="myForecastData"
+      chart-type="line"
+      alert-value="{{alertThreshold}}"
+      show-data-points="true"
+      y-axis-units="Response Time (ms)"
+    >
+    </hawkular-chart>
+  </div>
+
+
+
+  <div class="chartWrapperXSmall">
+    <hawkular-chart
+      data="myData"
+      forecast-data="myForecastData"
+      chart-type="line"
+      alert-value="{{alertThreshold}}"
+      y-axis-units="Response Time (ms)"
+    >
+    </hawkular-chart>
   </div>
 
 

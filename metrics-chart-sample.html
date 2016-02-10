@@ -33,7 +33,6 @@
 
   <!-- build:js scripts/vendor.js -->
   <!-- bower:js -->
-  <script src="libs/jquery/dist/jquery.js"></script>
   <script src="libs/angular/angular.js"></script>
   <script src="libs/d3/d3.js"></script>
   <script src="libs/moment/moment.js"></script>
@@ -54,9 +53,8 @@
       // set the alert threshold to whatever
       $scope.alertThreshold = 2000;
 
-
       // load a captured Hawkular Feed for sample data -- simulates loading data
-      $.getJSON('./test-data/metrics-data.json', function (jsonData) {
+      d3.json('./test-data/metrics-data.json', function (error, jsonData) {
         metricData = jsonData;
 
         $scope.myData = metricData;
@@ -70,13 +68,13 @@
         // set our initial timerange based on the data bounds
         $scope.startTimestamp = myTimeRange[0];
         $scope.endTimestamp = myTimeRange[1];
-        console.info('Starting time range values: ' + new Date(myTimeRange[0]) + ' - ' + new Date(myTimeRange[1]));
+        console.log('Starting time range values: ' + new Date(myTimeRange[0]) + ' - ' + new Date(myTimeRange[1]));
         $scope.refreshChartWithDateRange();
 
       });
 
       $scope.refreshChartWithDateRange = function () {
-        console.info('RefreshChart');
+        console.log('RefreshChart');
         // we already have the data, but perhaps the data is stale and you want to requery
         // also, by just changing the data the charts will automatically update themselves
         $scope.myData = $scope.myData.filter(function (value) {
@@ -87,7 +85,7 @@
       };
 
       $scope.$on('ChartTimeRangeChanged', function (event, data) {
-        console.info('Received ChartTimeRangeChanged: ' + data[0] + ' - ' + data[1]);
+        console.log('Received ChartTimeRangeChanged: ' + data[0] + ' - ' + data[1]);
         $scope.startTimestamp = data[0];
         $scope.endTimestamp = data[1];
         $scope.refreshChartWithDateRange();

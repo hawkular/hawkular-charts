@@ -6,7 +6,6 @@ namespace Charts {
 
   const _module = angular.module('hawkular.charts');
 
-
   export class ContextChartDirective {
 
     // these are just starting parameter hints
@@ -63,7 +62,6 @@ namespace Charts {
           }
           chartParent = d3.select(element[0]);
 
-          console.dir(element[0]);
           const parentNode = element[0].parentNode;
 
           width = (<any>parentNode).clientWidth;
@@ -87,7 +85,6 @@ namespace Charts {
         }
 
         function createContextChart(dataPoints: IChartDataPoint[]) {
-          //console.warn('dataPoints.length: ' + dataPoints.length);
 
           timeScale = d3.time.scale()
             .range([0, width - 10])

@@ -16,7 +16,7 @@ namespace Charts {
   export const CHART_WIDTH = 750;
   export const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
   export const BAR_OFFSET = 2;
-  export const margin = { top: 10, right: 5, bottom: 5, left: 90 };
+  export const margin = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room for label
   export let width = CHART_WIDTH - margin.left - margin.right;
 
   /**
@@ -99,7 +99,6 @@ namespace Charts {
             return CHART_WIDTH;
           }
 
-
           function resize(): void {
             // destroy any previous charts
             if (chart) {
@@ -107,12 +106,19 @@ namespace Charts {
             }
             chartParent = d3.select(element[0]);
 
-            console.dir(element[0]);
-
             const parentNode = element[0].parentNode;
 
             width = (<any>parentNode).clientWidth;
             height = (<any>parentNode).clientHeight;
+
+            if (width === 0) {
+              console.error(`Error setting up chart. Width is 0 on chart parent container.`);
+              return;
+            }
+            if (height === 0) {
+              console.error(`Error setting up chart. Height is 0 on chart parent container.`);
+              return;
+            }
 
             modifiedInnerChartHeight = height - margin.top - margin.bottom - X_AXIS_HEIGHT,
 
@@ -171,26 +177,29 @@ namespace Charts {
               visuallyAdjustedMax;
           }
 
+          function getYScale(): any {
+            return d3.scale.linear()
+              .clamp(true)
+              .rangeRound([modifiedInnerChartHeight, 0])
+              .domain([visuallyAdjustedMin, visuallyAdjustedMax]);
+          }
+
           function determineScale(dataPoints: IChartDataPoint[]) {
-            let xTicks, numberOfBarsForSmallGraph = 20;
+            let xTicks = determineXAxisTicksFromScreenWidth(width - margin.left - margin.right),
+              yTicks = determineYAxisTicksFromScreenHeight(modifiedInnerChartHeight);
 
             if (dataPoints.length > 0) {
 
-
               //  we use the width already defined above
-              xTicks = 9;
               chartData = dataPoints;
 
               setupFilteredData(dataPoints);
 
-              yScale = d3.scale.linear()
-                .clamp(true)
-                .rangeRound([modifiedInnerChartHeight, 0])
-                .domain([visuallyAdjustedMin, visuallyAdjustedMax]);
+              yScale = getYScale();
 
               yAxis = d3.svg.axis()
                 .scale(yScale)
-                .ticks(5)
+                .ticks(yTicks)
                 .tickSize(4, 4, 0)
                 .orient('left');
 
@@ -208,7 +217,8 @@ namespace Charts {
               }
 
               timeScale = d3.time.scale()
-                .range([0, width])
+                .range([0, width - margin.left - margin.right])
+                .nice()
                 .domain([timeScaleMin, timeScaleMax]);
 
               xAxis = d3.svg.axis()
@@ -267,7 +277,8 @@ namespace Charts {
           }
 
           function determineMultiScale(multiDataPoints: IMultiDataPoint[]) {
-            const xTicks = 9;
+            const xTicks = determineXAxisTicksFromScreenWidth(width - margin.left - margin.right),
+              yTicks = determineXAxisTicksFromScreenWidth(modifiedInnerChartHeight);
 
             if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
 
@@ -277,17 +288,17 @@ namespace Charts {
 
               yScale = d3.scale.linear()
                 .clamp(true)
-                .rangeRound([height, 0])
+                .rangeRound([modifiedInnerChartHeight, 0])
                 .domain([visuallyAdjustedMin, visuallyAdjustedMax]);
 
               yAxis = d3.svg.axis()
                 .scale(yScale)
-                .ticks(5)
+                .ticks(yTicks)
                 .tickSize(4, 4, 0)
                 .orient('left');
 
               timeScale = d3.time.scale()
-                .range([0, width])
+                .range([0, width - margin.left - margin.right])
                 .domain([d3.min(multiDataPoints, (d) => d3.min(d.values, (p) => p.timestamp)),
                   d3.max(multiDataPoints, (d) => d3.max(d.values, (p) => p.timestamp))]);
 
@@ -497,6 +508,8 @@ namespace Charts {
 
           function createYAxisGridLines() {
             // create the y axis grid lines
+            yScale = getYScale();
+
             if (yScale) {
               let yAxis = svg.selectAll('g.grid.y_grid');
               if (!yAxis[0].length) {
