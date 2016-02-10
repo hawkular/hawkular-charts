@@ -12,12 +12,9 @@ namespace Charts {
   // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
   export const DEFAULT_Y_SCALE = 10;
   export const X_AXIS_HEIGHT = 25; // with room for label
-  export const CHART_HEIGHT = 250;
-  export const CHART_WIDTH = 750;
   export const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
-  export const BAR_OFFSET = 2;
   export const margin = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room for label
-  export let width = CHART_WIDTH - margin.left - margin.right;
+  export let width;
 
   /**
    * @ngdoc directive
@@ -84,20 +81,14 @@ namespace Charts {
             peak,
             min,
             processedNewData,
-            processedPreviousRangeData;
+            processedPreviousRangeData,
+            startIntervalPromise;
 
           dataPoints = attrs.data;
           forecastDataPoints = attrs.forecastData;
           showDataPoints = attrs.showDataPoints;
           previousRangeDataPoints = attrs.previousRangeData;
           annotationData = attrs.annotationData;
-
-          let startIntervalPromise;
-
-          function getChartWidth(): number {
-            //return angular.element('#' + chartContext.chartHandle).width();
-            return CHART_WIDTH;
-          }
 
           function resize(): void {
             // destroy any previous charts
@@ -125,10 +116,10 @@ namespace Charts {
               //console.log('Metric Width: %i', width);
               //console.log('Metric Height: %i', height);
 
-              innerChartHeight = height + margin.top;
+            innerChartHeight = height + margin.top;
 
             chart = chartParent.append('svg')
-              .attr('width', width - margin.left - margin.right)
+              .attr('width', width + margin.left + margin.right)
               .attr('height', innerChartHeight);
 
             //createSvgDefs(chart);
@@ -190,7 +181,6 @@ namespace Charts {
 
             if (dataPoints.length > 0) {
 
-              //  we use the width already defined above
               chartData = dataPoints;
 
               setupFilteredData(dataPoints);
@@ -508,6 +498,8 @@ namespace Charts {
 
           function createYAxisGridLines() {
             // create the y axis grid lines
+            const numberOfYAxisGridLines = determineYAxisGridLineTicksFromScreenHeight(modifiedInnerChartHeight);
+
             yScale = getYScale();
 
             if (yScale) {
@@ -519,7 +511,7 @@ namespace Charts {
                 .call(d3.svg.axis()
                   .scale(yScale)
                   .orient('left')
-                  .ticks(10)
+                  .ticks(numberOfYAxisGridLines)
                   .tickSize(-width, 0)
                   .tickFormat('')
                 );

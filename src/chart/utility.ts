@@ -126,7 +126,9 @@ namespace Charts {
 
   export function determineXAxisTicksFromScreenWidth(widthInPixels: number): number {
     let xTicks;
-    if (widthInPixels <= 350) {
+    if (widthInPixels <= 200) {
+      xTicks = 2;
+    } else if (widthInPixels <= 350 && widthInPixels > 200) {
       xTicks = 4;
     } else {
       xTicks = 9;
@@ -140,6 +142,16 @@ namespace Charts {
       yTicks = 3;
     } else {
       yTicks = 9;
+    }
+    return yTicks;
+  }
+
+  export function determineYAxisGridLineTicksFromScreenHeight(heightInPixels: number): number {
+    let yTicks;
+    if (heightInPixels <= 60) {
+      yTicks = 0;
+    } else {
+      yTicks = 10;
     }
     return yTicks;
   }

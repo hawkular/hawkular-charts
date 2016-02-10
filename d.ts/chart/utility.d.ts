@@ -21,4 +21,5 @@ declare namespace Charts {
     function hashString(str: string): number;
     function determineXAxisTicksFromScreenWidth(widthInPixels: number): number;
     function determineYAxisTicksFromScreenHeight(heightInPixels: number): number;
+    function determineYAxisGridLineTicksFromScreenHeight(heightInPixels: number): number;
 }

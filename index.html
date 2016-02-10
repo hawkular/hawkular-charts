@@ -61,7 +61,7 @@
       width:100%;
     }
 
-    .chartWrapperXSmall {
+    .chartWrapperSparkline {
       height: 80px;
       width:250px;
     }
@@ -77,8 +77,8 @@
     }
 
     .sparklineChartWrapper {
-      height: 80px;
-      width: 240px;
+      height: 70px;
+      width: 175px;
     }
 
 
@@ -233,19 +233,6 @@
     </div>
   </form>
 
-
-  <div class="metricIdHeader">
-    <span class="metricIdLabel">Sparkline Chart</span>
-  </div>
-  <div class="sparkLineChartWrapper" style="height:100px">
-    <hawkular-sparkline-chart
-      data="myData"
-      alert-value="{{alertThreshold}}"
-      show-x-axis-values="true"
-      show-y-axis-values="false">
-    </hawkular-sparkline-chart>
-  </div>
-
   <div class="metricIdHeader">
     <span class="metricIdLabel"> ChartType: Line (in 3 Sizes)</span>
   </div>
@@ -285,12 +272,10 @@
   </div>
 
 
-
-  <div class="chartWrapperXSmall">
+  <div class="chartWrapperSparkline">
     <hawkular-chart
       data="myData"
       forecast-data="myForecastData"
-      chart-type="line"
       alert-value="{{alertThreshold}}"
       y-axis-units="Response Time (ms)"
     >

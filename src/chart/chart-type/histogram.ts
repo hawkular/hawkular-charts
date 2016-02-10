@@ -2,6 +2,8 @@
 namespace Charts {
   'use strict';
 
+  export const BAR_OFFSET = 2;
+
   export function createHistogramChart(svg: any,
     timeScale: any,
     yScale: any,
