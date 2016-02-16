@@ -123,45 +123,50 @@
     <li> show-data-points"true"</li>
     <li> use-zero-min-value="false" <span class="itemDescription">(Zoomed In)</span></li>
   </div>-->
+  <h4>Zoomed In</h4>
   <div class="chartWrapper">
     <hawkular-chart
       data="myData"
-      chart-type="hawkularmetric"
+      chart-type="line"
       alert-value="2000"
       show-data-points="true"
-      y-axis-units="Response Time (ms)"
-      chart-height="250">
+      y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
+  <p>The default behaviour is to find the high/low in the data and offset that with some space to provide a detailed
+    zoomed in effect by default.
+  </p>
 <!--
   <div class="metricIdHeader"><span class="metricIdLabel"> Chart Attributes:</span>
     <li> alert-value="2000"</li>
     <li> use-zero-min-value="true" <span class="itemDescription">(use zero as the Y Axis)</span></li>
   </div>-->
+  <h4>Use Zero as Y Axis start - Alert at 2000</h4>
   <div class="chartWrapper">
     <hawkular-chart
       data="myData"
-      chart-type="hawkularmetric"
+      chart-type="line"
       alert-value="{{alertThreshold}}"
       use-zero-min-value="true"
-      y-axis-units="Response Time (ms)"
-      chart-height="250">
+      y-axis-units="Response Time (ms)" >
     </hawkular-chart>
   </div>
+  <p>Some data is best viewed with a zero-axis starting point. Like percents, for instance.
+  </p>
 
 
  <!-- <div class="metricIdHeader"><span class="metricIdLabel"> Chart Attributes:</span>
     <li> alert-value="6000"</li>
     <li> use-zero-min-value="true" <span class="itemDescription">(use zero as the Y Axis)</span></li>
   </div>-->
+  <h4>Alert at 6000</h4>
   <div class="chartWrapper">
     <hawkular-chart
       data="myData"
-      chart-type="hawkularmetric"
+      chart-type="line"
       alert-value="6000"
       use-zero-min-value="true"
-      y-axis-units="Response Time (ms)"
-      chart-height="250">
+      y-axis-units="Response Time (ms)">
     </hawkular-chart>
   </div>
 
@@ -169,14 +174,15 @@
     <li> alert-value="1000"</li>
     <li> use-zero-min-value="true" <span class="itemDescription">(use zero as the Y Axis)</span></li>
   </div>-->
+  <h4>Alert at 1000</h4>
   <div class="chartWrapper">
     <hawkular-chart
       data="myData"
-      chart-type="hawkularmetric"
+      chart-type="line"
       alert-value="1000"
       use-zero-min-value="true"
       y-axis-units="Response Time (ms)"
-      chart-height="250">
+      >
     </hawkular-chart>
   </div>
 

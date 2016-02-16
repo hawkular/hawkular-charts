@@ -16,7 +16,7 @@
       background-color: #fafafa;
       border: 1px solid lightgrey;
       margin: 20px;
-      width: 840px;
+      width: 90%;
     }
 
     #alertValue {
@@ -53,12 +53,12 @@
 
     .chartWrapper {
       height: 500px;
-      width:100%;
+      width:90%;
     }
 
     .chartWrapperSmall {
       height: 100px;
-      width:100%;
+      width:90%;
     }
 
     .chartWrapperSparkline {
@@ -68,12 +68,7 @@
 
     .contextChartWrapper {
       height: 85px;
-      width: 820px;
-    }
-
-    .contextChartWrapper2 {
-      height: 85px;
-      width: 100%;
+      width: 90%;
     }
 
     .sparklineChartWrapper {
@@ -247,22 +242,12 @@
     >
     </hawkular-chart>
 
-    <!--
-    <div class="contextChartWrapper2">
-      <hawkular-context-chart
-        data="originalData"
-        show-y-axis-values="true">
-      </hawkular-context-chart>
-    </div>
-    -->
-
   </div>
 
 
   <div class="chartWrapperSmall">
     <hawkular-chart
       data="myData"
-      forecast-data="myForecastData"
       chart-type="line"
       alert-value="{{alertThreshold}}"
       show-data-points="true"
@@ -275,7 +260,6 @@
   <div class="chartWrapperSparkline">
     <hawkular-chart
       data="myData"
-      forecast-data="myForecastData"
       alert-value="{{alertThreshold}}"
       y-axis-units="Response Time (ms)"
     >
