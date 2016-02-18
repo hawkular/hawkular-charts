@@ -3,34 +3,14 @@
     "**/deps/**",
     "**/libs/**",
     "**/d.ts/**",
+    "**/typings/**",
     "**/node_modules/**",
-    "**/thirdparty/**",
-    "**/third_party/**",
     "**/vendor/**",
     "**/**-min-**",
     "**/**-min.**",
-    "**/**.min.**",
-    "**/**jquery.?(ui|effects)-*.*.?(*).?(cs|j)s",
-    "**/**jquery-*.*.?(*).?(cs|j)s",
-    "**/prototype?(*).js",
-    "**/dojo.js",
-    "**/MochiKit.js",
-    "**/yahoo-*.js",
-    "**/yui*.js",
-    "**/ckeditor*.js",
-    "**/tiny_mce*.js",
-    "**/tiny_mce/?(langs|plugins|themes|utils)/**",
-    "**/MathJax/**",
-    "**/shBrush*.js",
-    "**/shCore.js",
-    "**/shLegacy.js",
-    "**/modernizr.custom.?(*).js",
-    "bower_components/**"
+    "**/**.min.**"
   ],
   test: [
-    "**/test/**",
-    "**/tests/**",
-    "**/spec/**",
-    "**/specs/**"
+    "**/test/**"
   ]
 }
