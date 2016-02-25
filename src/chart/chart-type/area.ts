@@ -5,60 +5,54 @@ namespace Charts {
 
   import IChartDataPoint = Charts.IChartDataPoint;
 
-  export function createAreaChart(svg: any,
-    timeScale: any,
-    yScale: any,
-    chartData: IChartDataPoint[],
-    height?: number,
-    interpolation?: string,
-    hideHighLowValues?: boolean) {
+  export function createAreaChart(chartOptions: Charts.ChartOptions) {
 
     let highArea = d3.svg.area()
-      .interpolate(interpolation)
+      .interpolate(chartOptions.interpolation)
       .defined((d: any) => {
         return !isEmptyDataPoint(d);
       })
       .x((d: any) => {
-        return timeScale(d.timestamp);
+        return chartOptions.timeScale(d.timestamp);
       })
       .y((d: any) => {
-        return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+        return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.max);
       })
       .y0((d: any) => {
-        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.avg);
       }),
 
       avgArea = d3.svg.area()
-        .interpolate(interpolation)
+        .interpolate(chartOptions.interpolation)
         .defined((d: any) => {
           return !isEmptyDataPoint(d);
         })
         .x((d: any) => {
-          return timeScale(d.timestamp);
+          return chartOptions.timeScale(d.timestamp);
         })
         .y((d: any) => {
-          return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+          return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.avg);
         }).y0((d: any) => {
-          return hideHighLowValues ? height : yScale(d.min);
+          return chartOptions.hideHighLowValues ? chartOptions.height : chartOptions.yScale(d.min);
         }),
 
       lowArea = d3.svg.area()
-        .interpolate(interpolation)
+        .interpolate(chartOptions.interpolation)
         .defined((d: any) => {
           return !isEmptyDataPoint(d);
         })
         .x((d: any) => {
-          return timeScale(d.timestamp);
+          return chartOptions.timeScale(d.timestamp);
         })
         .y((d: any) => {
-          return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+          return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.min);
         })
         .y0(() => {
-          return height;
+          return chartOptions.modifiedInnerChartHeight;
         });
 
-    if (!hideHighLowValues) {
-      let highAreaPath = svg.selectAll('path.highArea').data([chartData]);
+    if (!chartOptions.hideHighLowValues) {
+      let highAreaPath = chartOptions.svg.selectAll('path.highArea').data([chartOptions.chartData]);
       // update existing
       highAreaPath.attr('class', 'highArea')
         .attr('d', highArea);
@@ -69,7 +63,7 @@ namespace Charts {
       // remove old ones
       highAreaPath.exit().remove();
 
-      let lowAreaPath = svg.selectAll('path.lowArea').data([chartData]);
+      let lowAreaPath = chartOptions.svg.selectAll('path.lowArea').data([chartOptions.chartData]);
       // update existing
       lowAreaPath.attr('class', 'lowArea')
         .attr('d', lowArea);
@@ -81,7 +75,7 @@ namespace Charts {
       lowAreaPath.exit().remove();
     }
 
-    let avgAreaPath = svg.selectAll('path.avgArea').data([chartData]);
+    let avgAreaPath = chartOptions.svg.selectAll('path.avgArea').data([chartOptions.chartData]);
     // update existing
     avgAreaPath.attr('class', 'avgArea')
       .attr('d', avgArea);

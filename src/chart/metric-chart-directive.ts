@@ -16,6 +16,15 @@ namespace Charts {
   export const margin = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room for label
   export let width;
 
+  export class ChartOptions {
+    constructor(public svg: any, public timeScale: any, public yScale: any,
+      public chartData: IChartDataPoint[],
+      public multiChartData: IMultiDataPoint[],
+      public modifiedInnerChartHeight: number, public height: number,
+      public tip?: any, public visuallyAdjustedMax?: number,
+      public hideHighLowValues?: boolean, public stacked?: boolean, public interpolation?: string) { }
+  }
+
   /**
    * @ngdoc directive
    * @name hawkularChart
@@ -116,7 +125,7 @@ namespace Charts {
               //console.log('Metric Width: %i', width);
               //console.log('Metric Height: %i', height);
 
-            innerChartHeight = height + margin.top;
+              innerChartHeight = height + margin.top;
 
             chart = chartParent.append('svg')
               .attr('width', width + margin.left + margin.right)
@@ -437,11 +446,11 @@ namespace Charts {
 
           }
 
-          function createMultiLineChart(multiDataPoints: IMultiDataPoint[]) {
+          function createMultiLineChart(chartOptions: ChartOptions) {
             let colorScale = d3.scale.category10(),
               g = 0;
 
-            if (multiDataPoints) {
+            if (chartOptions.multiChartData) {
               // before updating, let's remove those missing from datapoints (if any)
               svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath: any) => {
                 let stillExists = false;
@@ -801,77 +810,38 @@ namespace Charts {
 
           function determineChartType(chartType: string) {
 
+            let stacked = chartType === 'rhqbar';
+            let chartOptions: ChartOptions = new ChartOptions(svg, timeScale, yScale, chartData, multiDataPoints,
+              modifiedInnerChartHeight, height, tip, visuallyAdjustedMax,
+              hideHighLowValues, stacked, interpolation);
+
             switch (chartType) {
               case 'rhqbar':
-                createHistogramChart(svg,
-                  timeScale,
-                  yScale,
-                  chartData,
-                  tip,
-                  modifiedInnerChartHeight,
-                  true,
-                  visuallyAdjustedMax,
-                  hideHighLowValues);
+                createHistogramChart(chartOptions);
                 break;
               case 'histogram':
-                createHistogramChart(svg,
-                  timeScale,
-                  yScale,
-                  chartData,
-                  tip,
-                  modifiedInnerChartHeight,
-                  false,
-                  visuallyAdjustedMax,
-                  hideHighLowValues);
+                createHistogramChart(chartOptions);
                 break;
               case 'line':
-                createLineChart(svg,
-                  timeScale,
-                  yScale,
-                  chartData,
-                  modifiedInnerChartHeight,
-                  interpolation);
+                createLineChart(chartOptions);
                 break;
               case 'hawkularmetric':
                 $log.info('DEPRECATION WARNING: The chart type hawkularmetric has been deprecated and will be' +
                   ' removed in a future' +
                   ' release. Please use the line chart type in its place');
-                createLineChart(svg,
-                  timeScale,
-                  yScale,
-                  chartData,
-                  height,
-                  interpolation);
+                createLineChart(chartOptions);
                 break;
               case 'multiline':
-                createMultiLineChart(multiDataPoints);
+                createMultiLineChart(chartOptions);
                 break;
               case 'area':
-                createAreaChart(svg,
-                  timeScale,
-                  yScale,
-                  chartData,
-                  modifiedInnerChartHeight,
-                  interpolation,
-                  hideHighLowValues);
+                createAreaChart(chartOptions);
                 break;
               case 'scatter':
-                createScatterChart(svg,
-                  timeScale,
-                  yScale,
-                  chartData,
-                  modifiedInnerChartHeight,
-                  interpolation,
-                  hideHighLowValues);
+                createScatterChart(chartOptions);
                 break;
               case 'scatterline':
-                createScatterLineChart(svg,
-                  timeScale,
-                  yScale,
-                  chartData,
-                  modifiedInnerChartHeight,
-                  interpolation,
-                  hideHighLowValues);
+                createScatterLineChart(chartOptions);
                 break;
               default:
                 $log.warn('chart-type is not valid. Must be in' +

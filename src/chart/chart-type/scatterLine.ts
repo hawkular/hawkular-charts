@@ -5,30 +5,25 @@ namespace Charts {
 
   import IChartDataPoint = Charts.IChartDataPoint;
 
-  export function createScatterLineChart(svg: any,
-    timeScale: any,
-    yScale: any,
-    chartData: IChartDataPoint[],
-    height?: number,
-    interpolation?: string,
-    hideHighLowValues?: boolean) {
-    let lineScatterTopStem = svg.selectAll('.scatterLineTopStem').data(chartData);
+  export function createScatterLineChart(chartOptions: Charts.ChartOptions) {
+
+    let lineScatterTopStem = chartOptions.svg.selectAll('.scatterLineTopStem').data(chartOptions.chartData);
     // update existing
     lineScatterTopStem.attr('class', 'scatterLineTopStem')
       .filter((d: any) => {
         return !isEmptyDataPoint(d);
       })
       .attr('x1', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('x2', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('y1', (d) => {
-        return yScale(d.max);
+        return chartOptions.yScale(d.max);
       })
       .attr('y2', (d) => {
-        return yScale(d.avg);
+        return chartOptions.yScale(d.avg);
       })
       .attr('stroke', (d) => {
         return '#000';
@@ -40,16 +35,16 @@ namespace Charts {
       })
       .attr('class', 'scatterLineTopStem')
       .attr('x1', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('x2', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('y1', (d) => {
-        return yScale(d.max);
+        return chartOptions.yScale(d.max);
       })
       .attr('y2', (d) => {
-        return yScale(d.avg);
+        return chartOptions.yScale(d.avg);
       })
       .attr('stroke', (d) => {
         return '#000';
@@ -57,23 +52,23 @@ namespace Charts {
     // remove old ones
     lineScatterTopStem.exit().remove();
 
-    let lineScatterBottomStem = svg.selectAll('.scatterLineBottomStem').data(chartData);
+    let lineScatterBottomStem = chartOptions.svg.selectAll('.scatterLineBottomStem').data(chartOptions.chartData);
     // update existing
     lineScatterBottomStem.attr('class', 'scatterLineBottomStem')
       .filter((d) => {
         return !isEmptyDataPoint(d);
       })
       .attr('x1', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('x2', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('y1', (d) => {
-        return yScale(d.avg);
+        return chartOptions.yScale(d.avg);
       })
       .attr('y2', (d) => {
-        return yScale(d.min);
+        return chartOptions.yScale(d.min);
       })
       .attr('stroke', (d) => {
         return '#000';
@@ -85,16 +80,16 @@ namespace Charts {
       })
       .attr('class', 'scatterLineBottomStem')
       .attr('x1', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('x2', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('y1', (d) => {
-        return yScale(d.avg);
+        return chartOptions.yScale(d.avg);
       })
       .attr('y2', (d) => {
-        return yScale(d.min);
+        return chartOptions.yScale(d.min);
       })
       .attr('stroke', (d) => {
         return '#000';
@@ -102,23 +97,23 @@ namespace Charts {
     // remove old ones
     lineScatterBottomStem.exit().remove();
 
-    let lineScatterTopCross = svg.selectAll('.scatterLineTopCross').data(chartData);
+    let lineScatterTopCross = chartOptions.svg.selectAll('.scatterLineTopCross').data(chartOptions.chartData);
     // update existing
     lineScatterTopCross.attr('class', 'scatterLineTopCross')
       .filter((d) => {
         return !isEmptyDataPoint(d);
       })
       .attr('x1', (d) => {
-        return xMidPointStartPosition(d, timeScale) - 3;
+        return xMidPointStartPosition(d, chartOptions.timeScale) - 3;
       })
       .attr('x2', (d) => {
-        return xMidPointStartPosition(d, timeScale) + 3;
+        return xMidPointStartPosition(d, chartOptions.timeScale) + 3;
       })
       .attr('y1', (d) => {
-        return yScale(d.max);
+        return chartOptions.yScale(d.max);
       })
       .attr('y2', (d) => {
-        return yScale(d.max);
+        return chartOptions.yScale(d.max);
       })
       .attr('stroke', (d) => {
         return '#000';
@@ -133,16 +128,16 @@ namespace Charts {
       })
       .attr('class', 'scatterLineTopCross')
       .attr('x1', (d) => {
-        return xMidPointStartPosition(d, timeScale) - 3;
+        return xMidPointStartPosition(d, chartOptions.timeScale) - 3;
       })
       .attr('x2', (d) => {
-        return xMidPointStartPosition(d, timeScale) + 3;
+        return xMidPointStartPosition(d, chartOptions.timeScale) + 3;
       })
       .attr('y1', (d) => {
-        return yScale(d.max);
+        return chartOptions.yScale(d.max);
       })
       .attr('y2', (d) => {
-        return yScale(d.max);
+        return chartOptions.yScale(d.max);
       })
       .attr('stroke', (d) => {
         return '#000';
@@ -153,23 +148,23 @@ namespace Charts {
     // remove old ones
     lineScatterTopCross.exit().remove();
 
-    let lineScatterBottomCross = svg.selectAll('.scatterLineBottomCross').data(chartData);
+    let lineScatterBottomCross = chartOptions.svg.selectAll('.scatterLineBottomCross').data(chartOptions.chartData);
     // update existing
     lineScatterBottomCross.attr('class', 'scatterLineBottomCross')
       .filter((d) => {
         return !isEmptyDataPoint(d);
       })
       .attr('x1', (d) => {
-        return xMidPointStartPosition(d, timeScale) - 3;
+        return xMidPointStartPosition(d, chartOptions.timeScale) - 3;
       })
       .attr('x2', (d) => {
-        return xMidPointStartPosition(d, timeScale) + 3;
+        return xMidPointStartPosition(d, chartOptions.timeScale) + 3;
       })
       .attr('y1', (d) => {
-        return yScale(d.min);
+        return chartOptions.yScale(d.min);
       })
       .attr('y2', (d) => {
-        return yScale(d.min);
+        return chartOptions.yScale(d.min);
       })
       .attr('stroke', (d) => {
         return '#000';
@@ -184,16 +179,16 @@ namespace Charts {
       })
       .attr('class', 'scatterLineBottomCross')
       .attr('x1', (d) => {
-        return xMidPointStartPosition(d, timeScale) - 3;
+        return xMidPointStartPosition(d, chartOptions.timeScale) - 3;
       })
       .attr('x2', (d) => {
-        return xMidPointStartPosition(d, timeScale) + 3;
+        return xMidPointStartPosition(d, chartOptions.timeScale) + 3;
       })
       .attr('y1', (d) => {
-        return yScale(d.min);
+        return chartOptions.yScale(d.min);
       })
       .attr('y2', (d) => {
-        return yScale(d.min);
+        return chartOptions.yScale(d.min);
       })
       .attr('stroke', (d) => {
         return '#000';
@@ -204,7 +199,7 @@ namespace Charts {
     // remove old ones
     lineScatterBottomCross.exit().remove();
 
-    let circleScatterDot = svg.selectAll('.scatterDot').data(chartData);
+    let circleScatterDot = chartOptions.svg.selectAll('.scatterDot').data(chartOptions.chartData);
     // update existing
     circleScatterDot.attr('class', 'scatterDot')
       .filter((d) => {
@@ -212,10 +207,10 @@ namespace Charts {
       })
       .attr('r', 3)
       .attr('cx', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('cy', (d) => {
-        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.avg);
       })
       .style('fill', () => {
         return '#70c4e2';
@@ -235,10 +230,10 @@ namespace Charts {
       .attr('class', 'scatterDot')
       .attr('r', 3)
       .attr('cx', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('cy', (d) => {
-        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.avg);
       })
       .style('fill', () => {
         return '#70c4e2';
