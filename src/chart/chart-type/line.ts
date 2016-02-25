@@ -5,26 +5,21 @@ namespace Charts {
 
   import IChartDataPoint = Charts.IChartDataPoint;
 
-  export function createLineChart(svg: any,
-    timeScale: any,
-    yScale: any,
-    chartData: IChartDataPoint[],
-    height?: number,
-    interpolation?: string) {
+  export function createLineChart(chartOptions: Charts.ChartOptions) {
 
     let metricChartLine = d3.svg.line()
-      .interpolate(interpolation)
+      .interpolate(chartOptions.interpolation)
       .defined((d: any) => {
         return !isEmptyDataPoint(d);
       })
       .x((d: any) => {
-        return timeScale(d.timestamp);
+        return chartOptions.timeScale(d.timestamp);
       })
       .y((d: any) => {
-        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.avg);
       });
 
-    let pathMetric = svg.selectAll('path.metricLine').data([chartData]);
+    let pathMetric = chartOptions.svg.selectAll('path.metricLine').data([chartOptions.chartData]);
     // update existing
     pathMetric.attr('class', 'metricLine')
       .transition()
