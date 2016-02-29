@@ -826,10 +826,8 @@ namespace Charts {
                 createLineChart(chartOptions);
                 break;
               case 'hawkularmetric':
-                $log.info('DEPRECATION WARNING: The chart type hawkularmetric has been deprecated and will be' +
-                  ' removed in a future' +
-                  ' release. Please use the line chart type in its place');
-                createLineChart(chartOptions);
+                $log.error('Error: The chart type hawkularmetric has been removed with version 1.0, please use line' +
+                  ' type, which is the default');
                 break;
               case 'multiline':
                 createMultiLineChart(chartOptions);
