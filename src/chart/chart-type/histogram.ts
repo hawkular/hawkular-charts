@@ -4,44 +4,37 @@ namespace Charts {
 
   export const BAR_OFFSET = 2;
 
-  export function createHistogramChart(svg: any,
-    timeScale: any,
-    yScale: any,
-    chartData: IChartDataPoint[],
-    tip: any,
-    height?: number,
-    stacked?: boolean,
-    visuallyAdjustedMax?: number,
-    hideHighLowValues?: boolean) {
+  export function createHistogramChart(chartOptions: Charts.ChartOptions) {
 
-    const barClass = stacked ? 'leaderBar' : 'histogram';
+    const barClass = chartOptions.stacked ? 'leaderBar' : 'histogram';
 
-    const rectHistogram = svg.selectAll('rect.' + barClass).data(chartData);
+    const rectHistogram = chartOptions.svg.selectAll('rect.' + barClass).data(chartOptions.chartData);
 
     function buildBars(selection: d3.Selection<any>) {
       selection
         .attr('class', barClass)
         .on('mouseover', (d, i) => {
-          tip.show(d, i);
+          chartOptions.tip.show(d, i);
         }).on('mouseout', () => {
-          tip.hide();
+          chartOptions.tip.hide();
         })
         .transition()
         .attr('x', (d, i) => {
-          return calcBarXPos(d, i, timeScale, chartData.length);
+          return calcBarXPos(d, i, chartOptions.timeScale, chartOptions.chartData.length);
         })
         .attr('width', (d, i) => {
-          return calcBarWidthAdjusted(i, chartData.length);
+          return calcBarWidthAdjusted(i, chartOptions.chartData.length);
         })
         .attr('y', (d) => {
-          return isEmptyDataPoint(d) ? 0 : yScale(d.avg);
+          return isEmptyDataPoint(d) ? 0 : chartOptions.yScale(d.avg);
         })
         .attr('height', (d) => {
-          return height - yScale(isEmptyDataPoint(d) ? yScale(visuallyAdjustedMax) : d.avg);
+          return chartOptions.modifiedInnerChartHeight - chartOptions.yScale(isEmptyDataPoint(d) ?
+            chartOptions.yScale(chartOptions.visuallyAdjustedMax) : d.avg);
         })
-        .attr('opacity', stacked ? '.6' : '1')
-        .attr('fill', (d, i) => {
-          return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0');
+        .attr('opacity', chartOptions.stacked ? '.6' : '1')
+        .attr('fill', (d) => {
+          return isEmptyDataPoint(d) ? 'url(#noDataStripes)' : (chartOptions.stacked ? '#D3D3D6' : '#C0C0C0');
         })
         .attr('stroke', (d) => {
           return '#777';
@@ -61,22 +54,22 @@ namespace Charts {
           return d.min === d.max ? 'singleValue' : 'high';
         })
         .attr('x', function(d, i) {
-          return calcBarXPos(d, i, timeScale, chartData.length);
+          return calcBarXPos(d, i, chartOptions.timeScale, chartOptions.chartData.length);
         })
         .attr('y', (d) => {
-          return isNaN(d.max) ? yScale(visuallyAdjustedMax) : yScale(d.max);
+          return isNaN(d.max) ? chartOptions.yScale(chartOptions.visuallyAdjustedMax) : chartOptions.yScale(d.max);
         })
         .attr('height', (d) => {
-          return isEmptyDataPoint(d) ? 0 : (yScale(d.avg) - yScale(d.max) || 2);
+          return isEmptyDataPoint(d) ? 0 : (chartOptions.yScale(d.avg) - chartOptions.yScale(d.max) || 2);
         })
         .attr('width', (d, i) => {
-          return calcBarWidthAdjusted(i, chartData.length);
+          return calcBarWidthAdjusted(i, chartOptions.chartData.length);
         })
         .attr('opacity', 0.9)
         .on('mouseover', (d, i) => {
-          tip.show(d, i);
+          chartOptions.tip.show(d, i);
         }).on('mouseout', () => {
-          tip.hide();
+          chartOptions.tip.hide();
         });
     }
 
@@ -84,22 +77,22 @@ namespace Charts {
       selection
         .attr('class', 'low')
         .attr('x', (d, i) => {
-          return calcBarXPos(d, i, timeScale, chartData.length);
+          return calcBarXPos(d, i, chartOptions.timeScale, chartOptions.chartData.length);
         })
         .attr('y', (d) => {
-          return isNaN(d.avg) ? height : yScale(d.avg);
+          return isNaN(d.avg) ? chartOptions.height : chartOptions.yScale(d.avg);
         })
         .attr('height', (d) => {
-          return isEmptyDataPoint(d) ? 0 : (yScale(d.min) - yScale(d.avg));
+          return isEmptyDataPoint(d) ? 0 : (chartOptions.yScale(d.min) - chartOptions.yScale(d.avg));
         })
         .attr('width', (d, i) => {
-          return calcBarWidthAdjusted(i, chartData.length);
+          return calcBarWidthAdjusted(i, chartOptions.chartData.length);
         })
         .attr('opacity', 0.9)
         .on('mouseover', (d, i) => {
-          tip.show(d, i);
+          chartOptions.tip.show(d, i);
         }).on('mouseout', () => {
-          tip.hide();
+          chartOptions.tip.hide();
         });
 
     }
@@ -111,16 +104,16 @@ namespace Charts {
           return !isEmptyDataPoint(d);
         })
         .attr('x1', (d) => {
-          return xMidPointStartPosition(d, timeScale);
+          return xMidPointStartPosition(d, chartOptions.timeScale);
         })
         .attr('x2', (d) => {
-          return xMidPointStartPosition(d, timeScale);
+          return xMidPointStartPosition(d, chartOptions.timeScale);
         })
         .attr('y1', (d) => {
-          return yScale(d.max);
+          return chartOptions.yScale(d.max);
         })
         .attr('y2', (d) => {
-          return yScale(d.avg);
+          return chartOptions.yScale(d.avg);
         })
         .attr('stroke', (d) => {
           return 'red';
@@ -137,16 +130,16 @@ namespace Charts {
         })
         .attr('class', 'histogramBottomStem')
         .attr('x1', (d) => {
-          return xMidPointStartPosition(d, timeScale);
+          return xMidPointStartPosition(d, chartOptions.timeScale);
         })
         .attr('x2', (d) => {
-          return xMidPointStartPosition(d, timeScale);
+          return xMidPointStartPosition(d, chartOptions.timeScale);
         })
         .attr('y1', (d) => {
-          return yScale(d.avg);
+          return chartOptions.yScale(d.avg);
         })
         .attr('y2', (d) => {
-          return yScale(d.min);
+          return chartOptions.yScale(d.min);
         })
         .attr('stroke', (d) => {
           return 'red';
@@ -163,16 +156,16 @@ namespace Charts {
         })
         .attr('class', 'histogramTopCross')
         .attr('x1', (d) => {
-          return xMidPointStartPosition(d, timeScale) - 3;
+          return xMidPointStartPosition(d, chartOptions.timeScale) - 3;
         })
         .attr('x2', (d) => {
-          return xMidPointStartPosition(d, timeScale) + 3;
+          return xMidPointStartPosition(d, chartOptions.timeScale) + 3;
         })
         .attr('y1', (d) => {
-          return yScale(d.max);
+          return chartOptions.yScale(d.max);
         })
         .attr('y2', (d) => {
-          return yScale(d.max);
+          return chartOptions.yScale(d.max);
         })
         .attr('stroke', (d) => {
           return 'red';
@@ -192,16 +185,16 @@ namespace Charts {
         })
         .attr('class', 'histogramBottomCross')
         .attr('x1', (d) => {
-          return xMidPointStartPosition(d, timeScale) - 3;
+          return xMidPointStartPosition(d, chartOptions.timeScale) - 3;
         })
         .attr('x2', (d) => {
-          return xMidPointStartPosition(d, timeScale) + 3;
+          return xMidPointStartPosition(d, chartOptions.timeScale) + 3;
         })
         .attr('y1', (d) => {
-          return yScale(d.min);
+          return chartOptions.yScale(d.min);
         })
         .attr('y2', (d) => {
-          return yScale(d.min);
+          return chartOptions.yScale(d.min);
         })
         .attr('stroke', (d) => {
           return 'red';
@@ -232,7 +225,7 @@ namespace Charts {
         rectHigh.exit().remove();
 
         // lower portion representing avg to low
-        const rectLow = svg.selectAll('rect.low').data(chartData);
+        const rectLow = svg.selectAll('rect.low').data(chartOptions.chartData);
 
         // update existing
         rectLow.call(buildLowerBar);
@@ -247,7 +240,7 @@ namespace Charts {
         rectLow.exit().remove();
       } else {
 
-        const lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartData);
+        const lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartOptions.chartData);
 
         // update existing
         lineHistoHighStem.call(buildTopStem);
@@ -261,7 +254,7 @@ namespace Charts {
         // remove old ones
         lineHistoHighStem.exit().remove();
 
-        const lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartData);
+        const lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartOptions.chartData);
 
         // update existing
         lineHistoLowStem.call(buildLowStem);
@@ -275,7 +268,7 @@ namespace Charts {
         // remove old ones
         lineHistoLowStem.exit().remove();
 
-        const lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartData);
+        const lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartOptions.chartData);
 
         // update existing
         lineHistoTopCross.call(buildTopCross);
@@ -289,7 +282,7 @@ namespace Charts {
         // remove old ones
         lineHistoTopCross.exit().remove();
 
-        const lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartData);
+        const lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartOptions.chartData);
         // update existing
         lineHistoBottomCross.call(buildBottomCross);
 
@@ -315,11 +308,12 @@ namespace Charts {
     // remove old ones
     rectHistogram.exit().remove();
 
-    if (!hideHighLowValues) {
-      createHistogramHighLowValues(svg, chartData, stacked);
+    if (!chartOptions.hideHighLowValues) {
+      createHistogramHighLowValues(chartOptions.svg, chartOptions.chartData, chartOptions.stacked);
     } else {
       // we should hide high-low values.. or remove if existing
-      svg.selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').remove();
+      chartOptions.svg
+        .selectAll('.histogramTopStem, .histogramBottomStem, .histogramTopCross, .histogramBottomCross').remove();
     }
 
   }

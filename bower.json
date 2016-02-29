@@ -32,9 +32,8 @@
     "**/.*"
   ],
   "main": [
-    "hawkular-charts.js",
-    "css/hawkular-charts.css",
-    "css/hawkular-charts.min.css"
+    "dist/hawkular-charts.js",
+    "dist/css/hawkular-charts.css"
   ],
   "repository": {
     "type": "git",

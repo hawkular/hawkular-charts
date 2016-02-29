@@ -49,7 +49,7 @@ const wiredep = wiredeps.stream;
 let server;
 
 const config = {
-  main: '.',
+  dist: 'dist',
   ts: ['src/**/*.ts'],
   less: ['src/**/*.less'],
   js: pkg.name + '.js',
@@ -109,10 +109,10 @@ gulp.task('tsc-prod', ['clean-defs'], () => {
   return eventStream.merge(
     tsResult.js
       .pipe(concat(config.js))
-      .pipe(gulp.dest('.'))
+      .pipe(gulp.dest(config.dist))
       .pipe(uglify())
       .pipe(rename('hawkular-charts.min.js'))
-      .pipe(gulp.dest('.')),
+      .pipe(gulp.dest(config.dist)),
 
     tsResult.dts
       .pipe(gulp.dest('d.ts')))
@@ -140,7 +140,7 @@ gulp.task('tsc-dev', ['clean-defs'], () => {
     tsResult.js
       .pipe(concat(config.js))
       .pipe(sourcemaps.write())
-      .pipe(gulp.dest('.'))
+      .pipe(gulp.dest(config.dist))
       .pipe(reload()),
 
     tsResult.dts
@@ -170,10 +170,10 @@ gulp.task('less', () => {
     .pipe(autoprefixer())
     .pipe(concat('css/hawkular-charts.css'))
     .pipe(sourcemaps.write())
-    .pipe(gulp.dest('.'))
+    .pipe(gulp.dest(config.dist))
     .pipe(cssnano())
     .pipe(concat('css/hawkular-charts.min.css'))
-    .pipe(gulp.dest('.'))
+    .pipe(gulp.dest(config.dist))
     .pipe(reload());
 });
 

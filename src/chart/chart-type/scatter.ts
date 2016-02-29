@@ -5,17 +5,11 @@ namespace Charts {
 
   import IChartDataPoint = Charts.IChartDataPoint;
 
-  export function createScatterChart(svg: any,
-    timeScale: any,
-    yScale: any,
-    chartData: IChartDataPoint[],
-    height?: number,
-    interpolation?: string,
-    hideHighLowValues?: boolean) {
+  export function createScatterChart(chartOptions: Charts.ChartOptions) {
 
-    if (!hideHighLowValues) {
+    if (!chartOptions.hideHighLowValues) {
 
-      let highDotCircle = svg.selectAll('.highDot').data(chartData);
+      let highDotCircle = chartOptions.svg.selectAll('.highDot').data(chartOptions.chartData);
       // update existing
       highDotCircle.attr('class', 'highDot')
         .filter((d: any) => {
@@ -23,10 +17,10 @@ namespace Charts {
         })
         .attr('r', 3)
         .attr('cx', (d) => {
-          return xMidPointStartPosition(d, timeScale);
+          return xMidPointStartPosition(d, chartOptions.timeScale);
         })
         .attr('cy', (d) => {
-          return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+          return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.max);
         })
         .style('fill', () => {
           return '#ff1a13';
@@ -43,10 +37,10 @@ namespace Charts {
         .attr('class', 'highDot')
         .attr('r', 3)
         .attr('cx', (d) => {
-          return xMidPointStartPosition(d, timeScale);
+          return xMidPointStartPosition(d, chartOptions.timeScale);
         })
         .attr('cy', (d) => {
-          return isRawMetric(d) ? yScale(d.value) : yScale(d.max);
+          return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.max);
         })
         .style('fill', () => {
           return '#ff1a13';
@@ -58,7 +52,7 @@ namespace Charts {
       // remove old ones
       highDotCircle.exit().remove();
 
-      let lowDotCircle = svg.selectAll('.lowDot').data(chartData);
+      let lowDotCircle = chartOptions.svg.selectAll('.lowDot').data(chartOptions.chartData);
       // update existing
       lowDotCircle.attr('class', 'lowDot')
         .filter((d) => {
@@ -66,10 +60,10 @@ namespace Charts {
         })
         .attr('r', 3)
         .attr('cx', (d) => {
-          return xMidPointStartPosition(d, timeScale);
+          return xMidPointStartPosition(d, chartOptions.timeScale);
         })
         .attr('cy', (d) => {
-          return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+          return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.min);
         })
         .style('fill', () => {
           return '#70c4e2';
@@ -86,10 +80,10 @@ namespace Charts {
         .attr('class', 'lowDot')
         .attr('r', 3)
         .attr('cx', (d) => {
-          return xMidPointStartPosition(d, timeScale);
+          return xMidPointStartPosition(d, chartOptions.timeScale);
         })
         .attr('cy', (d) => {
-          return isRawMetric(d) ? yScale(d.value) : yScale(d.min);
+          return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.min);
         })
         .style('fill', () => {
           return '#70c4e2';
@@ -103,10 +97,10 @@ namespace Charts {
 
     } else {
       // we should hide high-low values.. or remove if existing
-      svg.selectAll('.highDot, .lowDot').remove();
+      chartOptions.svg.selectAll('.highDot, .lowDot').remove();
     }
 
-    let avgDotCircle = svg.selectAll('.avgDot').data(chartData);
+    let avgDotCircle = chartOptions.svg.selectAll('.avgDot').data(chartOptions.chartData);
     // update existing
     avgDotCircle.attr('class', 'avgDot')
       .filter((d) => {
@@ -114,10 +108,10 @@ namespace Charts {
       })
       .attr('r', 3)
       .attr('cx', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('cy', (d) => {
-        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.avg);
       })
       .style('fill', () => {
         return '#FFF';
@@ -134,10 +128,10 @@ namespace Charts {
       .attr('class', 'avgDot')
       .attr('r', 3)
       .attr('cx', (d) => {
-        return xMidPointStartPosition(d, timeScale);
+        return xMidPointStartPosition(d, chartOptions.timeScale);
       })
       .attr('cy', (d) => {
-        return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
+        return isRawMetric(d) ? chartOptions.yScale(d.value) : chartOptions.yScale(d.avg);
       })
       .style('fill', () => {
         return '#FFF';
