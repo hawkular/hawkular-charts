@@ -1,5 +1,8 @@
 /// <reference path="../../../typings/tsd.d.ts" />
 declare namespace Charts {
     const BAR_OFFSET: number;
-    function createHistogramChart(chartOptions: Charts.ChartOptions): void;
+    class HistogramChart implements IChartType {
+        name: string;
+        drawChart(chartOptions: Charts.ChartOptions, optionalBoolean?: boolean): void;
+    }
 }

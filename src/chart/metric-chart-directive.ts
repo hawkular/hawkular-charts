@@ -22,7 +22,8 @@ namespace Charts {
       public multiChartData: IMultiDataPoint[],
       public modifiedInnerChartHeight: number, public height: number,
       public tip?: any, public visuallyAdjustedMax?: number,
-      public hideHighLowValues?: boolean, public stacked?: boolean, public interpolation?: string) { }
+      public hideHighLowValues?: boolean, public stacked?: boolean, public interpolation?: string) {
+    }
   }
 
   /**
@@ -32,9 +33,10 @@ namespace Charts {
    *
    */
   angular.module('hawkular.charts')
-    .directive('hawkularChart', ['$rootScope', '$http', '$interval', '$log',
+    .directive('hawkularChart', ['$rootScope', '$http', '$window', '$interval', '$log',
       function($rootScope: ng.IRootScopeService,
         $http: ng.IHttpService,
+        $window: ng.IWindowService,
         $interval: ng.IIntervalService,
         $log: ng.ILogService): ng.IDirective {
 
@@ -120,12 +122,12 @@ namespace Charts {
               return;
             }
 
-            modifiedInnerChartHeight = height - margin.top - margin.bottom - X_AXIS_HEIGHT,
+            modifiedInnerChartHeight = height - margin.top - margin.bottom - X_AXIS_HEIGHT;
 
-              //console.log('Metric Width: %i', width);
-              //console.log('Metric Height: %i', height);
+            //console.log('Metric Width: %i', width);
+            //console.log('Metric Height: %i', height);
 
-              innerChartHeight = height + margin.top;
+            innerChartHeight = height + margin.top;
 
             chart = chartParent.append('svg')
               .attr('width', width + margin.left + margin.right)
@@ -350,7 +352,7 @@ namespace Charts {
                 requestConfig).success((response) => {
 
                   processedNewData = formatBucketedChartOutput(response);
-                  scope.render(processedNewData, processedPreviousRangeData);
+                  scope.render(processedNewData);
 
                 }).error((reason, status) => {
                   $log.error('Error Loading Chart Data:' + status + ', ' + reason);
@@ -730,14 +732,14 @@ namespace Charts {
           scope.$watchCollection('data', (newData, oldData) => {
             if (newData || oldData) {
               processedNewData = angular.fromJson(newData || []);
-              scope.render(processedNewData, processedPreviousRangeData);
+              scope.render(processedNewData);
             }
           });
 
           scope.$watch('multiData', (newMultiData, oldMultiData) => {
             if (newMultiData || oldMultiData) {
               multiDataPoints = angular.fromJson(newMultiData || []);
-              scope.render(processedNewData, processedPreviousRangeData);
+              scope.render(processedNewData);
             }
           }, true);
 
@@ -745,21 +747,21 @@ namespace Charts {
             if (newPreviousRangeValues) {
               //$log.debug('Previous Range data changed');
               processedPreviousRangeData = angular.fromJson(newPreviousRangeValues);
-              scope.render(processedNewData, processedPreviousRangeData);
+              scope.render(processedNewData);
             }
           }, true);
 
           scope.$watch('annotationData', (newAnnotationData) => {
             if (newAnnotationData) {
               annotationData = angular.fromJson(newAnnotationData);
-              scope.render(processedNewData, processedPreviousRangeData);
+              scope.render(processedNewData);
             }
           }, true);
 
           scope.$watch('forecastData', (newForecastData) => {
             if (newForecastData) {
               forecastDataPoints = angular.fromJson(newForecastData);
-              scope.render(processedNewData, processedPreviousRangeData);
+              scope.render(processedNewData);
             }
           }, true);
 
@@ -770,7 +772,7 @@ namespace Charts {
               hideHighLowValues = (typeof chartAttrs[2] !== 'undefined') ? chartAttrs[2] : hideHighLowValues;
               useZeroMinValue = (typeof chartAttrs[3] !== 'undefined') ? chartAttrs[3] : useZeroMinValue;
               showAvgLine = (typeof chartAttrs[4] !== 'undefined') ? chartAttrs[4] : showAvgLine;
-              scope.render(processedNewData, processedPreviousRangeData);
+              scope.render(processedNewData);
             });
 
           function loadStandAloneMetricsTimeRangeFromNow() {
@@ -814,41 +816,25 @@ namespace Charts {
             let chartOptions: ChartOptions = new ChartOptions(svg, timeScale, yScale, chartData, multiDataPoints,
               modifiedInnerChartHeight, height, tip, visuallyAdjustedMax,
               hideHighLowValues, stacked, interpolation);
+            const chartTypes: IChartType[] = [];
+            chartTypes.push(new LineChart());
+            chartTypes.push(new AreaChart());
+            chartTypes.push(new ScatterChart());
+            chartTypes.push(new ScatterLineChart());
+            chartTypes.push(new HistogramChart());
 
-            switch (chartType) {
-              case 'rhqbar':
-                createHistogramChart(chartOptions);
-                break;
-              case 'histogram':
-                createHistogramChart(chartOptions);
-                break;
-              case 'line':
-                createLineChart(chartOptions);
-                break;
-              case 'hawkularmetric':
-                $log.error('Error: The chart type hawkularmetric has been removed with version 1.0, please use line' +
-                  ' type, which is the default');
-                break;
-              case 'multiline':
-                createMultiLineChart(chartOptions);
-                break;
-              case 'area':
-                createAreaChart(chartOptions);
-                break;
-              case 'scatter':
-                createScatterChart(chartOptions);
-                break;
-              case 'scatterline':
-                createScatterLineChart(chartOptions);
-                break;
-              default:
-                $log.warn('chart-type is not valid. Must be in' +
-                  ' [rhqbar,line,area,multiline,scatter,scatterline,histogram] chart type: ' + chartType);
+            //@todo: add in multiline and rhqbar chart types
+            //@todo: add validation if not in valid chart types
+            chartTypes.forEach((aChartType) => {
+              if (aChartType.name === chartType) {
+                aChartType.drawChart(chartOptions);
+              }
+            });
 
-            }
+
           }
 
-          scope.render = (dataPoints, previousRangeDataPoints) => {
+          scope.render = (dataPoints) => {
             // if we don't have data, don't bother..
             if (!dataPoints && !multiDataPoints) {
               return;
@@ -863,9 +849,8 @@ namespace Charts {
 
             if (dataPoints) {
               determineScale(dataPoints);
-            }
-
-            if (multiDataPoints) {
+            } else {
+              //multiDataPoints exist
               determineMultiScale(multiDataPoints);
             }
 

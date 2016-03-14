@@ -1,4 +1,7 @@
 /// <reference path="../../../typings/tsd.d.ts" />
 declare namespace Charts {
-    function createScatterChart(chartOptions: Charts.ChartOptions): void;
+    class ScatterChart implements IChartType {
+        name: string;
+        drawChart(chartOptions: Charts.ChartOptions): void;
+    }
 }
