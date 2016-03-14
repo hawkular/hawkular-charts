@@ -22,7 +22,7 @@ namespace Charts {
       public multiChartData: IMultiDataPoint[],
       public modifiedInnerChartHeight: number, public height: number,
       public tip?: any, public visuallyAdjustedMax?: number,
-      public hideHighLowValues?: boolean, public stacked?: boolean, public interpolation?: string) {
+      public hideHighLowValues?: boolean, public interpolation?: string) {
     }
   }
 
@@ -100,6 +100,15 @@ namespace Charts {
           showDataPoints = attrs.showDataPoints;
           previousRangeDataPoints = attrs.previousRangeData;
           annotationData = attrs.annotationData;
+
+          const chartTypes: IChartType[] = [];
+          chartTypes.push(new LineChart());
+          chartTypes.push(new AreaChart());
+          chartTypes.push(new ScatterChart());
+          chartTypes.push(new ScatterLineChart());
+          chartTypes.push(new HistogramChart());
+          chartTypes.push(new RhqBarChart());
+
 
           function resize(): void {
             // destroy any previous charts
@@ -812,16 +821,9 @@ namespace Charts {
 
           function determineChartType(chartType: string) {
 
-            let stacked = chartType === 'rhqbar';
             let chartOptions: ChartOptions = new ChartOptions(svg, timeScale, yScale, chartData, multiDataPoints,
               modifiedInnerChartHeight, height, tip, visuallyAdjustedMax,
-              hideHighLowValues, stacked, interpolation);
-            const chartTypes: IChartType[] = [];
-            chartTypes.push(new LineChart());
-            chartTypes.push(new AreaChart());
-            chartTypes.push(new ScatterChart());
-            chartTypes.push(new ScatterLineChart());
-            chartTypes.push(new HistogramChart());
+              hideHighLowValues, interpolation);
 
             //@todo: add in multiline and rhqbar chart types
             //@todo: add validation if not in valid chart types
@@ -830,7 +832,6 @@ namespace Charts {
                 aChartType.drawChart(chartOptions);
               }
             });
-
 
           }
 
