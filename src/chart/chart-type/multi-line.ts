@@ -11,7 +11,7 @@ namespace Charts {
 
     public drawChart(chartOptions: Charts.ChartOptions) {
 
-      let colorScale = <any> d3.scale.category10(),
+      let colorScale = <any>d3.scale.category10(),
         g = 0;
 
       if (chartOptions.multiChartData) {
@@ -73,13 +73,13 @@ namespace Charts {
       let interpolate = newInterpolation || 'monotone',
         line = d3.svg.line()
           .interpolate(interpolate)
-          .defined((d:any) => {
+          .defined((d: any) => {
             return !isEmptyDataPoint(d);
           })
-          .x((d:any) => {
+          .x((d: any) => {
             return timeScale(d.timestamp);
           })
-          .y((d:any) => {
+          .y((d: any) => {
             return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
           });
 
