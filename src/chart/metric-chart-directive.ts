@@ -109,7 +109,6 @@ namespace Charts {
           chartTypes.push(new HistogramChart());
           chartTypes.push(new RhqBarChart());
 
-
           function resize(): void {
             // destroy any previous charts
             if (chart) {
