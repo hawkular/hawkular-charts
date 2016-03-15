@@ -16,16 +16,6 @@ namespace Charts {
   export const margin = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room for label
   export let width;
 
-  export class ChartOptions {
-    constructor(public svg: any, public timeScale: any, public yScale: any,
-      public chartData: IChartDataPoint[],
-      public multiChartData: IMultiDataPoint[],
-      public modifiedInnerChartHeight: number, public height: number,
-      public tip?: any, public visuallyAdjustedMax?: number,
-      public hideHighLowValues?: boolean, public interpolation?: string) {
-    }
-  }
-
   /**
    * @ngdoc directive
    * @name hawkularChart
@@ -855,8 +845,8 @@ namespace Charts {
             }
 
             if (alertValue && (alertValue > visuallyAdjustedMin && alertValue < visuallyAdjustedMax)) {
-              const alertBounds: AlertBound[] = extractAlertRanges(chartData, alertValue);
-              createAlertBoundsArea(svg, timeScale, yScale, modifiedInnerChartHeight, visuallyAdjustedMax, alertBounds);
+              createAlertBoundsArea(svg, timeScale, yScale, modifiedInnerChartHeight, visuallyAdjustedMax,
+                chartData, alertValue);
             }
             createXAxisBrush();
 

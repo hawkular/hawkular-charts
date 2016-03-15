@@ -2,6 +2,7 @@
 
 namespace Charts {
   'use strict';
+
   /**
    * Defines an individual alert bounds  to be visually highlighted in a chart
    * that an alert was above/below a threshold.
@@ -54,7 +55,7 @@ namespace Charts {
     pathAlertLine.exit().remove();
   }
 
-  export function extractAlertRanges(chartData: IChartDataPoint[], threshold: AlertThreshold): AlertBound[] {
+  function extractAlertRanges(chartData: IChartDataPoint[], threshold: AlertThreshold): AlertBound[] {
     let alertBoundAreaItems: AlertBound[];
     let startPoints: number[];
 
@@ -120,7 +121,10 @@ namespace Charts {
     yScale: any,
     height: number,
     highBound: number,
-    alertBounds: AlertBound[]) {
+    chartData:IChartDataPoint[],
+    alertValue:number
+    ) {
+    const alertBounds: AlertBound[] = extractAlertRanges(chartData, alertValue);
     let rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
 
     function alertBoundingRect(selection) {

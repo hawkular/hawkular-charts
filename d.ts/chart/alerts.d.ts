@@ -13,6 +13,5 @@ declare namespace Charts {
         constructor(startTimestamp: TimeInMillis, endTimestamp: TimeInMillis, alertValue: number);
     }
     function createAlertLine(svg: any, timeScale: any, yScale: any, chartData: IChartDataPoint[], alertValue: number, cssClassName: string): void;
-    function extractAlertRanges(chartData: IChartDataPoint[], threshold: AlertThreshold): AlertBound[];
-    function createAlertBoundsArea(svg: any, timeScale: any, yScale: any, height: number, highBound: number, alertBounds: AlertBound[]): void;
+    function createAlertBoundsArea(svg: any, timeScale: any, yScale: any, height: number, highBound: number, chartData: IChartDataPoint[], alertValue: number): void;
 }

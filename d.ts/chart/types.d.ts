@@ -19,9 +19,19 @@ declare namespace Charts {
         percentile95th?: MetricValue;
         empty: boolean;
     }
+    /**
+     * Simplest Metric data type
+     */
     interface ISimpleMetric {
         timestamp: TimeInMillis;
         value: MetricValue;
+    }
+    /**
+     * Data for predictive 'cone'
+     */
+    interface IPredictiveMetric extends ISimpleMetric {
+        min?: MetricValue;
+        max?: MetricValue;
     }
     interface IBaseChartDataPoint {
         timestamp: TimeInMillis;
@@ -49,5 +59,22 @@ declare namespace Charts {
         keyHash?: string;
         color?: string;
         values: IChartDataPoint[];
+    }
+    /**
+     *
+     */
+    class ChartOptions {
+        svg: any;
+        timeScale: any;
+        yScale: any;
+        chartData: IChartDataPoint[];
+        multiChartData: IMultiDataPoint[];
+        modifiedInnerChartHeight: number;
+        height: number;
+        tip: any;
+        visuallyAdjustedMax: number;
+        hideHighLowValues: boolean;
+        interpolation: string;
+        constructor(svg: any, timeScale: any, yScale: any, chartData: IChartDataPoint[], multiChartData: IMultiDataPoint[], modifiedInnerChartHeight: number, height: number, tip?: any, visuallyAdjustedMax?: number, hideHighLowValues?: boolean, interpolation?: string);
     }
 }

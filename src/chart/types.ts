@@ -25,9 +25,20 @@ namespace Charts {
     empty: boolean;
   }
 
+  /**
+   * Simplest Metric data type
+   */
   export interface ISimpleMetric {
     timestamp: TimeInMillis;
     value: MetricValue;
+  }
+
+  /**
+   * Data for predictive 'cone'
+   */
+  export interface IPredictiveMetric extends ISimpleMetric {
+    min?: MetricValue;
+    max?: MetricValue;
   }
 
   export interface IBaseChartDataPoint {
@@ -58,6 +69,24 @@ namespace Charts {
     keyHash?: string; // for using as valid html id
     color?: string; /// #fffeee
     values: IChartDataPoint[];
+  }
+
+  /**
+   *
+   */
+  export class ChartOptions {
+    constructor(public svg: any,
+      public timeScale: any,
+      public yScale: any,
+      public chartData: IChartDataPoint[],
+      public multiChartData: IMultiDataPoint[],
+      public modifiedInnerChartHeight: number,
+      public height: number,
+      public tip?: any,
+      public visuallyAdjustedMax?: number,
+      public hideHighLowValues?: boolean,
+      public interpolation?: string) {
+    }
   }
 
 }
