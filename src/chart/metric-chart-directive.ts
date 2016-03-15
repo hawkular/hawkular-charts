@@ -101,13 +101,14 @@ namespace Charts {
           previousRangeDataPoints = attrs.previousRangeData;
           annotationData = attrs.annotationData;
 
-          const chartTypes: IChartType[] = [];
-          chartTypes.push(new LineChart());
-          chartTypes.push(new AreaChart());
-          chartTypes.push(new ScatterChart());
-          chartTypes.push(new ScatterLineChart());
-          chartTypes.push(new HistogramChart());
-          chartTypes.push(new RhqBarChart());
+          const registeredChartTypes: IChartType[] = [];
+          registeredChartTypes.push(new LineChart());
+          registeredChartTypes.push(new AreaChart());
+          registeredChartTypes.push(new ScatterChart());
+          registeredChartTypes.push(new ScatterLineChart());
+          registeredChartTypes.push(new HistogramChart());
+          registeredChartTypes.push(new RhqBarChart());
+          registeredChartTypes.push(new MultiLineChart());
 
           function resize(): void {
             // destroy any previous charts
@@ -456,65 +457,6 @@ namespace Charts {
 
           }
 
-          function createMultiLineChart(chartOptions: ChartOptions) {
-            let colorScale = d3.scale.category10(),
-              g = 0;
-
-            if (chartOptions.multiChartData) {
-              // before updating, let's remove those missing from datapoints (if any)
-              svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath: any) => {
-                let stillExists = false;
-                multiDataPoints.forEach((singleChartData: any) => {
-                  singleChartData.keyHash = singleChartData.keyHash
-                    || ('multiLine' + hashString(singleChartData.key));
-                  if (existingPath.getAttribute('id') === singleChartData.keyHash) {
-                    stillExists = true;
-                  }
-                });
-                if (!stillExists) {
-                  existingPath.remove();
-                }
-              });
-
-              multiDataPoints.forEach((singleChartData: any) => {
-                if (singleChartData && singleChartData.values) {
-                  singleChartData.keyHash = singleChartData.keyHash
-                    || ('multiLine' + hashString(singleChartData.key));
-                  let pathMultiLine = svg.selectAll('path#' + singleChartData.keyHash)
-                    .data([singleChartData.values]);
-                  // update existing
-                  pathMultiLine.attr('id', singleChartData.keyHash)
-                    .attr('class', 'multiLine')
-                    .attr('fill', 'none')
-                    .attr('stroke', () => {
-                      return singleChartData.color || colorScale(g++);
-                    })
-                    .transition()
-                    .attr('d', createLine('linear'));
-                  // add new ones
-                  pathMultiLine.enter().append('path')
-                    .attr('id', singleChartData.keyHash)
-                    .attr('class', 'multiLine')
-                    .attr('fill', 'none')
-                    .attr('stroke', () => {
-                      if (singleChartData.color) {
-                        return singleChartData.color;
-                      } else {
-                        return colorScale(g++);
-                      }
-                    })
-                    .transition()
-                    .attr('d', createLine('linear'));
-                  // remove old ones
-                  pathMultiLine.exit().remove();
-                }
-              });
-            } else {
-              $log.warn('No multi-data set for multiline chart');
-            }
-
-          }
-
           function createYAxisGridLines() {
             // create the y axis grid lines
             const numberOfYAxisGridLines = determineYAxisGridLineTicksFromScreenHeight(modifiedInnerChartHeight);
@@ -583,23 +525,6 @@ namespace Charts {
           }
 
           function createCenteredLine(newInterpolation) {
-            let interpolate = newInterpolation || 'monotone',
-              line = d3.svg.line()
-                .interpolate(interpolate)
-                .defined((d) => {
-                  return !isEmptyDataPoint(d);
-                })
-                .x((d) => {
-                  return timeScale(d.timestamp);
-                })
-                .y((d) => {
-                  return isRawMetric(d) ? yScale(d.value) : yScale(d.avg);
-                });
-
-            return line;
-          }
-
-          function createLine(newInterpolation) {
             let interpolate = newInterpolation || 'monotone',
               line = d3.svg.line()
                 .interpolate(interpolate)
@@ -826,7 +751,7 @@ namespace Charts {
 
             //@todo: add in multiline and rhqbar chart types
             //@todo: add validation if not in valid chart types
-            chartTypes.forEach((aChartType) => {
+            registeredChartTypes.forEach((aChartType) => {
               if (aChartType.name === chartType) {
                 aChartType.drawChart(chartOptions);
               }
