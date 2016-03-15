@@ -12,6 +12,7 @@
 /// <reference path="d.ts/chart/chart-type/chart-type.d.ts"/>
 /// <reference path="d.ts/chart/chart-type/histogram.d.ts"/>
 /// <reference path="d.ts/chart/chart-type/line.d.ts"/>
+/// <reference path="d.ts/chart/chart-type/multi-line.d.ts"/>
 /// <reference path="d.ts/chart/chart-type/rhq-bar.d.ts"/>
 /// <reference path="d.ts/chart/chart-type/scatter.d.ts"/>
 /// <reference path="d.ts/chart/chart-type/scatterLine.d.ts"/>
