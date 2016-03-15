@@ -1,4 +1,7 @@
 /// <reference path="../../../typings/tsd.d.ts" />
 declare namespace Charts {
-    function createAreaChart(chartOptions: Charts.ChartOptions): void;
+    class AreaChart implements IChartType {
+        name: string;
+        drawChart(chartOptions: Charts.ChartOptions): void;
+    }
 }
