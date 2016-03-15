@@ -35,7 +35,7 @@ namespace Charts {
           // data specific vars
           let dataPoints: IChartDataPoint[] = [],
             multiDataPoints: IMultiDataPoint[],
-            forecastDataPoints: ISimpleMetric[],
+            forecastDataPoints: IPredictiveMetric[],
             dataUrl = attrs.metricUrl,
             metricId = attrs.metricId || '',
             metricTenantId = attrs.metricTenantId || '',
