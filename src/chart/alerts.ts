@@ -121,9 +121,9 @@ namespace Charts {
     yScale: any,
     height: number,
     highBound: number,
-    chartData:IChartDataPoint[],
-    alertValue:number
-    ) {
+    chartData: IChartDataPoint[],
+    alertValue: number
+  ) {
     const alertBounds: AlertBound[] = extractAlertRanges(chartData, alertValue);
     let rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
 

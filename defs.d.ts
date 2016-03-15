@@ -4,6 +4,7 @@
 /// <reference path="d.ts/chart/context-chart-directive.d.ts"/>
 /// <reference path="d.ts/chart/event-names.d.ts"/>
 /// <reference path="d.ts/chart/features.d.ts"/>
+/// <reference path="d.ts/chart/forecast.d.ts"/>
 /// <reference path="d.ts/chart/metric-chart-directive.d.ts"/>
 /// <reference path="d.ts/chart/types.d.ts"/>
 /// <reference path="d.ts/chart/utility.d.ts"/>
