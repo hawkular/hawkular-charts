@@ -747,8 +747,7 @@ namespace Charts {
               hideHighLowValues, interpolation);
 
             if (alertValue && (alertValue > visuallyAdjustedMin && alertValue < visuallyAdjustedMax)) {
-              createAlertBoundsArea(svg, timeScale, yScale, modifiedInnerChartHeight, visuallyAdjustedMax,
-                chartData, alertValue);
+              createAlertBoundsArea(chartOptions, alertValue, visuallyAdjustedMax);
             }
 
             createXAxisBrush();
@@ -766,7 +765,7 @@ namespace Charts {
 
             if (alertValue && (alertValue > visuallyAdjustedMin && alertValue < visuallyAdjustedMax)) {
               /// NOTE: this alert line has higher precedence from alert area above
-              createAlertLine(svg, timeScale, yScale, chartData, alertValue, 'alertLine');
+              createAlertLine(chartOptions, alertValue, 'alertLine');
             }
 
             if (annotationData) {
