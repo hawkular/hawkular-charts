@@ -16,16 +16,6 @@ namespace Charts {
   export const margin = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room for label
   export let width;
 
-  export class ChartOptions {
-    constructor(public svg: any, public timeScale: any, public yScale: any,
-      public chartData: IChartDataPoint[],
-      public multiChartData: IMultiDataPoint[],
-      public modifiedInnerChartHeight: number, public height: number,
-      public tip?: any, public visuallyAdjustedMax?: number,
-      public hideHighLowValues?: boolean, public interpolation?: string) {
-    }
-  }
-
   /**
    * @ngdoc directive
    * @name hawkularChart
@@ -45,7 +35,7 @@ namespace Charts {
           // data specific vars
           let dataPoints: IChartDataPoint[] = [],
             multiDataPoints: IMultiDataPoint[],
-            forecastDataPoints: ISimpleMetric[],
+            forecastDataPoints: IPredictiveMetric[],
             dataUrl = attrs.metricUrl,
             metricId = attrs.metricId || '',
             metricTenantId = attrs.metricTenantId || '',
@@ -589,7 +579,12 @@ namespace Charts {
               // ignore range selections less than 1 minute
               if (dragSelectionDelta >= 60000) {
                 forecastDataPoints = [];
-                showForecastData(forecastDataPoints);
+
+                let chartOptions: ChartOptions = new ChartOptions(svg, timeScale, yScale, chartData, multiDataPoints,
+                  modifiedInnerChartHeight, height, tip, visuallyAdjustedMax,
+                  hideHighLowValues, interpolation);
+
+                showForecastData(forecastDataPoints, chartOptions);
                 $rootScope.$broadcast(EventNames.CHART_TIMERANGE_CHANGED.toString(), extent);
               }
               // clear the brush selection
@@ -632,34 +627,6 @@ namespace Charts {
                   }
                 });
             }
-          }
-
-          function createForecastLine(newInterpolation) {
-            let interpolate = newInterpolation || 'monotone',
-              line = d3.svg.line()
-                .interpolate(interpolate)
-                .x((d) => {
-                  return timeScale(d.timestamp);
-                })
-                .y((d) => {
-                  return yScale(d.value);
-                });
-
-            return line;
-          }
-
-          function showForecastData(forecastData: ISimpleMetric[]) {
-            let forecastPathLine = svg.selectAll('.forecastLine').data([forecastData]);
-            // update existing
-            forecastPathLine.attr('class', 'forecastLine')
-              .attr('d', createForecastLine('monotone'));
-            // add new ones
-            forecastPathLine.enter().append('path')
-              .attr('class', 'forecastLine')
-              .attr('d', createForecastLine('monotone'));
-            // remove old ones
-            forecastPathLine.exit().remove();
-
           }
 
           scope.$watchCollection('data', (newData, oldData) => {
@@ -743,11 +710,7 @@ namespace Charts {
             scope.$emit('GraphTimeRangeChangedEvent', extent);
           });
 
-          function determineChartType(chartType: string) {
-
-            let chartOptions: ChartOptions = new ChartOptions(svg, timeScale, yScale, chartData, multiDataPoints,
-              modifiedInnerChartHeight, height, tip, visuallyAdjustedMax,
-              hideHighLowValues, interpolation);
+          function determineChartTypeAndDraw(chartType: string, chartOptions: ChartOptions) {
 
             //@todo: add in multiline and rhqbar chart types
             //@todo: add validation if not in valid chart types
@@ -779,14 +742,19 @@ namespace Charts {
               determineMultiScale(multiDataPoints);
             }
 
-            if (alertValue && (alertValue > visuallyAdjustedMin && alertValue < visuallyAdjustedMax)) {
-              const alertBounds: AlertBound[] = extractAlertRanges(chartData, alertValue);
-              createAlertBoundsArea(svg, timeScale, yScale, modifiedInnerChartHeight, visuallyAdjustedMax, alertBounds);
-            }
-            createXAxisBrush();
+            let chartOptions: ChartOptions = new ChartOptions(svg, timeScale, yScale, chartData, multiDataPoints,
+              modifiedInnerChartHeight, height, tip, visuallyAdjustedMax,
+              hideHighLowValues, interpolation);
 
+            if (alertValue && (alertValue > visuallyAdjustedMin && alertValue < visuallyAdjustedMax)) {
+              createAlertBoundsArea(svg, timeScale, yScale, modifiedInnerChartHeight, visuallyAdjustedMax,
+                chartData, alertValue);
+            }
+
+            createXAxisBrush();
             createYAxisGridLines();
-            determineChartType(chartType);
+            determineChartTypeAndDraw(chartType, chartOptions);
+
             if (showDataPoints) {
               createDataPoints(svg, timeScale, yScale, tip, chartData);
             }
@@ -805,7 +773,7 @@ namespace Charts {
               annotateChart(annotationData);
             }
             if (forecastDataPoints && forecastDataPoints.length > 0) {
-              showForecastData(forecastDataPoints);
+              showForecastData(forecastDataPoints, chartOptions);
             }
             if (debug) {
               console.timeEnd('chartRender');

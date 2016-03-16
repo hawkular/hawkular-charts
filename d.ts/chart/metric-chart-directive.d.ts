@@ -10,18 +10,4 @@ declare namespace Charts {
         left: number;
     };
     let width: any;
-    class ChartOptions {
-        svg: any;
-        timeScale: any;
-        yScale: any;
-        chartData: IChartDataPoint[];
-        multiChartData: IMultiDataPoint[];
-        modifiedInnerChartHeight: number;
-        height: number;
-        tip: any;
-        visuallyAdjustedMax: number;
-        hideHighLowValues: boolean;
-        interpolation: string;
-        constructor(svg: any, timeScale: any, yScale: any, chartData: IChartDataPoint[], multiChartData: IMultiDataPoint[], modifiedInnerChartHeight: number, height: number, tip?: any, visuallyAdjustedMax?: number, hideHighLowValues?: boolean, interpolation?: string);
-    }
 }

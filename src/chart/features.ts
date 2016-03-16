@@ -2,6 +2,14 @@
 namespace Charts {
   'use strict';
 
+  /**
+   * Create data points along the line to show the actual values.
+   * @param svg
+   * @param timeScale
+   * @param yScale
+   * @param tip
+   * @param dataPoints
+   */
   export function createDataPoints(svg: any,
     timeScale: any,
     yScale: any,
