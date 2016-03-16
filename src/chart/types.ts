@@ -37,8 +37,8 @@ namespace Charts {
    * Data for predictive 'cone'
    */
   export interface IPredictiveMetric extends ISimpleMetric {
-    min?: MetricValue;
-    max?: MetricValue;
+    min: MetricValue;
+    max: MetricValue;
   }
 
   export interface IBaseChartDataPoint {
