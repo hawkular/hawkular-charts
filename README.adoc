@@ -86,14 +86,13 @@ Need to change the threshold alert value or chart-type just use Angular's two wa
 screen and watch the dynamics unfold.
 
 ===== Forecasting Feature
-
 image::img/forecast.png[Hawkular Metrics Chart with Forecasting]
-
 
 The metrics chart has the ability to display forecasting (of data into the future) with the addition of the
 *forecastData* attribute. These future datapoints show in the chart as a dashed line. This data attribute uses the same
-data format as *data* but only *timestamp* and *value*
-fields are required. The *forecastData* can provide as many or as little data points as desired (but the spacing
+data format as *data* but only require *timestamp* and *value* fields.
+Additionally, an optional *min* and *max* field can be added to display a confidence interval around the forecast
+values. The *forecastData* can provide as many or as little data points as desired (but the spacing
 between timestamps should be the same as with the *data* points to keep visual consistency.
 
 
@@ -104,8 +103,7 @@ _Sample code for this chart:_
 
 [source,javascript]
 ----
-<availability-chart data="vm.availabilityDataPoints">
-</availability-chart>
+<availability-chart data="vm.availabilityDataPoints"></availability-chart>
 ----
 The availability chart makes it easy to visualize the availability types:
 
@@ -306,8 +304,15 @@ _Example:_
 == Chart Customization
 
 .This project is built around customization. There are several forms of customization:
-- Most cosmetic issues are controlled via standard css through the http://github.com/hawkular/hawkular-charts/blob/master/css/hawkular-charts.css[hawkular-charts.css].
+- Most cosmetic issues are controlled via standard css(LESS) through the https://github
+.com/hawkular/hawkular-charts/blob/2fde03777b428a424c12ecc1c80aeb558ebad78c/src/less/hawkular-charts
+.less[hawkular-charts.less].
 - Additional(new) functionality is offered through custom attributes.
+- New chart types are easily created by simply creating a new https://github
+.com/hawkular/hawkular-charts/blob/ed24b148057b9b2aa52c63079f97c0858775f8ba/src/chart/types.ts#L39-L39[ChartType]
+class with a name and drawChart method. And then adding it to the https://github
+.com/hawkular/hawkular-charts/blob/2fde03777b428a424c12ecc1c80aeb558ebad78c/src/chart/metric-chart-directive
+.ts[registered chart types]
 
 
 == Building the Project
