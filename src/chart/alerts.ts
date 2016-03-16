@@ -35,21 +35,18 @@ namespace Charts {
     return line;
   }
 
-  export function createAlertLine(svg: any,
-    timeScale: any,
-    yScale: any,
-    chartData: IChartDataPoint[],
+  export function createAlertLine(chartOptions: ChartOptions,
     alertValue: number,
     cssClassName: string): void {
-    let pathAlertLine = svg.selectAll('path.alertLine').data([chartData]);
+    let pathAlertLine = chartOptions.svg.selectAll('path.alertLine').data([chartOptions.chartData]);
     // update existing
     pathAlertLine.attr('class', cssClassName)
-      .attr('d', createAlertLineDef(timeScale, yScale, alertValue));
+      .attr('d', createAlertLineDef(chartOptions.timeScale, chartOptions.yScale, alertValue));
 
     // add new ones
     pathAlertLine.enter().append('path')
       .attr('class', cssClassName)
-      .attr('d', createAlertLineDef(timeScale, yScale, alertValue));
+      .attr('d', createAlertLineDef(chartOptions.timeScale, chartOptions.yScale, alertValue));
 
     // remove old ones
     pathAlertLine.exit().remove();
@@ -116,34 +113,27 @@ namespace Charts {
 
   }
 
-  export function createAlertBoundsArea(svg: any,
-    timeScale: any,
-    yScale: any,
-    height: number,
-    highBound: number,
-    chartData: IChartDataPoint[],
-    alertValue: number
+  export function createAlertBoundsArea(chartOptions: ChartOptions,
+    alertValue: number,
+    highBound: number
   ) {
-    const alertBounds: AlertBound[] = extractAlertRanges(chartData, alertValue);
-    let rectAlert = svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
+    const alertBounds: AlertBound[] = extractAlertRanges(chartOptions.chartData, alertValue);
+    let rectAlert = chartOptions.svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
 
     function alertBoundingRect(selection) {
       selection
         .attr('class', 'alertBounds')
         .attr('x', (d: AlertBound) => {
-          return timeScale(d.startTimestamp);
+          return chartOptions.timeScale(d.startTimestamp);
         })
         .attr('y', () => {
-          return yScale(highBound);
+          return chartOptions.yScale(highBound);
         })
         .attr('height', (d: AlertBound) => {
-          ///@todo: make the height adjustable
-          //return 185;
-          return height;
-          //return yScale(0) - height;
+          return chartOptions.height - 40;
         })
         .attr('width', (d: AlertBound) => {
-          return timeScale(d.endTimestamp) - timeScale(d.startTimestamp);
+          return chartOptions.timeScale(d.endTimestamp) - chartOptions.timeScale(d.startTimestamp);
         });
     }
 

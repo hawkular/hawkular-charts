@@ -12,6 +12,6 @@ declare namespace Charts {
         endDate: Date;
         constructor(startTimestamp: TimeInMillis, endTimestamp: TimeInMillis, alertValue: number);
     }
-    function createAlertLine(svg: any, timeScale: any, yScale: any, chartData: IChartDataPoint[], alertValue: number, cssClassName: string): void;
-    function createAlertBoundsArea(svg: any, timeScale: any, yScale: any, height: number, highBound: number, chartData: IChartDataPoint[], alertValue: number): void;
+    function createAlertLine(chartOptions: ChartOptions, alertValue: number, cssClassName: string): void;
+    function createAlertBoundsArea(chartOptions: ChartOptions, alertValue: number, highBound: number): void;
 }
