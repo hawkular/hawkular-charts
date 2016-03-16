@@ -96,6 +96,16 @@ values. The *forecastData* can provide as many or as little data points as desir
 between timestamps should be the same as with the *data* points to keep visual consistency.
 
 
+_Example:_
+[source,javascript]
+----
+  var myForecastData = [
+    {'timestamp': 1434480361167, 'value': 1780, 'min': 1740, 'max': 1790},
+    {'timestamp': 1434480511167, 'value': 1680, 'min': 1640, 'max': 1760}
+  ];
+----
+
+
 ==== Availability Chart Type
 image::img/avail-chart.png[Hawkular Availability Chart Type]
 
