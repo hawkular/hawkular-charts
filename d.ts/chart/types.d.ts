@@ -30,8 +30,8 @@ declare namespace Charts {
      * Data for predictive 'cone'
      */
     interface IPredictiveMetric extends ISimpleMetric {
-        min?: MetricValue;
-        max?: MetricValue;
+        min: MetricValue;
+        max: MetricValue;
     }
     interface IBaseChartDataPoint {
         timestamp: TimeInMillis;

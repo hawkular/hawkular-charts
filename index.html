@@ -9,14 +9,15 @@
         some of its functionality. Includes the ability to change the alert threshold and see how the chart looks
         with varying number of datapoints.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
+  <link href="node_modules/patternfly/dist/css/patternfly.min.css" rel="stylesheet" media="screen, print">
+  <link href="node_modules/patternfly/dist/css/patternfly-additions.min.css" rel="stylesheet" media="screen, print">
   <link rel="stylesheet" href="dist/css/hawkular-charts.css">
   <style>
 
     .contextChartSection {
       background-color: #fafafa;
       border: 1px solid lightgrey;
-      margin: 20px;
-      width: 90%;
     }
 
     #alertValue {
@@ -36,14 +37,11 @@
     }
 
     .metricIdHeader > li {
-      margin-left: 40px;
+      margin-left: 50px;
     }
 
     .optionsWrapper {
       border: 1px solid lightgrey;
-      padding: 10px;
-      margin: 20px;
-      width: 700px;
     }
 
     .narrative {
@@ -52,23 +50,20 @@
     }
 
     .chartWrapper {
-      height: 500px;
-      width:90%;
+      height: 300px;
     }
 
     .chartWrapperSmall {
       height: 100px;
-      width:90%;
     }
 
     .chartWrapperSparkline {
       height: 80px;
-      width:250px;
+      width: 250px;
     }
 
     .contextChartWrapper {
       height: 85px;
-      width: 90%;
     }
 
     .sparklineChartWrapper {
@@ -87,6 +82,9 @@
   <script src="libs/d3-tip/index.js"></script>
   <!-- endbower -->
   <!-- endbuild -->
+
+  <script src="node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 
   <!-- build:js({.tmp,app}) scripts/scripts.js -->
   <!-- endbuild -->
@@ -178,161 +176,174 @@
 </head>
 <body ng-app="myApp">
 
-<h3>Hawkular Charts - Response Time with Alerts</h3>
+<div class="container">
 
-<p>
-  This page demonstrates the various types of Hawkular charts, and allows to change some of the properties to see how
-  these chart types would look with various properties set.
-</p>
-<h4>Check out the following list for other examples:</h4>
-<ul>
-  <li><a href="./avail-test.html">Availability Tester</a></li>
-  <li><a href="./metrics-chart-sample.html">Metrics Chart Sample</a></li>
-  <li><a href="./multi-chart-sample.html">Multi-Chart Sample</a></li>
-</ul>
-
-<p class="narrative">
-  Drag on the charts (and context chart) to select interesting areas to zoom in on. This example has all of
-  charts
-  responding to the change in z oom area. Altering the number of data points can have a positive or negative effect
-  on the way a chart looks. Experiment!
-</p>
-
-<div ng-controller="ChartController">
-
-
-  <div class="contextChartSection">
-    <div class="metricIdHeader">
-      <span class="contextIdLabel"> Context Chart</span>
-    </div>
-    <div class="contextChartWrapper">
-      <hawkular-context-chart
-        data="originalData"
-        show-y-axis-values="true">
-      </hawkular-context-chart>
-    </div>
-
+  <div class="col-md-offset-2">
+    <h1>Hawkular Charts - Response Time with Alerts</h1>
   </div>
 
-  <form name="optionsForm">
+  <p>
+    This page demonstrates the various types of Hawkular charts, and allows to change some of the properties to see how
+    these chart types would look with various properties set.
+  </p>
+  <div class="col-md-offset-1">
+    <h4>Check out the following list for other examples:</h4>
+    <ul>
+      <li><a href="./avail-test.html">Availability Tester</a></li>
+      <li><a href="./metrics-chart-sample.html">Metrics Chart Sample</a></li>
+      <li><a href="./multi-chart-sample.html">Multi-Chart Sample</a></li>
+    </ul>
+  </div>
 
-    <div class="optionsWrapper">
-      <div style="margin-bottom: 5px;">
-        <label for="alertValue">Alert Threshold: </label>
-        <input id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
-        <label for="dataPoints">Data Points: </label>
-        <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
-        <label for="highLowValues">Hide High/Low Values: </label>
-        <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"/>
+  <p class="narrative">
+    Drag on the charts (and context chart) to select interesting areas to zoom in on. This example has all of
+    charts
+    responding to the change in z oom area. Altering the number of data points can have a positive or negative effect
+    on the way a chart looks. Experiment!
+  </p>
+
+  <div ng-controller="ChartController">
+
+    <div class="row">
+
+      <div class="optionsWrapper col-md-3">
+        <form name="optionsForm">
+          <div style="margin-bottom: 5px;">
+            <div class="row">
+              <label for="alertValue">Alert Threshold: </label>
+              <input id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
+            </div>
+            <div class="row">
+              <label for="dataPoints">Data Points: </label>
+              <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
+            </div>
+            <div class="row">
+              <label for="highLowValues">Hide High/Low Values: </label>
+              <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"/>
+            </div>
+          </div>
+        </form>
       </div>
+
+      <div class="contextChartSection col-md-9">
+        <div class="metricIdHeader">
+          <span class="contextIdLabel"> Context Chart</span>
+        </div>
+        <div class="contextChartWrapper">
+          <hawkular-context-chart
+            data="originalData"
+            show-y-axis-values="true">
+          </hawkular-context-chart>
+        </div>
+      </div>
+
     </div>
-  </form>
-
-  <div class="metricIdHeader">
-    <span class="metricIdLabel"> ChartType: Line (in 3 Sizes)</span>
-  </div>
-  <div class="chartWrapper">
-    <hawkular-chart
-      data="myData"
-      forecast-data="myForecastData"
-      chart-type="line"
-      alert-value="{{alertThreshold}}"
-      show-data-points="true"
-      y-axis-units="Response Time (ms)"
-    >
-    </hawkular-chart>
-
-  </div>
 
 
-  <div class="chartWrapperSmall">
-    <hawkular-chart
-      data="myData"
-      chart-type="line"
-      alert-value="{{alertThreshold}}"
-      show-data-points="true"
-      y-axis-units="Response Time (ms)"
-    >
-    </hawkular-chart>
-  </div>
+    <div class="metricIdHeader">
+      <span class="metricIdLabel"> ChartType: Line (in 3 Sizes)</span>
+    </div>
+    <div class="chartWrapper">
+      <hawkular-chart
+        data="myData"
+        forecast-data="myForecastData"
+        chart-type="line"
+        alert-value="{{alertThreshold}}"
+        show-data-points="true"
+        y-axis-units="Response Time (ms)"
+      >
+      </hawkular-chart>
+    </div>
 
 
-  <div class="chartWrapperSparkline">
-    <hawkular-chart
-      data="myData"
-      alert-value="{{alertThreshold}}"
-      y-axis-units="Response Time (ms)"
-    >
-    </hawkular-chart>
-  </div>
+    <div class="chartWrapperSmall">
+      <hawkular-chart
+        data="myData"
+        chart-type="line"
+        alert-value="{{alertThreshold}}"
+        show-data-points="true"
+        y-axis-units="Response Time (ms)"
+      >
+      </hawkular-chart>
+    </div>
 
 
-  <div class="metricIdHeader">
-    <span class="metricIdLabel"> ChartType: Area</span>
-  </div>
-  <div class="chartWrapper">
-    <hawkular-chart
-      data="myData"
-      chart-type="area"
-      alert-value="{{alertThreshold}}"
-      show-data-points="true"
-      y-axis-units="Response Time (ms)">
-    </hawkular-chart>
-  </div>
+    <div class="chartWrapperSparkline">
+      <hawkular-chart
+        data="myData"
+        alert-value="{{alertThreshold}}"
+        y-axis-units="Response Time (ms)"
+      >
+      </hawkular-chart>
+    </div>
 
-  <div class="metricIdHeader">
-    <span class="metricIdLabel"> ChartType: Histogram</span>
-  </div>
-  <div class="chartWrapper">
-    <hawkular-chart
-      data="myData"
-      chart-type="histogram"
-      alert-value="{{alertThreshold}}"
-      hide-high-low-values="hideHighLowValues"
-      y-axis-units="Response Time (ms)">
-    </hawkular-chart>
-  </div>
 
-  <div class="metricIdHeader">
-    <span class="metricIdLabel"> ChartType: RhqBar</span>
-  </div>
-  <div class="chartWrapper">
-    <hawkular-chart
-      data="myData"
-      chart-type="rhqbar"
-      alert-value="{{alertThreshold}}"
-      hide-high-low-values="hideHighLowValues"
-      y-axis-units="Response Time (ms)">
-    </hawkular-chart>
-  </div>
+    <div class="metricIdHeader">
+      <span class="metricIdLabel"> ChartType: Area</span>
+    </div>
+    <div class="chartWrapper">
+      <hawkular-chart
+        data="myData"
+        chart-type="area"
+        alert-value="{{alertThreshold}}"
+        show-data-points="true"
+        y-axis-units="Response Time (ms)">
+      </hawkular-chart>
+    </div>
 
-  <div class="metricIdHeader">
-    <span class="metricIdLabel"> ChartType: Scatter</span>
-  </div>
-  <div class="chartWrapper">
-    <hawkular-chart
-      data="myData"
-      chart-type="scatter"
-      alert-value="{{alertThreshold}}"
-      hide-high-low-values="hideHighLowValues"
-      y-axis-units="Response Time (ms)">
-    </hawkular-chart>
-  </div>
+    <div class="metricIdHeader">
+      <span class="metricIdLabel"> ChartType: Histogram</span>
+    </div>
+    <div class="chartWrapper">
+      <hawkular-chart
+        data="myData"
+        chart-type="histogram"
+        alert-value="{{alertThreshold}}"
+        hide-high-low-values="hideHighLowValues"
+        y-axis-units="Response Time (ms)">
+      </hawkular-chart>
+    </div>
 
-  <div class="metricIdHeader">
-    <span class="metricIdLabel"> ChartType: ScatterLine</span>
-  </div>
-  <div class="chartWrapper">
-    <hawkular-chart
-      data="myData"
-      chart-type="scatterline"
-      alert-value="{{alertThreshold}}"
-      hide-high-low-values="hideHighLowValues"
-      y-axis-units="Response Time (ms)">
-    </hawkular-chart>
-  </div>
+    <div class="metricIdHeader">
+      <span class="metricIdLabel"> ChartType: RhqBar</span>
+    </div>
+    <div class="chartWrapper">
+      <hawkular-chart
+        data="myData"
+        chart-type="rhqbar"
+        alert-value="{{alertThreshold}}"
+        hide-high-low-values="hideHighLowValues"
+        y-axis-units="Response Time (ms)">
+      </hawkular-chart>
+    </div>
 
+    <div class="metricIdHeader">
+      <span class="metricIdLabel"> ChartType: Scatter</span>
+    </div>
+    <div class="chartWrapper">
+      <hawkular-chart
+        data="myData"
+        chart-type="scatter"
+        alert-value="{{alertThreshold}}"
+        hide-high-low-values="hideHighLowValues"
+        y-axis-units="Response Time (ms)">
+      </hawkular-chart>
+    </div>
+
+    <div class="metricIdHeader">
+      <span class="metricIdLabel"> ChartType: ScatterLine</span>
+    </div>
+    <div class="chartWrapper">
+      <hawkular-chart
+        data="myData"
+        chart-type="scatterline"
+        alert-value="{{alertThreshold}}"
+        hide-high-low-values="hideHighLowValues"
+        y-axis-units="Response Time (ms)">
+      </hawkular-chart>
+    </div>
+
+  </div>
 </div>
-
 </body>
 </html>
