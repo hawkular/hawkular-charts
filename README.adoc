@@ -51,7 +51,7 @@ Please see https://github.com/hawkular/hawkular/tree/master/console for more rea
 
 === Chart Types
 
-Chart types are set via the *chart-type* attribute of the *hawkular-chart* directive.
+Chart types are set via the *chart-type* attribute of the *hk-metric-chart* directive.
 The following chart types are available:
 
 * *line:* this is the default chart type if not specified and is recommended for most metrics display
@@ -72,12 +72,12 @@ _Sample code for this chart:_
 
 [source,javascript]
 ----
-<hawkular-chart
+<hk-metric-chart
     data="dataPoints"
     chart-type="line"
     alert-value="{{threshold}}"
     y-axis-units="Response Time (ms)">
-</hawkular-chart>
+</hk-metric-chart>
 ----
 Need to update the chart? No problem, just alter the dataPoints array with new data and the chart will re-render itself.
 Through custom attributes it is very easy to configure a custom chart just the way you want using advanced
@@ -113,7 +113,7 @@ _Sample code for this chart:_
 
 [source,javascript]
 ----
-<availability-chart data="vm.availabilityDataPoints"></availability-chart>
+<hk-availability-chart data="vm.availabilityDataPoints"></hk-availability-chart>
 ----
 The availability chart makes it easy to visualize the availability types:
 
@@ -147,10 +147,10 @@ Bind to a javascript array of metrics:
 
 [source,javascript]
 ----
- <hawkular-chart
+ <hk-metric-chart
      data="vm.getChartDataFor(selectedMetric)"
      chart-type="{{selectedChart.chartType}}">
- </hawkular-chart>
+ </hk-metric-chart>
 ----
 
 The nice part of about using angular in the charting framework is that whenever the underlying data changes, watchers automatically load and re-render the chart (as well as any of the properties that may have changed like chart-type).
@@ -161,7 +161,7 @@ This results in less code and more productivity.
 . Add the hawkular-charts.js to the main index.html page
 . Add the charting module to the application module: `app.module('myApp', ['hawkular.charts']);`
 
-All that's left to do now is select the chart type and bind the _data_ attribute on the __<hawkular-chart>__ directive.
+All that's left to do now is select the chart type and bind the _data_ attribute on the __<hk-metric-chart>__ directive.
 
 === Stand Alone Live Updating Tag Example
 __Quickly and easily add some dynamically updating charts to your own pages__
@@ -170,7 +170,7 @@ The stand alone version of the tag allows for linking to hawkular-metrics server
 
 [source,javascript]
 ----
-<hawkular-chart
+<hk-metric-chart
         chart-type="bar"
         metric-id="server2.cpu.user"
         metric-type="gauge"
@@ -178,7 +178,7 @@ The stand alone version of the tag allows for linking to hawkular-metrics server
         metric-url="http://127.0.0.1:8080/hawkular/metrics"
         time-range-in-seconds="86400002"
         refresh-interval-in-seconds="30" >
-</hawkular-chart>
+</hk-metric-chart>
 ----
 
 This allows plain html web pages to be sprinkled with tags and a couple js libs and you can have dynamic live updating metrics. Great for NOCs or dashboards. These pages can even be emailed around and then thrown behind an http server for viewing.
@@ -337,7 +337,7 @@ class with a name and drawChart method. And then adding it to the https://github
 The environment is now ready to be built.
 
 The *Hawkular Charts*  directives can be built with: `gulp build`. Or, for dev build that updates with every
-change: `gulp watch`
+change: `gulp`
 
 The resulting javascript file is placed in the root directory as _hawkular-charts.js_
 
