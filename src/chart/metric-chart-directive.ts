@@ -23,7 +23,7 @@ namespace Charts {
    *
    */
   angular.module('hawkular.charts')
-    .directive('hawkularChart', ['$rootScope', '$http', '$window', '$interval', '$log',
+    .directive('hkMetricChart', ['$rootScope', '$http', '$window', '$interval', '$log',
       function($rootScope: ng.IRootScopeService,
         $http: ng.IHttpService,
         $window: ng.IWindowService,

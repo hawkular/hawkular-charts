@@ -477,5 +477,5 @@ namespace Charts {
 
   }
 
-  _module.directive('availabilityChart', AvailabilityChartDirective.Factory());
+  _module.directive('hkAvailabilityChart', AvailabilityChartDirective.Factory());
 }
