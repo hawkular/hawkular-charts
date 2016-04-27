@@ -230,10 +230,10 @@
           <span class="contextIdLabel"> Context Chart</span>
         </div>
         <div class="contextChartWrapper">
-          <hawkular-context-chart
+          <hk-context-chart
             data="originalData"
             show-y-axis-values="true">
-          </hawkular-context-chart>
+          </hk-context-chart>
         </div>
       </div>
 
@@ -244,7 +244,7 @@
       <span class="metricIdLabel"> ChartType: Line (in 3 Sizes)</span>
     </div>
     <div class="chartWrapper">
-      <hawkular-chart
+      <hk-metric-chart
         data="myData"
         forecast-data="myForecastData"
         chart-type="line"
@@ -252,29 +252,29 @@
         show-data-points="true"
         y-axis-units="Response Time (ms)"
       >
-      </hawkular-chart>
+      </hk-metric-chart>
     </div>
 
 
     <div class="chartWrapperSmall">
-      <hawkular-chart
+      <hk-metric-chart
         data="myData"
         chart-type="line"
         alert-value="{{alertThreshold}}"
         show-data-points="true"
         y-axis-units="Response Time (ms)"
       >
-      </hawkular-chart>
+      </hk-metric-chart>
     </div>
 
 
     <div class="chartWrapperSparkline">
-      <hawkular-chart
+      <hk-metric-chart
         data="myData"
         alert-value="{{alertThreshold}}"
         y-axis-units="Response Time (ms)"
       >
-      </hawkular-chart>
+      </hk-metric-chart>
     </div>
 
 
@@ -282,65 +282,65 @@
       <span class="metricIdLabel"> ChartType: Area</span>
     </div>
     <div class="chartWrapper">
-      <hawkular-chart
+      <hk-metric-chart
         data="myData"
         chart-type="area"
         alert-value="{{alertThreshold}}"
         show-data-points="true"
         y-axis-units="Response Time (ms)">
-      </hawkular-chart>
+      </hk-metric-chart>
     </div>
 
     <div class="metricIdHeader">
       <span class="metricIdLabel"> ChartType: Histogram</span>
     </div>
     <div class="chartWrapper">
-      <hawkular-chart
+      <hk-metric-chart
         data="myData"
         chart-type="histogram"
         alert-value="{{alertThreshold}}"
         hide-high-low-values="hideHighLowValues"
         y-axis-units="Response Time (ms)">
-      </hawkular-chart>
+      </hk-metric-chart>
     </div>
 
     <div class="metricIdHeader">
       <span class="metricIdLabel"> ChartType: RhqBar</span>
     </div>
     <div class="chartWrapper">
-      <hawkular-chart
+      <hk-metric-chart
         data="myData"
         chart-type="rhqbar"
         alert-value="{{alertThreshold}}"
         hide-high-low-values="hideHighLowValues"
         y-axis-units="Response Time (ms)">
-      </hawkular-chart>
+      </hk-metric-chart>
     </div>
 
     <div class="metricIdHeader">
       <span class="metricIdLabel"> ChartType: Scatter</span>
     </div>
     <div class="chartWrapper">
-      <hawkular-chart
+      <hk-metric-chart
         data="myData"
         chart-type="scatter"
         alert-value="{{alertThreshold}}"
         hide-high-low-values="hideHighLowValues"
         y-axis-units="Response Time (ms)">
-      </hawkular-chart>
+      </hk-metric-chart>
     </div>
 
     <div class="metricIdHeader">
       <span class="metricIdLabel"> ChartType: ScatterLine</span>
     </div>
     <div class="chartWrapper">
-      <hawkular-chart
+      <hk-metric-chart
         data="myData"
         chart-type="scatterline"
         alert-value="{{alertThreshold}}"
         hide-high-low-values="hideHighLowValues"
         y-axis-units="Response Time (ms)">
-      </hawkular-chart>
+      </hk-metric-chart>
     </div>
 
   </div>
