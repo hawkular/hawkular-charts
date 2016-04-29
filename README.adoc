@@ -23,8 +23,9 @@ This will also make adhoc development quicker/easier with components that can re
 
 == Quickstart
 
-The quickest way to start using the charts is to fire up a http server and start playing with the code. To run the
- examples, from the _hawkular-charts_ root directory:
+The quickest way to start using the charts is to fire up a http server and start playing with the code. Make sure
+that https://nodejs.org[Node.js version 6.x] is installed. Then, to run the examples, from the
+_hawkular-charts_ root directory:
 
 `npm install && bower install`
 
@@ -33,7 +34,7 @@ The quickest way to start using the charts is to fire up a http server and start
 
 This command will startup a web server and launch the default browser to that page -- listening for any
 changes in your code and automatically refreshing the browser with changes. Additionally, it will sync the
-changes to all of the browsers with localhost:3000/* open -- making it easy to check across multiple browsers and
+changes to all of the browsers with localhost:3001/* open -- making it easy to check across multiple browsers and
 even mobile browsers for responsive layout changes!
 
 IMPORTANT: Gulp version 3.9.0+ is required (since we use an ES6 gulpfile)

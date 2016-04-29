@@ -1,18 +1,15 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<!--[if IE 9]>
+<html lang="en-us" class="ie9"><![endif]-->
+<!--[if gt IE 9]><!-->
+<html lang="en-us">
+<!--<![endif]-->
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Hawkular Interactive Chart Example</title>
-  <meta name="description"
-        content="Hawkular Interactive Charts Example. An example how to use the hawkular-charts and play around with
-        some of its functionality. Includes the ability to change the alert threshold and see how the chart looks
-        with varying number of datapoints.">
+  <title>Multi-chart Example</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
-  <link href="node_modules/patternfly/dist/css/patternfly.min.css" rel="stylesheet" media="screen, print">
-  <link href="node_modules/patternfly/dist/css/patternfly-additions.min.css" rel="stylesheet" media="screen, print">
-  <link rel="stylesheet" href="dist/css/hawkular-charts.css">
+
   <style>
 
     .contextChartSection {
@@ -74,6 +71,16 @@
 
   </style>
 
+
+  <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly.min.css">
+  <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly-additions.min.css">
+  <link rel="stylesheet" href="dist/css/hawkular-charts.css">
+
+  <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="node_modules/patternfly/dist/js/patternfly.min.js"></script>
+
+
   <!-- build:js scripts/vendor.js -->
   <!-- bower:js -->
   <script src="libs/angular/angular.js"></script>
@@ -83,12 +90,8 @@
   <!-- endbower -->
   <!-- endbuild -->
 
-  <script src="node_modules/jquery/dist/jquery.min.js"></script>
-  <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-
   <!-- build:js({.tmp,app}) scripts/scripts.js -->
   <!-- endbuild -->
-
 
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
@@ -170,180 +173,406 @@
     });
 
   </script>
+
   <script src="dist/hawkular-charts.js"></script>
 
-
 </head>
+<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-warning alert-dismissable">
+  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+    <span class="pficon pficon-close"></span>
+  </button>
+  <span class="pficon pficon-warning-triangle-o"></span>
+  These examples are included for development testing purposes.
+  For official documentation, see <a href="https://github.com/hawkular/hawkular-charts"
+                                     class="alert-link">https://github.com/hawkular/hawkular-charts</a>
+</div>
+
 <body ng-app="myApp">
-
-<div class="container">
-
-  <div class="col-md-offset-2">
-    <h1>Hawkular Charts - Response Time with Alerts</h1>
+<nav class="navbar navbar-default navbar-pf" role="navigation">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse-1">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="/">
+      Hawkular Charts Examples
+    </a>
   </div>
+  <div class="collapse navbar-collapse navbar-collapse-1">
+    <ul class="nav navbar-nav navbar-utility">
+      <li>
+        <a href="#">Status</a>
+      </li>
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+          <span class="pficon pficon-user"></span>
+          User Login <b class="caret"></b>
+        </a>
+        <ul class="dropdown-menu">
+          <li>
+            <a href="#">Logout</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
 
-  <p>
-    This page demonstrates the various types of Hawkular charts, and allows to change some of the properties to see how
-    these chart types would look with various properties set.
-  </p>
-  <div class="col-md-offset-1">
-    <h4>Check out the following list for other examples:</h4>
-    <ul>
-      <li><a href="./avail-test.html">Availability Tester</a></li>
-      <li><a href="./metrics-chart-sample.html">Metrics Chart Sample</a></li>
-      <li><a href="./multi-chart-sample.html">Multi-Chart Sample</a></li>
+    <ul class="nav navbar-nav navbar-primary">
+      <li class="active">
+        <a class="active" href="index.html">Samples</a>
+      </li>
+      <li>
+        <a href="alerting-sample.html">Alerting</a>
+      </li>
+      <li>
+        <a href="multi-chart-sample.html">Multi-Chart</a>
+      </li>
+      <li>
+        <a href="avail-test.html">Availability Chart</a>
+      </li>
     </ul>
   </div>
+</nav>
 
-  <p class="narrative">
-    Drag on the charts (and context chart) to select interesting areas to zoom in on. This example has all of
-    charts
-    responding to the change in z oom area. Altering the number of data points can have a positive or negative effect
-    on the way a chart looks. Experiment!
-  </p>
+<div class="container-fluid container-cards-pf" ng-controller="ChartController">
+  <div class="row cards-pf">
+    <div class="col-sm-8 col-md-9">
 
-  <div ng-controller="ChartController">
+      <div class="page-header page-header-bleed-right">
+        <div class="actions pull-right">
+          <a href="#"><span class="pficon pficon-refresh"></span> Refresh Results</a>
+        </div>
+        <h1>Multi-Chart Examples</h1>
+      </div>
 
-    <div class="row">
+      <div class="row row-cards-pf">
+        <div class="col-sm-12">
 
-      <div class="optionsWrapper col-md-3">
-        <form name="optionsForm">
-          <div style="margin-bottom: 5px;">
-            <div class="row">
-              <label for="alertValue">Alert Threshold: </label>
-              <input id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
-            </div>
-            <div class="row">
-              <label for="dataPoints">Data Points: </label>
-              <input id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
-            </div>
-            <div class="row">
-              <label for="highLowValues">Hide High/Low Values: </label>
-              <input id="highLowValues" type="checkbox" ng-model="hideHighLowValues"/>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <h2 class="card-pf-title">
+                  Context Chart
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="contextChartWrapper">
+                  <hk-context-chart
+                    data="originalData"
+                    show-y-axis-values="true">
+                  </hk-context-chart>
+                </div>
+              </div>
             </div>
           </div>
-        </form>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Large (with Forecast Data)
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    data="myData"
+                    forecast-data="myForecastData"
+                    chart-type="line"
+                    alert-value="{{alertThreshold}}"
+                    show-data-points="true"
+                    y-axis-units="Response Time (ms)"
+                  >
+                  </hk-metric-chart>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Small
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapperSmall">
+                  <hk-metric-chart
+                    data="myData"
+                    chart-type="line"
+                    alert-value="{{alertThreshold}}"
+                    show-data-points="true"
+                    y-axis-units="Response Time (ms)"
+                  >
+                  </hk-metric-chart>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Sparkline
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapperSparkline">
+                  <hk-metric-chart
+                    data="myData"
+                    alert-value="{{alertThreshold}}"
+                    y-axis-units="Response Time (ms)"
+                  >
+                  </hk-metric-chart>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Area
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    data="myData"
+                    chart-type="area"
+                    alert-value="{{alertThreshold}}"
+                    show-data-points="true"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Histogram
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    data="myData"
+                    chart-type="histogram"
+                    alert-value="{{alertThreshold}}"
+                    hide-high-low-values="hideHighLowValues"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - RhqBar
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    data="myData"
+                    chart-type="rhqbar"
+                    alert-value="{{alertThreshold}}"
+                    hide-high-low-values="hideHighLowValues"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>
+                </div>
+
+
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-12 col-sm-12">
+          <div class="card-pf">
+            <div class="card-pf-heading">
+
+              <div class="dropdown card-pf-time-frame-filter">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                  Last 30 Days <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                  <li><a href="#">Last 60 Days</a></li>
+                  <li><a href="#">Last 90 Days</a></li>
+                </ul>
+              </div>
+
+              <h2 class="card-pf-title">
+                Metric Chart - Scatter
+              </h2>
+            </div>
+            <div class="card-pf-body">
+              <div class="chartWrapper">
+                <hk-metric-chart
+                  data="myData"
+                  chart-type="scatter"
+                  alert-value="{{alertThreshold}}"
+                  hide-high-low-values="hideHighLowValues"
+                  y-axis-units="Response Time (ms)">
+                </hk-metric-chart>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Scatter Line
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    data="myData"
+                    chart-type="scatterline"
+                    alert-value="{{alertThreshold}}"
+                    hide-high-low-values="hideHighLowValues"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
       </div>
 
-      <div class="contextChartSection col-md-9">
-        <div class="metricIdHeader">
-          <span class="contextIdLabel"> Context Chart</span>
+    </div><!-- /col -->
+
+    <div class="col-sm-4 col-md-3 sidebar-pf sidebar-pf-right">
+      <div class="sidebar-header sidebar-header-bleed-left sidebar-header-bleed-right">
+        <div class="actions pull-right">
+          <a href="#">Reset Settings</a>
         </div>
-        <div class="contextChartWrapper">
-          <hk-context-chart
-            data="originalData"
-            show-y-axis-values="true">
-          </hk-context-chart>
-        </div>
+        <h2 class="h5">Chart Settings</h2>
       </div>
+      <ul class="list-group">
 
-    </div>
+        <li class="list-group-item">
+          <label for="alertValue">Alert Threshold: </label>
+          <input class="pull-right" id="alertValue" type="number" step="500" ng-model="alertThreshold"/>
+        </li>
 
+        <li class="list-group-item">
+          <label for="dataPoints">Data Points: </label>
+          <input class="pull-right" id="dataPoints" type="number" step="10" max="120" min="10" ng-model="dataPoints"/>
+        </li>
 
-    <div class="metricIdHeader">
-      <span class="metricIdLabel"> ChartType: Line (in 3 Sizes)</span>
-    </div>
-    <div class="chartWrapper">
-      <hk-metric-chart
-        data="myData"
-        forecast-data="myForecastData"
-        chart-type="line"
-        alert-value="{{alertThreshold}}"
-        show-data-points="true"
-        y-axis-units="Response Time (ms)"
-      >
-      </hk-metric-chart>
-    </div>
+        <!--<li class="list-group-item">-->
+          <!--<label for="highLowValues">Hide High/Low Values: </label>-->
+          <!--<input class="pull-right" id="highLowValues" type="checkbox" ng-model="hideHighLowValues"/>-->
+        <!--</li>-->
 
+      </ul>
+    </div><!-- /col -->
+  </div><!-- /row -->
+</div><!-- /container -->
 
-    <div class="chartWrapperSmall">
-      <hk-metric-chart
-        data="myData"
-        chart-type="line"
-        alert-value="{{alertThreshold}}"
-        show-data-points="true"
-        y-axis-units="Response Time (ms)"
-      >
-      </hk-metric-chart>
-    </div>
-
-
-    <div class="chartWrapperSparkline">
-      <hk-metric-chart
-        data="myData"
-        alert-value="{{alertThreshold}}"
-        y-axis-units="Response Time (ms)"
-      >
-      </hk-metric-chart>
-    </div>
-
-
-    <div class="metricIdHeader">
-      <span class="metricIdLabel"> ChartType: Area</span>
-    </div>
-    <div class="chartWrapper">
-      <hk-metric-chart
-        data="myData"
-        chart-type="area"
-        alert-value="{{alertThreshold}}"
-        show-data-points="true"
-        y-axis-units="Response Time (ms)">
-      </hk-metric-chart>
-    </div>
-
-    <div class="metricIdHeader">
-      <span class="metricIdLabel"> ChartType: Histogram</span>
-    </div>
-    <div class="chartWrapper">
-      <hk-metric-chart
-        data="myData"
-        chart-type="histogram"
-        alert-value="{{alertThreshold}}"
-        hide-high-low-values="hideHighLowValues"
-        y-axis-units="Response Time (ms)">
-      </hk-metric-chart>
-    </div>
-
-    <div class="metricIdHeader">
-      <span class="metricIdLabel"> ChartType: RhqBar</span>
-    </div>
-    <div class="chartWrapper">
-      <hk-metric-chart
-        data="myData"
-        chart-type="rhqbar"
-        alert-value="{{alertThreshold}}"
-        hide-high-low-values="hideHighLowValues"
-        y-axis-units="Response Time (ms)">
-      </hk-metric-chart>
-    </div>
-
-    <div class="metricIdHeader">
-      <span class="metricIdLabel"> ChartType: Scatter</span>
-    </div>
-    <div class="chartWrapper">
-      <hk-metric-chart
-        data="myData"
-        chart-type="scatter"
-        alert-value="{{alertThreshold}}"
-        hide-high-low-values="hideHighLowValues"
-        y-axis-units="Response Time (ms)">
-      </hk-metric-chart>
-    </div>
-
-    <div class="metricIdHeader">
-      <span class="metricIdLabel"> ChartType: ScatterLine</span>
-    </div>
-    <div class="chartWrapper">
-      <hk-metric-chart
-        data="myData"
-        chart-type="scatterline"
-        alert-value="{{alertThreshold}}"
-        hide-high-low-values="hideHighLowValues"
-        y-axis-units="Response Time (ms)">
-      </hk-metric-chart>
-    </div>
-
-  </div>
-</div>
 </body>
 </html>
