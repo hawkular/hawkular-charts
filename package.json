@@ -3,7 +3,7 @@
   "name": "hawkular-charts",
   "version": "0.1.2",
   "private": true,
-  "description": "WIP: Hawkular Time Series Charting library.",
+  "description": "Hawkular Time Series Charting library.",
   "homepage": "https://github.com/hawkular/hawkular-charts",
   "dependencies": {},
   "devDependencies": {
@@ -19,7 +19,7 @@
     "gulp-angular-templatecache": "1.8.0",
     "gulp-autoprefixer": "3.1.0",
     "gulp-concat": "2.6.0",
-    "gulp-cssnano": "2.1.1",
+    "gulp-cssnano": "2.1.2",
     "gulp-less": "3.0.5",
     "gulp-notify": "2.2.0",
     "gulp-rename": "1.2.2",
@@ -32,9 +32,10 @@
     "gulp-watch": "4.3.5",
     "jquery": "2.2.3",
     "merge2": "1.0.2",
-    "patternfly": "3.3.3",
+    "patternfly": "3.3.4",
     "run-sequence": "1.1.5",
     "through2": "2.0.1",
+    "tslint": "3.8.1",
     "underscore.string": "3.3.4",
     "vinyl-map": "1.0.1",
     "which": "1.2.4",
@@ -48,6 +49,6 @@
     "url": "https://github.com/hawkular/hawkular-charts.git"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=6.0.0"
   }
 }
