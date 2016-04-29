@@ -584,7 +584,6 @@ namespace Charts {
                   modifiedInnerChartHeight, height, tip, visuallyAdjustedMax,
                   hideHighLowValues, interpolation);
 
-                showForecastData(forecastDataPoints, chartOptions);
                 $rootScope.$broadcast(EventNames.CHART_TIMERANGE_CHANGED.toString(), extent);
               }
               // clear the brush selection
