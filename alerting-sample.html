@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<!--[if IE 9]>
+<html lang="en-us" class="ie9"><![endif]-->
+<!--[if gt IE 9]><!-->
+<html lang="en-us">
+<!--<![endif]-->
+<head>
+  <title>Metrics charts Examples</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+
+    .metricIdHeader > li {
+      margin-left: 40px;
+    }
+
+    .itemDescription {
+      font-style: italic;
+      font-size: medium;
+    }
+
+    .chartWrapper {
+      height: 250px;
+    }
+  </style>
+
+  <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly.min.css">
+  <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly-additions.min.css">
+  <link rel="stylesheet" href="dist/css/hawkular-charts.css">
+
+  <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="node_modules/patternfly/dist/js/patternfly.min.js"></script>
+
+
+  <!-- build:js scripts/vendor.js -->
+  <!-- bower:js -->
+  <script src="libs/angular/angular.js"></script>
+  <script src="libs/d3/d3.js"></script>
+  <script src="libs/moment/moment.js"></script>
+  <script src="libs/d3-tip/index.js"></script>
+  <!-- endbower -->
+  <!-- endbuild -->
+
+  <!-- build:js({.tmp,app}) scripts/scripts.js -->
+  <!-- endbuild -->
+
+  <script>
+    var app = angular.module('myApp', ['hawkular.charts']);
+
+    app.controller('ChartController', function ($scope) {
+      var metricData;
+
+      // set the alert threshold to whatever
+      $scope.alertThreshold = 2000;
+
+      // load a captured Hawkular Feed for sample data -- simulates loading data
+      d3.json('./test-data/metrics-data.json', function (error, jsonData) {
+        metricData = jsonData;
+
+        $scope.myData = metricData;
+        console.dir($scope.myData);
+
+        // this is simply a d3 function to return the beginning and ending values
+        var myTimeRange = d3.extent($scope.myData, function (value) {
+          return value.timestamp;
+        });
+
+        // set our initial timerange based on the data bounds
+        $scope.startTimestamp = myTimeRange[0];
+        $scope.endTimestamp = myTimeRange[1];
+        console.log('Starting time range values: ' + new Date(myTimeRange[0]) + ' - ' + new Date(myTimeRange[1]));
+        $scope.refreshChartWithDateRange();
+
+      });
+
+      $scope.refreshChartWithDateRange = function () {
+        console.log('RefreshChart');
+        // we already have the data, but perhaps the data is stale and you want to requery
+        // also, by just changing the data the charts will automatically update themselves
+        $scope.myData = $scope.myData.filter(function (value) {
+          return value.timestamp >= $scope.startTimestamp && value.timestamp <= $scope.endTimestamp;
+        });
+        $scope.$digest();
+
+      };
+
+      $scope.$on('ChartTimeRangeChanged', function (event, data) {
+        console.log('Received ChartTimeRangeChanged: ' + data[0] + ' - ' + data[1]);
+        $scope.startTimestamp = data[0];
+        $scope.endTimestamp = data[1];
+        $scope.refreshChartWithDateRange();
+      });
+    });
+
+  </script>
+
+  <script src="dist/hawkular-charts.js"></script>
+
+</head>
+<div class="toast-pf toast-pf-max-width toast-pf-top-right alert alert-warning alert-dismissable">
+  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+    <span class="pficon pficon-close"></span>
+  </button>
+  <span class="pficon pficon-warning-triangle-o"></span>
+  These examples are included for development testing purposes.
+  For official documentation, see <a href="https://github.com/hawkular/hawkular-charts"
+                                     class="alert-link">https://github.com/hawkular/hawkular-charts</a>
+</div>
+
+<body ng-app="myApp">
+<nav class="navbar navbar-default navbar-pf" role="navigation">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse-1">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="/">
+      Hawkular Charts Examples
+    </a>
+  </div>
+  <div class="collapse navbar-collapse navbar-collapse-1">
+    <ul class="nav navbar-nav navbar-utility">
+      <li>
+        <a href="#">Status</a>
+      </li>
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+          <span class="pficon pficon-user"></span>
+          User Login <b class="caret"></b>
+        </a>
+        <ul class="dropdown-menu">
+          <li>
+            <a href="#">Logout</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <ul class="nav navbar-nav navbar-primary">
+      <li >
+        <a href="index.html">Samples</a>
+      </li>
+      <li class="active">
+        <a class="active" href="alerting-sample.html">Alerting</a>
+      </li>
+      <li >
+        <a href="multi-chart-sample.html">Multi-Chart</a>
+      </li>
+      <li>
+        <a href="avail-test.html">Availability Chart</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container-fluid container-cards-pf" ng-controller="ChartController">
+  <div class="row cards-pf">
+    <div class="col-sm-12">
+
+      <div class="page-header page-header-bleed-right">
+        <div class="actions pull-right">
+          <a href="#"><span class="pficon pficon-refresh"></span> Refresh Results</a>
+        </div>
+        <h1>Metrics Chart Alerting Examples</h1>
+      </div>
+
+      <div class="row row-cards-pf">
+        <div class="col-xs-12">
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+                <h2 class="card-pf-title">
+                  Metric Chart Auto Zoomed-in
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    data="myData"
+                    chart-type="line"
+                    alert-value="2000"
+                    show-data-points="true"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>
+                </div>
+                <p class="itemDescription">The default behaviour is to find the high/low in the data and offset that with some
+                  space to provide a detailed zoomed in effect by default.
+                </p>
+
+              </div>
+            </div>
+          </div>
+
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Use Zero as Y Axis start - Alert at 2000
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    data="myData"
+                    chart-type="line"
+                    alert-value="{{alertThreshold}}"
+                    use-zero-min-value="true"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>
+                </div>
+                <p class="itemDescription">Some data is best viewed with a zero-axis starting point. Like percent utilization for CPU, for
+                  instance. </p>
+
+              </div>
+            </div>
+          </div>
+
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Alert at 6000
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    data="myData"
+                    chart-type="line"
+                    alert-value="6000"
+                    use-zero-min-value="true"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>
+                </div>
+                <p class="itemDescription">All data points below threshold.</p>
+
+              </div>
+            </div>
+          </div>
+
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Alert at 1000
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    data="myData"
+                    chart-type="line"
+                    alert-value="1000"
+                    use-zero-min-value="true"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>
+                </div>
+                <p class="itemDescription">All data points above alerting threshold.</p>
+
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+
+    </div><!-- /col -->
+
+  </div><!-- /row -->
+</div><!-- /container -->
+
+</body>
+</html>
