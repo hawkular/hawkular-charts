@@ -25,6 +25,8 @@ namespace Charts {
     public static CHART_TIMERANGE_CHANGED = new EventNames('ChartTimeRangeChanged');
     public static AVAIL_CHART_TIMERANGE_CHANGED = new EventNames('AvailChartTimeRangeChanged');
     public static CONTEXT_CHART_TIMERANGE_CHANGED = new EventNames('ContextChartTimeRangeChanged');
+    public static DATE_RANGE_DRAG_CHANGED = new EventNames('DateRangeDragChanged');
+    
 
     constructor(public value: string) {
       // empty
