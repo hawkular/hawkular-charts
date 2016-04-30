@@ -27,7 +27,6 @@ namespace Charts {
     public static CONTEXT_CHART_TIMERANGE_CHANGED = new EventNames('ContextChartTimeRangeChanged');
     public static DATE_RANGE_DRAG_CHANGED = new EventNames('DateRangeDragChanged');
     
-
     constructor(public value: string) {
       // empty
     }
