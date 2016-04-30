@@ -161,6 +161,8 @@
         console.log('Received ChartTimeRangeChanged event: ' + data[0] + ' - ' + data[1]);
         $scope.timerange.startTimestamp = data[0];
         $scope.timerange.endTimestamp = data[1];
+        // forecast data not relevant in the past
+        $scope.myForecastData = [];
         $scope.refreshChartWithDateRange();
         $scope.$digest();
       });

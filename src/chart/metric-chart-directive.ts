@@ -644,7 +644,6 @@ namespace Charts {
 
           scope.$watch('previousRangeData', (newPreviousRangeValues) => {
             if (newPreviousRangeValues) {
-              //$log.debug('Previous Range data changed');
               processedPreviousRangeData = angular.fromJson(newPreviousRangeValues);
               scope.render(processedNewData);
             }
@@ -705,8 +704,15 @@ namespace Charts {
             $interval.cancel(startIntervalPromise);
           });
 
-          scope.$on('DateRangeDragChanged', (event, extent) => {
-            scope.$emit('GraphTimeRangeChangedEvent', extent);
+          scope.$on(EventNames.DATE_RANGE_DRAG_CHANGED, (event, extent) => {
+            scope.$emit(EventNames.CHART_TIMERANGE_CHANGED, extent);
+          });
+
+          scope.$on(EventNames.CHART_TIMERANGE_CHANGED, (event, extent) => {
+            // forecast data not relevant to past data
+            attrs.forecastData = [];
+            forecastDataPoints = [];
+            scope.$digest();
           });
 
           function determineChartTypeAndDraw(chartType: string, chartOptions: ChartOptions) {
