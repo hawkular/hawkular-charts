@@ -21,7 +21,7 @@ of these charting components into the future with additional features and specia
 This will also make adhoc development quicker/easier with components that can render Hawkular Metrics (or any other metrics) charts with very little effort.
 
 
-== Quickstart
+== Development Quickstart
 
 The quickest way to start using the charts is to fire up a http server and start playing with the code. Make sure
 that https://nodejs.org[Node.js version 6.x] is installed. Then, to run the examples, from the
@@ -29,7 +29,7 @@ _hawkular-charts_ root directory:
 
 `npm install && bower install`
 
-`gulp`
+`gulp` for a dev build that live loads or `gulp build` to build a production build.
 
 
 This command will startup a web server and launch the default browser to that page -- listening for any
@@ -38,12 +38,6 @@ changes to all of the browsers with localhost:3001/* open -- making it easy to c
 even mobile browsers for responsive layout changes!
 
 IMPORTANT: Gulp version 3.9.0+ is required (since we use an ES6 gulpfile)
-
-Then start playing around the the examples (each has data in the example):
-
-* http://rawgit.com/hawkular/hawkular-charts/master/metrics-chart-sample.html.js[metrics-chart-sample.html.js]
-* http://rawgit.com/hawkular/hawkular-charts/master/multi-chart-sample.html.js[multi-chart-sample.html.js]
-* http://rawgit.com/hawkular/hawkular-charts/master/avail-test.html.js[avail-test.html.js]
 
 These controls are currently being used in the Hawkular Console to view various metrics charts displayed there.
 Please see https://github.com/hawkular/hawkular/tree/master/console for more real examples.
@@ -409,6 +403,18 @@ https://github.com/hawkular/hawkular-ui-services
 * There used to be a width and height attribute in the charting directives, what happened to those?
 _Answer_: Hawkular-charts is now fully responsive so height and width no longer make sense. Height and width is now
 determined by the container surrounding the chart directive (a div for example).
+
+
+== Version 1.0
+
+.Verion 1.0 introduces some breaking changes to be aware of from previous releases:
+* Breaking Change: Rename ‘hawkular-chart’ directive to ‘hk-metric-chart’ to be more meaningful, now that there are
+multiple charting tags
+* Breaking Change: Renamed all chart types with a ‘hk-*’ prefix to be more consistent with standard directive library
+naming conventions
+
+Other updates for 1.0 can be found at: https://github.com/hawkular/hawkular-charts/releases/tag/v1.0.0[v1.0.0]
+
 
 == Contributing
 
