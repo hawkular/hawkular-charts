@@ -4,6 +4,7 @@ declare namespace Charts {
         value: string;
         static CHART_TIMERANGE_CHANGED: EventNames;
         static AVAIL_CHART_TIMERANGE_CHANGED: EventNames;
+        static TIMELINE_CHART_TIMERANGE_CHANGED: EventNames;
         static CONTEXT_CHART_TIMERANGE_CHANGED: EventNames;
         static DATE_RANGE_DRAG_CHANGED: EventNames;
         constructor(value: string);

@@ -5,7 +5,7 @@
 <html lang="en-us">
 <!--<![endif]-->
 <head>
-  <title>Availability Chart Example</title>
+  <title>Timeline Chart Example</title>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=Edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,6 +47,13 @@
         $scope.refreshChartWithDateRange();
       });
 
+      $scope.$on('TimelineChartTimeRangeChanged', function (event, data) {
+        console.info('Received TimelineChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
+        $scope.startTime = data[0];
+        $scope.endTime = data[1];
+        $scope.refreshTimelineChartWithDateRange();
+      });
+
       $scope.refreshChartWithDateRange = function () {
         console.info('refreshChartWithDateRange');
         // we already have the data, but perhaps the data is stale and you want to requery
@@ -55,8 +62,50 @@
           return new Date(value.timestamp) >= $scope.startTime && new Date(value.timestamp) <= $scope.endTime;
         });
         $scope.$digest();
-
       };
+
+      $scope.refreshTimelineChartWithDateRange = function () {
+        console.info('refreshTimelineChartWithDateRange');
+        $scope.events = $scope.events.filter(function (value) {
+          return new Date(value.timestamp) >= $scope.startTime && new Date(value.timestamp) <= $scope.endTime;
+        });
+        $scope.$digest();
+      };
+
+      $scope.events =
+        [
+          {"timestamp": 1438025381038,
+            "eventSource": "Hawkular",
+            "provider": "Hawkular-Provider",
+            "message": "JVM  out of memory",
+            "middlewareResource": "Localhost"
+          },
+          {"timestamp": 1438031047504,
+            "eventSource": "Hawkular" ,
+            "provider": "Hawkular-Provider",
+            "message": "System Crashed",
+            "middlewareResource": "Localhost"
+          },
+          {"timestamp": 1438034802775,
+            "eventSource": "Hawkular",
+            "provider": "Hawkular-Provider",
+            "message": "System Recovered",
+            "middlewareResource": "Localhost"
+          },
+          {"timestamp": 1438042627486,
+            "eventSource": "Hawkular",
+            "provider": "Hawkular-Provider",
+            "message": "JVM used 95%",
+            "middlewareResource": "Localhost"
+          },
+          {"timestamp": 1438042664875,
+            "eventSource": "Hawkular",
+            "provider": "Hawkular-Provider",
+            "message": "CPU used > 99%",
+            "middlewareResource": "Localhost"
+          }
+        ];
+
 
       $scope.availAllChartData = [
         {'timestamp': +baseTime, 'value': 'up'},
@@ -149,7 +198,7 @@
         <div class="actions pull-right">
           <a href="#"><span class="pficon pficon-refresh"></span> Refresh Results</a>
         </div>
-        <h1>Availability Chart Examples</h1>
+        <h1>Timeline/Availability Chart Examples</h1>
       </div>
 
 
@@ -169,11 +218,43 @@
               </div>
 
               <h2 class="card-pf-title">
-                Availability Chart Small
+                Timeline Chart Small
               </h2>
             </div>
             <div class="card-pf-body">
               <div class="chartWrapperLarge">
+                <hk-timeline-chart events="events"
+                                   start-timestamp="{{startTime}}"
+                                   end-timestamp="{{endTime}}"
+                />
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row row-cards-pf">
+        <div class="col-xs-12">
+          <div class="card-pf">
+            <div class="card-pf-heading">
+
+              <div class="dropdown card-pf-time-frame-filter">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                  Last 30 Days <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                  <li><a href="#">Last 60 Days</a></li>
+                  <li><a href="#">Last 90 Days</a></li>
+                </ul>
+              </div>
+
+              <h2 class="card-pf-title">
+                Availability Chart
+              </h2>
+            </div>
+            <div class="card-pf-body">
+              <div class="chartWrapperLarge" >
                 <hk-availability-chart data="availAllChartData"
                                        start-timestamp="{{startTime}}"
                                        end-timestamp="{{endTime}}"
@@ -184,47 +265,13 @@
           </div>
         </div>
       </div>
+    </div>
+
+  </div><!-- /col -->
 
 
 
-      <div class="row row-cards-pf">
-        <div class="col-xs-12">
-            <div class="card-pf">
-              <div class="card-pf-heading">
-
-                <div class="dropdown card-pf-time-frame-filter">
-                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                    Last 30 Days <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                    <li><a href="#">Last 60 Days</a></li>
-                    <li><a href="#">Last 90 Days</a></li>
-                  </ul>
-                </div>
-
-                <h2 class="card-pf-title">
-                  Availability Chart Large
-                </h2>
-              </div>
-              <div class="card-pf-body">
-                <div class="chartWrapperLarge">
-                    <hk-availability-chart data="availAllChartData"
-                                           start-timestamp="{{startTime}}"
-                                           end-timestamp="{{endTime}}"
-                    />
-                </div>
-
-              </div>
-              </div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /col -->
-
-
-
-  </div><!-- /row -->
+</div><!-- /row -->
 </div><!-- /container -->
 
 </body>
