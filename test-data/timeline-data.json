@@ -1,0 +1,32 @@
+[
+  {"timestamp": 1438025381038,
+    "eventSource": "Hawkular",
+    "provider": "Hawkular-Provider",
+    "message": "JVM  out of memory",
+    "middlewareResource": "Localhost"
+  },
+  {"timestamp": 1438031047504,
+    "eventSource": "Hawkular" ,
+    "provider": "Hawkular-Provider",
+    "message": "System Crashed",
+    "middlewareResource": "Localhost"
+  },
+  {"timestamp": 1438034802775,
+    "eventSource": "Hawkular",
+    "provider": "Hawkular-Provider",
+    "message": "System Recovered",
+    "middlewareResource": "Localhost"
+  },
+  {"timestamp": 1438042627486,
+    "eventSource": "Hawkular",
+    "provider": "Hawkular-Provider",
+    "message": "JVM used 95%",
+    "middlewareResource": "Localhost"
+  },
+  {"timestamp": 1438042664875,
+    "eventSource": "Hawkular",
+    "provider": "Hawkular-Provider",
+    "message": "CPU used > 99%",
+    "middlewareResource": "Localhost"
+  }
+];

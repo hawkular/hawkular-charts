@@ -6,6 +6,7 @@
 /// <reference path="d.ts/chart/features.d.ts"/>
 /// <reference path="d.ts/chart/forecast.d.ts"/>
 /// <reference path="d.ts/chart/metric-chart-directive.d.ts"/>
+/// <reference path="d.ts/chart/timeline-directive.d.ts"/>
 /// <reference path="d.ts/chart/types.d.ts"/>
 /// <reference path="d.ts/chart/utility.d.ts"/>
 /// <reference path="d.ts/chart/chart-type/abstract-histogram.d.ts"/>
