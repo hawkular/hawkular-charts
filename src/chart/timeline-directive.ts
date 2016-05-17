@@ -94,9 +94,7 @@ namespace Charts {
     public scope = {
       events: '=',
       startTimestamp: '@', // to provide for exact boundaries of start/stop times (if omitted, it will be calculated)
-      endTimestamp: '@',
-      timeLabel: '@',
-      dateLabel: '@',
+      endTimestamp: '@'
     };
 
     public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
