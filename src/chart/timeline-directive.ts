@@ -74,7 +74,8 @@ namespace Charts {
       if(RowNumber._currentRow > MAX_ROWS) {
         RowNumber._currentRow = 1; // reset back to zero
       }
-      // reverse the ordering of the numbers so that 1 becomes 5 and
+      // reverse the ordering of the numbers so that 1 becomes 5
+      // so that the events are laid out from top -> bottom instead of bottom -> top
       return (MAX_ROWS + 1 ) - RowNumber._currentRow;
     }
 
@@ -186,7 +187,7 @@ namespace Charts {
           startTimestamp = +attrs.startTimestamp ||
             d3.min(timelineEvent, (d: TimelineEvent) => {
               return d.timestamp;
-            }) || +moment().subtract(1, 'hour');
+            }) || +moment().subtract(24, 'hour');
 
           if (timelineEvent && timelineEvent.length > 0) {
 
@@ -235,6 +236,15 @@ namespace Charts {
               .range([height, 0])
               .domain([0, 6]);
 
+          // The bottom line of the timeline chart
+          svg.append('line')
+            .attr('x1', 0)
+            .attr('y1', 70)
+            .attr('x2', 735)
+            .attr('y2', 70)
+            .attr('stroke-width', 1)
+            .attr('stroke', '#D0D0D0');
+
           svg.selectAll('circle')
             .data(timelineEvent)
             .enter()
@@ -254,14 +264,7 @@ namespace Charts {
               tip.hide();
             });
 
-          // The bottom line of the timeline chart
-          svg.append('line')
-            .attr('x1', 0)
-            .attr('y1', 70)
-            .attr('x2', 735)
-            .attr('y2', 70)
-            .attr('stroke-width', 1)
-            .attr('stroke', '#D0D0D0');
+
 
         }
 
@@ -316,7 +319,6 @@ namespace Charts {
 
         scope.$watchCollection('events', (newEvents) => {
           if (newEvents) {
-            console.debug('new timeline events');
             this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
             scope.render(this.events);
           }
@@ -335,7 +337,6 @@ namespace Charts {
             determineTimelineScale(timelineEvent);
             createXandYAxes();
             createXAxisBrush();
-            console.dir(timelineEvent);
             createTimelineChart(timelineEvent);
           }
         };
