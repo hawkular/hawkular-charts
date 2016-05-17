@@ -7,15 +7,13 @@ namespace Charts {
 // Timeline specific for ManageIQ Timeline component
   export class TimelineDataPoint {
 
-
     constructor(public timestamp: TimeInMillis,
                 public eventSource: string,
                 public provider: string,
                 public message?: string,
                 public middlewareResource?: string,
                 public formattedDate?: Date,
-                public color?:string) {
-
+                public color?: string) {
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
     }
 
@@ -183,7 +181,7 @@ namespace Charts {
             .enter()
             .append('circle')
             .attr('class', 'hkEvent')
-            .attr('cx', (d:TimelineDataPoint) => {
+            .attr('cx', (d: TimelineDataPoint) => {
               return timelineTimeScale(d.timestamp);
             })
             .attr('cy', (d) => {
@@ -197,7 +195,7 @@ namespace Charts {
               tip.hide();
             });
 
-          // The bottom line of the availability chart
+          // The bottom line of the timeline chart
           svg.append('line')
             .attr('x1', 0)
             .attr('y1', 70)
