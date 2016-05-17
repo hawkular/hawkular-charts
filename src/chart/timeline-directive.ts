@@ -4,7 +4,6 @@ namespace Charts {
 
   declare let d3: any;
 
-
  // ManageIQ External Management System Event
   export class EmsEvent {
 
@@ -17,13 +16,13 @@ namespace Charts {
   }
 
 // Timeline specific for ManageIQ Timeline component
-  export class TimelineDataPoint extends EmsEvent {
+  export class TimelineEvent extends EmsEvent {
 
-    constructor(timestamp: TimeInMillis,
-                eventSource: string,
-                provider: string,
-                message?: string,
-                middlewareResource?: string,
+    constructor(public timestamp: TimeInMillis,
+                public eventSource: string,
+                public provider: string,
+                public message?: string,
+                public middlewareResource?: string,
                 public formattedDate?: string,
                 public color?: string,
                 public row?: number) {
@@ -32,11 +31,10 @@ namespace Charts {
     }
 
     /**
-     * Build TimelineDataPoints from EmsEvents
+     * Build TimelineEvents from EmsEvents
      * @param emsEvents
-     * @returns {{timestamp: TimeInMillis, eventSource: string, provider: string, message: string, formattedDate: any}[]}
      */
-    static buildEvents(emsEvents: EmsEvent[]): TimelineDataPoint[] {
+    public static buildEvents(emsEvents: EmsEvent[]): TimelineEvent[] {
     //  The schema is different for bucketed output
     if (emsEvents) {
       return emsEvents.map((emsEvent: EmsEvent) => {
@@ -73,7 +71,7 @@ namespace Charts {
 
       RowNumber._currentRow++;
 
-      if(RowNumber._currentRow > MAX_ROWS){
+      if(RowNumber._currentRow > MAX_ROWS) {
         RowNumber._currentRow = 1; // reset back to zero
       }
       // reverse the ordering of the numbers so that 1 becomes 5 and
@@ -103,7 +101,7 @@ namespace Charts {
 
     public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
 
-    public events: TimelineDataPoint[];
+    public events: TimelineEvent[];
 
     constructor($rootScope: ng.IRootScopeService) {
 
@@ -135,7 +133,7 @@ namespace Charts {
           chartParent,
           svg;
 
-        function TimelineHover(d: TimelineDataPoint) {
+        function TimelineHover(d: TimelineEvent) {
           return `<div class='chartHover'>
             <div class='info-item'>
               <span class='chartHoverLabel'>Event Source:</span>
@@ -184,15 +182,15 @@ namespace Charts {
           svg.call(tip);
         }
 
-        function determineTimelineScale(timelineDataPoints: TimelineDataPoint[]) {
+        function determineTimelineScale(timelineEvent: TimelineEvent[]) {
           let adjustedTimeRange: number[] = [];
 
           startTimestamp = +attrs.startTimestamp ||
-            d3.min(timelineDataPoints, (d: TimelineDataPoint) => {
+            d3.min(timelineEvent, (d: TimelineEvent) => {
               return d.timestamp;
             }) || +moment().subtract(1, 'hour');
 
-          if (timelineDataPoints && timelineDataPoints.length > 0) {
+          if (timelineEvent && timelineEvent.length > 0) {
 
             adjustedTimeRange[0] = startTimestamp;
             adjustedTimeRange[1] = endTimestamp || +moment();
@@ -221,11 +219,11 @@ namespace Charts {
           }
         }
 
-        function createTimelineChart(timelineDataPoints: TimelineDataPoint[]) {
-          let xAxisMin = d3.min(timelineDataPoints, (d: TimelineDataPoint) => {
+        function createTimelineChart(timelineEvent: TimelineEvent[]) {
+          let xAxisMin = d3.min(timelineEvent, (d: TimelineEvent) => {
            return +d.timestamp;
           });
-          let xAxisMax = d3.max(timelineDataPoints, (d: TimelineDataPoint) => {
+          let xAxisMax = d3.max(timelineEvent, (d: TimelineEvent) => {
             return +d.timestamp;
           });
           let timelineTimeScale = d3.time.scale()
@@ -240,14 +238,14 @@ namespace Charts {
               .domain([0, 6]);
 
           svg.selectAll('circle')
-            .data(timelineDataPoints)
+            .data(timelineEvent)
             .enter()
             .append('circle')
             .attr('class', 'hkEvent')
-            .attr('cx', (d: TimelineDataPoint) => {
+            .attr('cx', (d: TimelineEvent) => {
               return timelineTimeScale(d.timestamp);
             })
-            .attr('cy', (d: TimelineDataPoint) => {
+            .attr('cy', (d: TimelineEvent) => {
               return yScale(d.row);
             })
             .attr('r', (d) => {
@@ -321,7 +319,7 @@ namespace Charts {
         scope.$watchCollection('events', (newEvents) => {
           if (newEvents) {
             console.debug('new timeline events');
-            this.events = TimelineDataPoint.buildEvents(angular.fromJson(newEvents));
+            this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
             scope.render(this.events);
           }
         });
@@ -332,15 +330,15 @@ namespace Charts {
           scope.render(this.events);
         });
 
-        scope.render = (timelineDataPoints: TimelineDataPoint[]) => {
-          if (timelineDataPoints && timelineDataPoints.length > 0) {
+        scope.render = (timelineEvent: TimelineEvent[]) => {
+          if (timelineEvent && timelineEvent.length > 0) {
             ///NOTE: layering order is important!
             timelineChartSetup();
-            determineTimelineScale(timelineDataPoints);
+            determineTimelineScale(timelineEvent);
             createXandYAxes();
             createXAxisBrush();
-            console.dir(timelineDataPoints);
-            createTimelineChart(timelineDataPoints);
+            console.dir(timelineEvent);
+            createTimelineChart(timelineEvent);
           }
         };
       };
