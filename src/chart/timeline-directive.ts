@@ -34,23 +34,23 @@ namespace Charts {
      * Build TimelineEvents from EmsEvents
      * @param emsEvents
      */
-    public static buildEvents(emsEvents: EmsEvent[]): TimelineEvent[] {
-    //  The schema is different for bucketed output
-    if (emsEvents) {
-      return emsEvents.map((emsEvent: EmsEvent) => {
-        return {
-          timestamp: emsEvent.timestamp,
-          eventSource: emsEvent.eventSource,
-          provider: emsEvent.eventSource,
-          message: emsEvent.message,
-          middlewareResource: emsEvent.middlewareResource,
-          formattedDate: moment(emsEvent.timestamp).format('MMMM Do YYYY, h:mm:ss a'),
-          color: '#000',
-          row: RowNumber.nextRow()
-        };
-      });
+    public static buildEvents(emsEvents:EmsEvent[]):TimelineEvent[] {
+      //  The schema is different for bucketed output
+      if (emsEvents) {
+        return emsEvents.map((emsEvent:EmsEvent) => {
+          return {
+            timestamp: emsEvent.timestamp,
+            eventSource: emsEvent.eventSource,
+            provider: emsEvent.eventSource,
+            message: emsEvent.message,
+            middlewareResource: emsEvent.middlewareResource,
+            formattedDate: moment(emsEvent.timestamp).format('MMMM Do YYYY, h:mm:ss a'),
+            color: emsEvent.eventSource === 'Hawkular' ? '#0088ce' : '#ec7a08',
+            row: RowNumber.nextRow()
+          };
+        });
+      }
     }
-  }
   }
 
   /**
@@ -255,6 +255,9 @@ namespace Charts {
             })
             .attr('cy', (d: TimelineEvent) => {
               return yScale(d.row);
+            })
+            .attr('fill', (d: TimelineEvent) => {
+              return  d.color;
             })
             .attr('r', (d) => {
               return 6;
