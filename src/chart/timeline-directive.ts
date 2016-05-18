@@ -4,17 +4,79 @@ namespace Charts {
 
   declare let d3: any;
 
+ // ManageIQ External Management System Event
+  export class EmsEvent {
+
+    constructor(public timestamp: TimeInMillis,
+                public eventSource: string,
+                public provider: string,
+                public message?: string,
+                public middlewareResource?: string) {
+    }
+  }
+
 // Timeline specific for ManageIQ Timeline component
-  export class TimelineDataPoint {
+  export class TimelineEvent extends EmsEvent {
 
     constructor(public timestamp: TimeInMillis,
                 public eventSource: string,
                 public provider: string,
                 public message?: string,
                 public middlewareResource?: string,
-                public formattedDate?: Date,
-                public color?: string) {
+                public formattedDate?: string,
+                public color?: string,
+                public row?: number) {
+      super(timestamp, eventSource, provider, message, middlewareResource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
+    }
+
+    /**
+     * Build TimelineEvents from EmsEvents
+     * @param emsEvents
+     */
+    public static buildEvents(emsEvents: EmsEvent[]): TimelineEvent[] {
+      //  The schema is different for bucketed output
+      if (emsEvents) {
+        return emsEvents.map((emsEvent: EmsEvent) => {
+          return {
+            timestamp: emsEvent.timestamp,
+            eventSource: emsEvent.eventSource,
+            provider: emsEvent.eventSource,
+            message: emsEvent.message,
+            middlewareResource: emsEvent.middlewareResource,
+            formattedDate: moment(emsEvent.timestamp).format('MMMM Do YYYY, h:mm:ss a'),
+            color: emsEvent.eventSource === 'Hawkular' ? '#0088ce' : '#ec7a08',
+            row: RowNumber.nextRow()
+          };
+        });
+      }
+    }
+  }
+
+  /**
+   * RowNumber class used to calculate which row in the TimelineChart an Event should be placed.
+   * This is so events don't pile up on each other. The next event will be placed on the next row
+   * such that labels can be placed
+   */
+  class RowNumber {
+
+    private static _currentRow = 0;
+
+    /**
+     * Returns a row number from 1 to 5 for determining which row an event should be placed on.
+     * @returns {number}
+     */
+    public static nextRow(): number {
+      const MAX_ROWS = 5;
+
+      RowNumber._currentRow++;
+
+      if(RowNumber._currentRow > MAX_ROWS) {
+        RowNumber._currentRow = 1; // reset back to zero
+      }
+      // reverse the ordering of the numbers so that 1 becomes 5
+      // so that the events are laid out from top -> bottom instead of bottom -> top
+      return (MAX_ROWS + 1 ) - RowNumber._currentRow;
     }
 
   }
@@ -33,14 +95,12 @@ namespace Charts {
     public scope = {
       events: '=',
       startTimestamp: '@', // to provide for exact boundaries of start/stop times (if omitted, it will be calculated)
-      endTimestamp: '@',
-      timeLabel: '@',
-      dateLabel: '@',
+      endTimestamp: '@'
     };
 
     public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
 
-    public events: TimelineDataPoint[];
+    public events: TimelineEvent[];
 
     constructor($rootScope: ng.IRootScopeService) {
 
@@ -72,7 +132,7 @@ namespace Charts {
           chartParent,
           svg;
 
-        function TimelineHover(d: TimelineDataPoint) {
+        function TimelineHover(d: TimelineEvent) {
           return `<div class='chartHover'>
             <div class='info-item'>
               <span class='chartHoverLabel'>Event Source:</span>
@@ -121,15 +181,15 @@ namespace Charts {
           svg.call(tip);
         }
 
-        function determineTimelineScale(timelineDataPoints: TimelineDataPoint[]) {
+        function determineTimelineScale(timelineEvent: TimelineEvent[]) {
           let adjustedTimeRange: number[] = [];
 
           startTimestamp = +attrs.startTimestamp ||
-            d3.min(timelineDataPoints, (d: TimelineDataPoint) => {
+            d3.min(timelineEvent, (d: TimelineEvent) => {
               return d.timestamp;
-            }) || +moment().subtract(1, 'hour');
+            }) || +moment().subtract(24, 'hour');
 
-          if (timelineDataPoints && timelineDataPoints.length > 0) {
+          if (timelineEvent && timelineEvent.length > 0) {
 
             adjustedTimeRange[0] = startTimestamp;
             adjustedTimeRange[1] = endTimestamp || +moment();
@@ -158,16 +218,16 @@ namespace Charts {
           }
         }
 
-        function createTimelineChart(timelineDataPoints: TimelineDataPoint[]) {
-          let xAxisMin = d3.min(timelineDataPoints, (d: TimelineDataPoint) => {
+        function createTimelineChart(timelineEvent: TimelineEvent[]) {
+          let xAxisMin = d3.min(timelineEvent, (d: TimelineEvent) => {
            return +d.timestamp;
           });
-          let xAxisMax = d3.max(timelineDataPoints, (d: TimelineDataPoint) => {
+          let xAxisMax = d3.max(timelineEvent, (d: TimelineEvent) => {
             return +d.timestamp;
           });
           let timelineTimeScale = d3.time.scale()
             .range([0, width])
-            .domain([xAxisMin, xAxisMax);
+            .domain([xAxisMin, xAxisMax]);
 
           // 0-6 is the y-axis range, this means 1-5 is the valid range for
           // values that won't be cut off half way be either axis.
@@ -175,25 +235,6 @@ namespace Charts {
               .clamp(true)
               .range([height, 0])
               .domain([0, 6]);
-
-          svg.selectAll('circle')
-            .data(timelineDataPoints)
-            .enter()
-            .append('circle')
-            .attr('class', 'hkEvent')
-            .attr('cx', (d: TimelineDataPoint) => {
-              return timelineTimeScale(d.timestamp);
-            })
-            .attr('cy', (d) => {
-              return yScale(5);
-            })
-            .attr('r', (d) => {
-              return 6;
-            }) .on('mouseover', (d, i) => {
-              tip.show(d, i);
-            }).on('mouseout', () => {
-              tip.hide();
-            });
 
           // The bottom line of the timeline chart
           svg.append('line')
@@ -203,6 +244,28 @@ namespace Charts {
             .attr('y2', 70)
             .attr('stroke-width', 1)
             .attr('stroke', '#D0D0D0');
+
+          svg.selectAll('circle')
+            .data(timelineEvent)
+            .enter()
+            .append('circle')
+            .attr('class', 'hkEvent')
+            .attr('cx', (d: TimelineEvent) => {
+              return timelineTimeScale(d.timestamp);
+            })
+            .attr('cy', (d: TimelineEvent) => {
+              return yScale(d.row);
+            })
+            .attr('fill', (d: TimelineEvent) => {
+              return  d.color;
+            })
+            .attr('r', (d) => {
+              return 6;
+            }) .on('mouseover', (d, i) => {
+              tip.show(d, i);
+            }).on('mouseout', () => {
+              tip.hide();
+            });
 
         }
 
@@ -257,8 +320,7 @@ namespace Charts {
 
         scope.$watchCollection('events', (newEvents) => {
           if (newEvents) {
-            console.log('new timeline events');
-            this.events = angular.fromJson(newEvents);
+            this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
             scope.render(this.events);
           }
         });
@@ -269,14 +331,14 @@ namespace Charts {
           scope.render(this.events);
         });
 
-        scope.render = (timelineDataPoints: TimelineDataPoint[]) => {
-          if (timelineDataPoints && timelineDataPoints.length > 0) {
+        scope.render = (timelineEvent: TimelineEvent[]) => {
+          if (timelineEvent && timelineEvent.length > 0) {
             ///NOTE: layering order is important!
             timelineChartSetup();
-            determineTimelineScale(timelineDataPoints);
+            determineTimelineScale(timelineEvent);
             createXandYAxes();
             createXAxisBrush();
-            createTimelineChart(timelineDataPoints);
+            createTimelineChart(timelineEvent);
           }
         };
       };
