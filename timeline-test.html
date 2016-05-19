@@ -34,45 +34,35 @@
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
 
-    app.controller('AvailTestController', function ($scope) {
-      this.vm = $scope;
+    app.controller('TimelineController', function ($scope) {
 
-      console.log("Starting Avail Tester");
-      var baseTime = moment().hour(1).minutes(0).seconds(0); // start at 1 AM today
+      console.log("Starting Timeline Tester");
 
-      $scope.$on('AvailChartTimeRangeChanged', function (event, data) {
-        console.info('Received AvailChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
+      $scope.$on('TimelineChartTimeRangeChanged', function (event, data) {
+        console.info('Received TimelineChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
         $scope.startTime = data[0];
         $scope.endTime = data[1];
-        $scope.refreshChartWithDateRange();
+        $scope.refreshTimelineChartWithDateRange();
       });
 
-      $scope.refreshChartWithDateRange = function () {
-        console.info('refreshChartWithDateRange');
-        // we already have the data, but perhaps the data is stale and you want to requery
-        // also, by just changing the data the charts will automatically update themselves
-        $scope.availAllChartData = $scope.availAllChartData.filter(function (value) {
+      $scope.getData = function() {
+        console.info('get random Event Data');
+        var randomNumberOfPoints = Charts.Random.randomBetween(7, 20);
+        $scope.events = Charts.TimelineEvent.buildFakeEvents(randomNumberOfPoints,1438025381038,1438042664875);
+      };
+
+      $scope.refreshTimelineChartWithDateRange = function () {
+        console.info('refreshTimelineChartWithDateRange');
+
+        var eventSelection = $scope.events.filter(function (value) {
           return new Date(value.timestamp) >= $scope.startTime && new Date(value.timestamp) <= $scope.endTime;
         });
+        console.log('Events Selected: '+ eventSelection.length);
+        $scope.events = eventSelection;
         $scope.$digest();
       };
 
-      $scope.availAllChartData = [
-        {'timestamp': +baseTime, 'value': 'up'},
-        {'timestamp': +baseTime.add(15, 'minutes'), 'value': 'down'},
-        {'timestamp': +baseTime.add( 5, 'minutes'), 'value': 'up'},
-        {'timestamp': +baseTime.add(25, 'minutes'), 'value': 'unknown'},
-        {'timestamp': +baseTime.add(10, 'minutes'), 'value': 'down'}];
-
-      $scope.startTime = $scope.availAllChartData[0].timestamp;
-      $scope.endTime = $scope.availAllChartData[$scope.availAllChartData.length - 1].timestamp;
-      // add some more time so that the last datapoint shows (but not all of it)
-      $scope.endTime += parseInt(($scope.endTime-$scope.startTime) / 10, 10);
-
-      console.log("StartTime: " + moment($scope.startTime).toISOString());
-      console.log("EndTime: " + moment($scope.endTime).toISOString());
-
-      $scope.singleAvailData = [{'timestamp': +baseTime.add(15, 'minutes'), 'value': 'up'}]
+      $scope.getData();
 
     });
 
@@ -134,21 +124,21 @@
         <a href="multi-chart-sample.html">Multi-Chart</a>
       </li>
       <li class="active">
-        <a class="active" href="avail-test.html">Availability Chart</a>
+        <a class="active" href="timeline-test.html">Timeline Chart</a>
       </li>
     </ul>
   </div>
 </nav>
 
-<div class="container-fluid container-cards-pf" ng-controller="AvailTestController as vm">
+<div class="container-fluid container-cards-pf" ng-controller="TimelineController">
   <div class="row cards-pf">
     <div class="col-sm-12 ">
 
       <div class="page-header page-header-bleed-right">
         <div class="actions pull-right">
-          <a href="#"><span class="pficon pficon-refresh"></span> Refresh Results</a>
+          <a href="#" ng-click="getData()"><span class="pficon pficon-refresh"></span> Refresh Results</a>
         </div>
-        <h1>Timeline/Availability Chart Examples</h1>
+        <h1>Timeline Chart Examples</h1>
       </div>
 
 
@@ -168,14 +158,14 @@
               </div>
 
               <h2 class="card-pf-title">
-                Availability Chart Small
+                Timeline Chart Small
               </h2>
             </div>
             <div class="card-pf-body">
-              <div class="chartWrapperSmall">
-                <hk-availability-chart data="availAllChartData"
-                                       start-timestamp="{{startTime}}"
-                                       end-timestamp="{{endTime}}"
+              <div class="chartWrapperLarge">
+                <hk-timeline-chart events="events"
+                                   start-timestamp="{{startTime}}"
+                                   end-timestamp="{{endTime}}"
                 />
               </div>
 
@@ -184,37 +174,6 @@
         </div>
       </div>
 
-      <div class="row row-cards-pf">
-        <div class="col-xs-12">
-          <div class="card-pf">
-            <div class="card-pf-heading">
-
-              <div class="dropdown card-pf-time-frame-filter">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                  Last 30 Days <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                  <li><a href="#">Last 60 Days</a></li>
-                  <li><a href="#">Last 90 Days</a></li>
-                </ul>
-              </div>
-
-              <h2 class="card-pf-title">
-                Availability Chart Large
-              </h2>
-            </div>
-            <div class="card-pf-body">
-              <div class="chartWrapperLarge" >
-                <hk-availability-chart data="availAllChartData"
-                                       start-timestamp="{{startTime}}"
-                                       end-timestamp="{{endTime}}"
-                />
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
   </div><!-- /col -->

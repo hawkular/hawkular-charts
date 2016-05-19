@@ -51,8 +51,42 @@ namespace Charts {
         });
       }
     }
+
+    /**
+     * BuildFakeEvents is a fake event builder for testing/prototyping
+     * @param n the number of events you want generated
+     * @param startTimeStamp
+     * @param endTimestamp
+     * @returns {TimelineEvent[]}
+     */
+    public static buildFakeEvents(n: number,
+                                  startTimeStamp: TimeInMillis,
+                                  endTimestamp: TimeInMillis): TimelineEvent[] {
+      let events: TimelineEvent[] = [];
+      const step = (endTimestamp - startTimeStamp) / n;
+
+      for(let i =  startTimeStamp; i < endTimestamp; i += step) {
+        let randomTime = Random.randomBetween(startTimeStamp, endTimestamp);
+        const event = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider',
+          'Some Message', 'Resource' + '-' + Random.randomBetween(10,100),
+          moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
+
+        events.push(event);
+
+      }
+      return events;
+    }
+
   }
 
+  /**
+   * Random number generator
+   */
+  export class Random {
+    public static randomBetween(min: number, max: number): number {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+  }
   /**
    * RowNumber class used to calculate which row in the TimelineChart an Event should be placed.
    * This is so events don't pile up on each other. The next event will be placed on the next row
@@ -251,7 +285,7 @@ namespace Charts {
             .append('circle')
             .attr('class', 'hkEvent')
             .attr('cx', (d: TimelineEvent) => {
-              return timelineTimeScale(d.timestamp);
+              return timelineTimeScale(new Date(d.timestamp));
             })
             .attr('cy', (d: TimelineEvent) => {
               return yScale(d.row);
