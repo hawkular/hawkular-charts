@@ -49,6 +49,7 @@
         console.info('get random Event Data');
         var randomNumberOfPoints = Charts.Random.randomBetween(7, 20);
         $scope.events = Charts.TimelineEvent.buildFakeEvents(randomNumberOfPoints,1438025381038,1438042664875);
+        console.table($scope.events);
       };
 
       $scope.refreshTimelineChartWithDateRange = function () {
@@ -58,6 +59,7 @@
           return new Date(value.timestamp) >= $scope.startTime && new Date(value.timestamp) <= $scope.endTime;
         });
         console.log('Events Selected: '+ eventSelection.length);
+        console.table(eventSelection);
         $scope.events = eventSelection;
         $scope.$digest();
       };
@@ -166,6 +168,7 @@
                 <hk-timeline-chart events="events"
                                    start-timestamp="{{startTime}}"
                                    end-timestamp="{{endTime}}"
+                                   show-labels="true"
                 />
               </div>
 

@@ -25,7 +25,7 @@ namespace Charts {
                 public middlewareResource?: string,
                 public formattedDate?: string,
                 public color?: string,
-                public row?: number) {
+                public row?:number) {
       super(timestamp, eventSource, provider, message, middlewareResource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
     }
@@ -129,7 +129,8 @@ namespace Charts {
     public scope = {
       events: '=',
       startTimestamp: '@', // to provide for exact boundaries of start/stop times (if omitted, it will be calculated)
-      endTimestamp: '@'
+      endTimestamp: '@',
+      showLabels: '@'
     };
 
     public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
@@ -143,7 +144,8 @@ namespace Charts {
         // data specific vars
         let startTimestamp: number = +attrs.startTimestamp,
           endTimestamp: number = +attrs.endTimestamp,
-          chartHeight = TimelineChartDirective._CHART_HEIGHT;
+          chartHeight = TimelineChartDirective._CHART_HEIGHT,
+          showLabels = attrs.showLabels;
 
         // chart specific vars
         let margin = { top: 10, right: 5, bottom: 5, left: 10 },
@@ -299,6 +301,26 @@ namespace Charts {
             }).on('mouseout', () => {
               tip.hide();
             });
+
+
+          if (showLabels) {
+
+            svg.selectAll('text')
+              .data(timelineEvent)
+              .enter()
+              .append('text')
+              .attr('class', 'hkEventLabel')
+              .attr('x', (d:TimelineEvent) => {
+                return timelineTimeScale(new Date(d.timestamp)) + 10;
+              })
+              .attr('y', (d:TimelineEvent) => {
+                return yScale(d.row) + 5;
+              })
+              .style('text-anchor', 'start')
+              .text((d:TimelineEvent) => {
+                return d.middlewareResource;
+              });
+          }
 
         }
 
