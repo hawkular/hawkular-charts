@@ -38,11 +38,15 @@
 
       console.log("Starting Timeline Tester");
 
-      $scope.$on('TimelineChartTimeRangeChanged', function (event, data) {
+      $scope.$on(Charts.EventNames.TIMELINE_CHART_TIMERANGE_CHANGED, function (event, data) {
         console.info('Received TimelineChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
         $scope.startTime = data[0];
         $scope.endTime = data[1];
         $scope.refreshTimelineChartWithDateRange();
+      });
+
+      $scope.$on(Charts.EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT, function (event, data) {
+        console.info('Received TimelineChartDoubleClickEvent: '+data.middlewareResource);
       });
 
       $scope.getData = function() {
