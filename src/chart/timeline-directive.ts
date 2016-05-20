@@ -276,8 +276,7 @@ namespace Charts {
             .attr('y1', 70)
             .attr('x2', 735)
             .attr('y2', 70)
-            .attr('stroke-width', 1)
-            .attr('stroke', '#D0D0D0');
+            .attr('class','hkTimelineBottomLine');
 
           svg.selectAll('circle')
             .data(timelineEvent)
