@@ -5,10 +5,69 @@
 <html lang="en-us">
 <!--<![endif]-->
 <head>
-  <title>Timeline Chart Example</title>
+  <title>Timeline Example</title>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=Edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+
+
+
+    #alertValue {
+      width: 50px;
+    }
+
+    .metricIdLabel {
+      color: #1008a9;
+    }
+
+    .contextIdLabel {
+      color: #1794BC;
+    }
+
+    .metricIdHeader {
+      margin: 20px 0 0 90px;
+    }
+
+    .metricIdHeader > li {
+      margin-left: 50px;
+    }
+
+    .optionsWrapper {
+      border: 1px solid lightgrey;
+    }
+
+    .narrative {
+      margin: 20px;
+      font-style: italic;
+    }
+
+    .chartWrapper {
+      height: 300px;
+    }
+
+    .chartWrapperSmall {
+      height: 100px;
+    }
+
+    .chartWrapperSparkline {
+      height: 80px;
+      width: 250px;
+    }
+
+    .contextChartWrapper {
+      height: 85px;
+    }
+
+    .sparklineChartWrapper {
+      height: 70px;
+      width: 175px;
+    }
+
+
+  </style>
+
 
   <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly.min.css">
   <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly-additions.min.css">
@@ -37,6 +96,7 @@
     app.controller('TimelineController', function ($scope) {
 
       console.log("Starting Timeline Tester");
+      $scope.showLabels = false;
 
       $scope.$on(Charts.EventNames.TIMELINE_CHART_TIMERANGE_CHANGED, function (event, data) {
         console.info('Received TimelineChartTimeRangeChanged: '+data[0] +' - '+ data[1]);
@@ -71,7 +131,6 @@
       $scope.getData();
 
     });
-
 
   </script>
 
@@ -120,17 +179,20 @@
     </ul>
 
     <ul class="nav navbar-nav navbar-primary">
-      <li>
+      <li >
         <a href="index.html">Samples</a>
       </li>
       <li>
         <a href="alerting-sample.html">Alerting</a>
       </li>
-      <li >
+      <li>
         <a href="multi-chart-sample.html">Multi-Chart</a>
       </li>
+      <li>
+        <a href="avail-test.html">Availability</a>
+      </li>
       <li class="active">
-        <a class="active" href="timeline-test.html">Timeline Chart</a>
+        <a class="active" href="timeline-test.html">Timeline</a>
       </li>
     </ul>
   </div>
@@ -138,18 +200,17 @@
 
 <div class="container-fluid container-cards-pf" ng-controller="TimelineController">
   <div class="row cards-pf">
-    <div class="col-sm-12 ">
+    <div class="col-sm-8 col-md-9">
 
       <div class="page-header page-header-bleed-right">
         <div class="actions pull-right">
-          <a href="#" ng-click="getData()"><span class="pficon pficon-refresh"></span> Refresh Results</a>
+          <a href="#"><span class="pficon pficon-refresh"></span> Refresh Results</a>
         </div>
-        <h1>Timeline Chart Examples</h1>
+        <h1>Event Timeline Examples</h1>
       </div>
 
-
       <div class="row row-cards-pf">
-        <div class="col-xs-6">
+        <div class="col-xs-12">
           <div class="card-pf">
             <div class="card-pf-heading">
 
@@ -164,7 +225,7 @@
               </div>
 
               <h2 class="card-pf-title">
-                Timeline Chart Small
+                Timeline Chart
               </h2>
             </div>
             <div class="card-pf-body">
@@ -172,7 +233,7 @@
                 <hk-timeline-chart events="events"
                                    start-timestamp="{{startTime}}"
                                    end-timestamp="{{endTime}}"
-                                   show-labels="true"
+                                   show-labels="{{showLabels}}"
                 />
               </div>
 
@@ -181,13 +242,26 @@
         </div>
       </div>
 
-    </div>
+    </div><!-- /col -->
 
-  </div><!-- /col -->
+    <div class="col-sm-4 col-md-3 sidebar-pf sidebar-pf-right">
+      <div class="sidebar-header sidebar-header-bleed-left sidebar-header-bleed-right">
+        <div class="actions pull-right">
+          <a href="#">Reset Settings</a>
+        </div>
+        <h2 class="h5">Chart Settings</h2>
+      </div>
+      <ul class="list-group">
+
+        <li class="list-group-item">
+          <label for="enableLabels">Show Labels: </label>
+          <input class="pull-right" id="enableLabels" type="checkbox" ng-model="showLabels"/>
+        </li>
 
 
-
-</div><!-- /row -->
+      </ul>
+    </div><!-- /col -->
+  </div><!-- /row -->
 </div><!-- /container -->
 
 </body>

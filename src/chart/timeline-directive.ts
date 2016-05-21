@@ -28,8 +28,8 @@ namespace Charts {
                 public middlewareResource?: string,
                 public formattedDate?: string,
                 public color?: string,
-                public row?:number,
-                public selected?:boolean) {
+                public row?: number,
+                public selected?: boolean) {
       super(timestamp, eventSource, provider, message, middlewareResource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
       this.selected = false;
@@ -309,10 +309,10 @@ namespace Charts {
             }).on('mouseout', () => {
               tip.hide();
             }).on('dblclick', (d: TimelineEvent) => {
+              console.log('Double-Clicked:' + d.middlewareResource);
               d.selected = !d.selected;
               $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
           });
-
 
           if (showLabels) {
             svg.selectAll('text')
@@ -320,14 +320,14 @@ namespace Charts {
               .enter()
               .append('text')
               .attr('class', 'hkEventLabel')
-              .attr('x', (d:TimelineEvent) => {
+              .attr('x', (d: TimelineEvent) => {
                 return timelineTimeScale(new Date(d.timestamp)) + 10;
               })
-              .attr('y', (d:TimelineEvent) => {
+              .attr('y', (d: TimelineEvent) => {
                 return yScale(d.row) + 5;
               })
               .style('text-anchor', 'start')
-              .text((d:TimelineEvent) => {
+              .text((d: TimelineEvent) => {
                 return d.middlewareResource;
               });
           }
