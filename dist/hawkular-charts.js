@@ -721,6 +721,7 @@ var Charts;
         EventNames.CHART_TIMERANGE_CHANGED = new EventNames('ChartTimeRangeChanged');
         EventNames.AVAIL_CHART_TIMERANGE_CHANGED = new EventNames('AvailChartTimeRangeChanged');
         EventNames.TIMELINE_CHART_TIMERANGE_CHANGED = new EventNames('TimelineChartTimeRangeChanged');
+        EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT = new EventNames('TimelineChartDoubleClickEvent');
         EventNames.CONTEXT_CHART_TIMERANGE_CHANGED = new EventNames('ContextChartTimeRangeChanged');
         EventNames.DATE_RANGE_DRAG_CHANGED = new EventNames('DateRangeDragChanged');
         return EventNames;
@@ -1428,13 +1429,35 @@ var Charts;
     ]);
 })(Charts || (Charts = {}));
 
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 /// <reference path='../../typings/tsd.d.ts' />
 var Charts;
 (function (Charts) {
     'use strict';
+    // ManageIQ External Management System Event
+    var EmsEvent = (function () {
+        function EmsEvent(timestamp, eventSource, provider, message, middlewareResource) {
+            this.timestamp = timestamp;
+            this.eventSource = eventSource;
+            this.provider = provider;
+            this.message = message;
+            this.middlewareResource = middlewareResource;
+        }
+        return EmsEvent;
+    }());
+    Charts.EmsEvent = EmsEvent;
     // Timeline specific for ManageIQ Timeline component
-    var TimelineDataPoint = (function () {
-        function TimelineDataPoint(timestamp, eventSource, provider, message, middlewareResource, formattedDate, color) {
+    /**
+     * TimelineEvent is a subclass of EmsEvent that is specialized toward screen display
+     */
+    var TimelineEvent = (function (_super) {
+        __extends(TimelineEvent, _super);
+        function TimelineEvent(timestamp, eventSource, provider, message, middlewareResource, formattedDate, color, row, selected) {
+            _super.call(this, timestamp, eventSource, provider, message, middlewareResource);
             this.timestamp = timestamp;
             this.eventSource = eventSource;
             this.provider = provider;
@@ -1442,11 +1465,90 @@ var Charts;
             this.middlewareResource = middlewareResource;
             this.formattedDate = formattedDate;
             this.color = color;
+            this.row = row;
+            this.selected = selected;
             this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
+            this.selected = false;
         }
-        return TimelineDataPoint;
+        /**
+         * Build TimelineEvents from EmsEvents
+         * @param emsEvents
+         */
+        TimelineEvent.buildEvents = function (emsEvents) {
+            //  The schema is different for bucketed output
+            if (emsEvents) {
+                return emsEvents.map(function (emsEvent) {
+                    return {
+                        timestamp: emsEvent.timestamp,
+                        eventSource: emsEvent.eventSource,
+                        provider: emsEvent.eventSource,
+                        message: emsEvent.message,
+                        middlewareResource: emsEvent.middlewareResource,
+                        formattedDate: moment(emsEvent.timestamp).format('MMMM Do YYYY, h:mm:ss a'),
+                        color: emsEvent.eventSource === 'Hawkular' ? '#0088ce' : '#ec7a08',
+                        row: RowNumber.nextRow(),
+                        selected: false
+                    };
+                });
+            }
+        };
+        /**
+         * BuildFakeEvents is a fake event builder for testing/prototyping
+         * @param n the number of events you want generated
+         * @param startTimeStamp
+         * @param endTimestamp
+         * @returns {TimelineEvent[]}
+         */
+        TimelineEvent.buildFakeEvents = function (n, startTimeStamp, endTimestamp) {
+            var events = [];
+            var step = (endTimestamp - startTimeStamp) / n;
+            for (var i = startTimeStamp; i < endTimestamp; i += step) {
+                var randomTime = Random.randomBetween(startTimeStamp, endTimestamp);
+                var event_1 = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider', 'Some Message', 'Resource' + '-' + Random.randomBetween(10, 100), moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
+                events.push(event_1);
+            }
+            return events;
+        };
+        return TimelineEvent;
+    }(EmsEvent));
+    Charts.TimelineEvent = TimelineEvent;
+    /**
+     * Random number generator
+     */
+    var Random = (function () {
+        function Random() {
+        }
+        Random.randomBetween = function (min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        };
+        return Random;
     }());
-    Charts.TimelineDataPoint = TimelineDataPoint;
+    Charts.Random = Random;
+    /**
+     * RowNumber class used to calculate which row in the TimelineChart an Event should be placed.
+     * This is so events don't pile up on each other. The next event will be placed on the next row
+     * such that labels can be placed
+     */
+    var RowNumber = (function () {
+        function RowNumber() {
+        }
+        /**
+         * Returns a row number from 1 to 5 for determining which row an event should be placed on.
+         * @returns {number}
+         */
+        RowNumber.nextRow = function () {
+            var MAX_ROWS = 5;
+            RowNumber._currentRow++;
+            if (RowNumber._currentRow > MAX_ROWS) {
+                RowNumber._currentRow = 1; // reset back to zero
+            }
+            // reverse the ordering of the numbers so that 1 becomes 5
+            // so that the events are laid out from top -> bottom instead of bottom -> top
+            return (MAX_ROWS + 1) - RowNumber._currentRow;
+        };
+        RowNumber._currentRow = 0;
+        return RowNumber;
+    }());
     var _module = angular.module('hawkular.charts');
     var TimelineChartDirective = (function () {
         function TimelineChartDirective($rootScope) {
@@ -1458,12 +1560,11 @@ var Charts;
                 events: '=',
                 startTimestamp: '@',
                 endTimestamp: '@',
-                timeLabel: '@',
-                dateLabel: '@',
+                showLabels: '@'
             };
             this.link = function (scope, element, attrs) {
                 // data specific vars
-                var startTimestamp = +attrs.startTimestamp, endTimestamp = +attrs.endTimestamp, chartHeight = TimelineChartDirective._CHART_HEIGHT;
+                var startTimestamp = +attrs.startTimestamp, endTimestamp = +attrs.endTimestamp, chartHeight = TimelineChartDirective._CHART_HEIGHT, showLabels = attrs.showLabels;
                 // chart specific vars
                 var margin = { top: 10, right: 5, bottom: 5, left: 10 }, width = TimelineChartDirective._CHART_WIDTH - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, xAxisGroup, brush, brushGroup, tip, chart, chartParent, svg;
                 function TimelineHover(d) {
@@ -1489,13 +1590,13 @@ var Charts;
                         .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
                     svg.call(tip);
                 }
-                function determineTimelineScale(timelineDataPoints) {
+                function determineTimelineScale(timelineEvent) {
                     var adjustedTimeRange = [];
                     startTimestamp = +attrs.startTimestamp ||
-                        d3.min(timelineDataPoints, function (d) {
+                        d3.min(timelineEvent, function (d) {
                             return d.timestamp;
-                        }) || +moment().subtract(1, 'hour');
-                    if (timelineDataPoints && timelineDataPoints.length > 0) {
+                        }) || +moment().subtract(24, 'hour');
+                    if (timelineEvent && timelineEvent.length > 0) {
                         adjustedTimeRange[0] = startTimestamp;
                         adjustedTimeRange[1] = endTimestamp || +moment();
                         yScale = d3.scale.linear()
@@ -1517,11 +1618,11 @@ var Charts;
                             .tickFormat(Charts.xAxisTimeFormats());
                     }
                 }
-                function createTimelineChart(timelineDataPoints) {
-                    var xAxisMin = d3.min(timelineDataPoints, function (d) {
+                function createTimelineChart(timelineEventst) {
+                    var xAxisMin = d3.min(timelineEventst, function (d) {
                         return +d.timestamp;
                     });
-                    var xAxisMax = d3.max(timelineDataPoints, function (d) {
+                    var xAxisMax = d3.max(timelineEventst, function (d) {
                         return +d.timestamp;
                     });
                     var timelineTimeScale = d3.time.scale()
@@ -1533,16 +1634,28 @@ var Charts;
                         .clamp(true)
                         .range([height, 0])
                         .domain([0, 6]);
+                    // The bottom line of the timeline chart
+                    svg.append('line')
+                        .attr('x1', 0)
+                        .attr('y1', 70)
+                        .attr('x2', 735)
+                        .attr('y2', 70)
+                        .attr('class', 'hkTimelineBottomLine');
                     svg.selectAll('circle')
-                        .data(timelineDataPoints)
+                        .data(timelineEventst)
                         .enter()
                         .append('circle')
-                        .attr('class', 'hkEvent')
+                        .attr('class', function (d) {
+                        return d.selected ? 'hkEventSelected' : 'hkEvent';
+                    })
                         .attr('cx', function (d) {
-                        return timelineTimeScale(d.timestamp);
+                        return timelineTimeScale(new Date(d.timestamp));
                     })
                         .attr('cy', function (d) {
-                        return yScale(5);
+                        return yScale(d.row);
+                    })
+                        .attr('fill', function (d) {
+                        return d.color;
                     })
                         .attr('r', function (d) {
                         return 6;
@@ -1550,15 +1663,28 @@ var Charts;
                         tip.show(d, i);
                     }).on('mouseout', function () {
                         tip.hide();
+                    }).on('dblclick', function (d) {
+                        console.log('Double-Clicked:' + d.middlewareResource);
+                        d.selected = !d.selected;
+                        $rootScope.$broadcast(Charts.EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
                     });
-                    // The bottom line of the timeline chart
-                    svg.append('line')
-                        .attr('x1', 0)
-                        .attr('y1', 70)
-                        .attr('x2', 735)
-                        .attr('y2', 70)
-                        .attr('stroke-width', 1)
-                        .attr('stroke', '#D0D0D0');
+                    if (showLabels) {
+                        svg.selectAll('text')
+                            .data(timelineEventst)
+                            .enter()
+                            .append('text')
+                            .attr('class', 'hkEventLabel')
+                            .attr('x', function (d) {
+                            return timelineTimeScale(new Date(d.timestamp)) + 10;
+                        })
+                            .attr('y', function (d) {
+                            return yScale(d.row) + 5;
+                        })
+                            .style('text-anchor', 'start')
+                            .text(function (d) {
+                            return d.middlewareResource;
+                        });
+                    }
                 }
                 function createXandYAxes() {
                     svg.selectAll('g.axis').remove();
@@ -1596,8 +1722,7 @@ var Charts;
                 }
                 scope.$watchCollection('events', function (newEvents) {
                     if (newEvents) {
-                        console.log('new timeline events');
-                        _this.events = angular.fromJson(newEvents);
+                        _this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
                         scope.render(_this.events);
                     }
                 });
@@ -1606,14 +1731,14 @@ var Charts;
                     endTimestamp = +newTimestamp[1] || endTimestamp;
                     scope.render(_this.events);
                 });
-                scope.render = function (timelineDataPoints) {
-                    if (timelineDataPoints && timelineDataPoints.length > 0) {
+                scope.render = function (timelineEvent) {
+                    if (timelineEvent && timelineEvent.length > 0) {
                         ///NOTE: layering order is important!
                         timelineChartSetup();
-                        determineTimelineScale(timelineDataPoints);
+                        determineTimelineScale(timelineEvent);
                         createXandYAxes();
                         createXAxisBrush();
-                        createTimelineChart(timelineDataPoints);
+                        createTimelineChart(timelineEvent);
                     }
                 };
             };

@@ -16,6 +16,9 @@ namespace Charts {
   }
 
 // Timeline specific for ManageIQ Timeline component
+  /**
+   * TimelineEvent is a subclass of EmsEvent that is specialized toward screen display
+   */
   export class TimelineEvent extends EmsEvent {
 
     constructor(public timestamp: TimeInMillis,
@@ -25,9 +28,11 @@ namespace Charts {
                 public middlewareResource?: string,
                 public formattedDate?: string,
                 public color?: string,
-                public row?: number) {
+                public row?: number,
+                public selected?: boolean) {
       super(timestamp, eventSource, provider, message, middlewareResource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
+      this.selected = false;
     }
 
     /**
@@ -46,13 +51,48 @@ namespace Charts {
             middlewareResource: emsEvent.middlewareResource,
             formattedDate: moment(emsEvent.timestamp).format('MMMM Do YYYY, h:mm:ss a'),
             color: emsEvent.eventSource === 'Hawkular' ? '#0088ce' : '#ec7a08',
-            row: RowNumber.nextRow()
+            row: RowNumber.nextRow(),
+            selected: false
           };
         });
       }
     }
+
+    /**
+     * BuildFakeEvents is a fake event builder for testing/prototyping
+     * @param n the number of events you want generated
+     * @param startTimeStamp
+     * @param endTimestamp
+     * @returns {TimelineEvent[]}
+     */
+    public static buildFakeEvents(n: number,
+                                  startTimeStamp: TimeInMillis,
+                                  endTimestamp: TimeInMillis): TimelineEvent[] {
+      let events: TimelineEvent[] = [];
+      const step = (endTimestamp - startTimeStamp) / n;
+
+      for(let i =  startTimeStamp; i < endTimestamp; i += step) {
+        let randomTime = Random.randomBetween(startTimeStamp, endTimestamp);
+        const event = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider',
+          'Some Message', 'Resource' + '-' + Random.randomBetween(10,100),
+          moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
+
+        events.push(event);
+
+      }
+      return events;
+    }
+
   }
 
+  /**
+   * Random number generator
+   */
+  export class Random {
+    public static randomBetween(min: number, max: number): number {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+  }
   /**
    * RowNumber class used to calculate which row in the TimelineChart an Event should be placed.
    * This is so events don't pile up on each other. The next event will be placed on the next row
@@ -95,7 +135,8 @@ namespace Charts {
     public scope = {
       events: '=',
       startTimestamp: '@', // to provide for exact boundaries of start/stop times (if omitted, it will be calculated)
-      endTimestamp: '@'
+      endTimestamp: '@',
+      showLabels: '@'
     };
 
     public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
@@ -109,7 +150,8 @@ namespace Charts {
         // data specific vars
         let startTimestamp: number = +attrs.startTimestamp,
           endTimestamp: number = +attrs.endTimestamp,
-          chartHeight = TimelineChartDirective._CHART_HEIGHT;
+          chartHeight = TimelineChartDirective._CHART_HEIGHT,
+          showLabels = attrs.showLabels;
 
         // chart specific vars
         let margin = { top: 10, right: 5, bottom: 5, left: 10 },
@@ -218,11 +260,11 @@ namespace Charts {
           }
         }
 
-        function createTimelineChart(timelineEvent: TimelineEvent[]) {
-          let xAxisMin = d3.min(timelineEvent, (d: TimelineEvent) => {
+        function createTimelineChart(timelineEventst: TimelineEvent[]) {
+          let xAxisMin = d3.min(timelineEventst, (d: TimelineEvent) => {
            return +d.timestamp;
           });
-          let xAxisMax = d3.max(timelineEvent, (d: TimelineEvent) => {
+          let xAxisMax = d3.max(timelineEventst, (d: TimelineEvent) => {
             return +d.timestamp;
           });
           let timelineTimeScale = d3.time.scale()
@@ -242,16 +284,17 @@ namespace Charts {
             .attr('y1', 70)
             .attr('x2', 735)
             .attr('y2', 70)
-            .attr('stroke-width', 1)
-            .attr('stroke', '#D0D0D0');
+            .attr('class','hkTimelineBottomLine');
 
           svg.selectAll('circle')
-            .data(timelineEvent)
+            .data(timelineEventst)
             .enter()
             .append('circle')
-            .attr('class', 'hkEvent')
+            .attr('class', (d: TimelineEvent) => {
+              return d.selected ? 'hkEventSelected' : 'hkEvent';
+            })
             .attr('cx', (d: TimelineEvent) => {
-              return timelineTimeScale(d.timestamp);
+              return timelineTimeScale(new Date(d.timestamp));
             })
             .attr('cy', (d: TimelineEvent) => {
               return yScale(d.row);
@@ -265,7 +308,29 @@ namespace Charts {
               tip.show(d, i);
             }).on('mouseout', () => {
               tip.hide();
-            });
+            }).on('dblclick', (d: TimelineEvent) => {
+              console.log('Double-Clicked:' + d.middlewareResource);
+              d.selected = !d.selected;
+              $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
+          });
+
+          if (showLabels) {
+            svg.selectAll('text')
+              .data(timelineEventst)
+              .enter()
+              .append('text')
+              .attr('class', 'hkEventLabel')
+              .attr('x', (d: TimelineEvent) => {
+                return timelineTimeScale(new Date(d.timestamp)) + 10;
+              })
+              .attr('y', (d: TimelineEvent) => {
+                return yScale(d.row) + 5;
+              })
+              .style('text-anchor', 'start')
+              .text((d: TimelineEvent) => {
+                return d.middlewareResource;
+              });
+          }
 
         }
 
