@@ -151,7 +151,7 @@ namespace Charts {
         let startTimestamp: number = +attrs.startTimestamp,
           endTimestamp: number = +attrs.endTimestamp,
           chartHeight = TimelineChartDirective._CHART_HEIGHT,
-          showLabels = attrs.showLabels;
+          showLabels:string  = attrs.showLabels;
 
         // chart specific vars
         let margin = { top: 10, right: 5, bottom: 5, left: 10 },
