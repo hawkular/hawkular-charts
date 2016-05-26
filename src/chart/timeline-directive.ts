@@ -11,7 +11,7 @@ namespace Charts {
                 public eventSource: string,
                 public provider: string,
                 public message?: string,
-                public middlewareResource?: string) {
+                public resource?: string) {
     }
   }
 
@@ -25,12 +25,12 @@ namespace Charts {
                 public eventSource: string,
                 public provider: string,
                 public message?: string,
-                public middlewareResource?: string,
+                public resource?: string,
                 public formattedDate?: string,
                 public color?: string,
                 public row?: number,
                 public selected?: boolean) {
-      super(timestamp, eventSource, provider, message, middlewareResource);
+      super(timestamp, eventSource, provider, message, resource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
       this.selected = false;
     }
@@ -48,7 +48,7 @@ namespace Charts {
             eventSource: emsEvent.eventSource,
             provider: emsEvent.eventSource,
             message: emsEvent.message,
-            middlewareResource: emsEvent.middlewareResource,
+            resource: emsEvent.resource,
             formattedDate: moment(emsEvent.timestamp).format('MMMM Do YYYY, h:mm:ss a'),
             color: emsEvent.eventSource === 'Hawkular' ? '#0088ce' : '#ec7a08',
             row: RowNumber.nextRow(),
@@ -188,7 +188,7 @@ namespace Charts {
             </div>
             <div class='info-item'>
               <span class='chartHoverLabel'>Middleware Resource:</span>
-              <span class='chartHoverValue'>${d.middlewareResource}</span>
+              <span class='chartHoverValue'>${d.resource}</span>
             </div>
             <div class='info-item'>
               <span class='chartHoverLabel'>Date Time:</span>
@@ -259,11 +259,11 @@ namespace Charts {
           }
         }
 
-        function createTimelineChart(timelineEventst: TimelineEvent[]) {
-          let xAxisMin = d3.min(timelineEventst, (d: TimelineEvent) => {
+        function createTimelineChart(timelineEvents: TimelineEvent[]) {
+          let xAxisMin = d3.min(timelineEvents, (d: TimelineEvent) => {
            return +d.timestamp;
           });
-          let xAxisMax = d3.max(timelineEventst, (d: TimelineEvent) => {
+          let xAxisMax = d3.max(timelineEvents, (d: TimelineEvent) => {
             return +d.timestamp;
           });
           let timelineTimeScale = d3.time.scale()
@@ -286,7 +286,7 @@ namespace Charts {
             .attr('class','hkTimelineBottomLine');
 
           svg.selectAll('circle')
-            .data(timelineEventst)
+            .data(timelineEvents)
             .enter()
             .append('circle')
             .attr('class', (d: TimelineEvent) => {
@@ -308,7 +308,7 @@ namespace Charts {
             }).on('mouseout', () => {
               tip.hide();
             }).on('dblclick', (d: TimelineEvent) => {
-              console.log('Double-Clicked:' + d.middlewareResource);
+              console.log('Double-Clicked:' + d.resource);
               d.selected = !d.selected;
               $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
           });

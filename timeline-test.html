@@ -55,12 +55,12 @@
         console.info('Received TimelineChartTimeRangeChanged: ' + data[0] + ' - ' + data[1]);
         $scope.timeline.startTime = data[0];
         $scope.timeline.endTime = data[1];
-        $scope.refreshTimelineChartWithDateRange();
+        $scope.filterTimelineByDateRange();
       });
 
       function eventAlreadySelected(event) {
         for (var i = 0; i < $scope.selectedEvents.length; i++) {
-          if (event.middlewareResource === $scope.selectedEvents[i].middlewareResource) {
+          if (event.resource === $scope.selectedEvents[i].resource) {
             return true;
           }
         }
@@ -68,7 +68,7 @@
       }
 
       $scope.$on(Charts.EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT, function (event, data) {
-        console.info('Received TimelineChartDoubleClickEvent: ' + data.middlewareResource);
+        console.info('Received TimelineChartDoubleClickEvent: ' + data.resource);
         if (!eventAlreadySelected(data)) {
           $scope.selectedEvents.push(data);
           console.table($scope.selectedEvents);
@@ -97,8 +97,8 @@
           $scope.timeline.endTime);
       };
 
-      $scope.refreshTimelineChartWithDateRange = function () {
-        console.info('refreshTimelineChartWithDateRange');
+      $scope.filterTimelineByDateRange = function () {
+        console.info('filterTimelineByDateRange');
 
         $scope.events = $scope.events.filter(function (value) {
           return new Date(value.timestamp) >= $scope.timeline.startTime
@@ -239,7 +239,7 @@
       <ul class="list-group">
         <li class="list-group-item"
             ng-repeat="selectedEvent in selectedEvents track by $index">
-          <h5 class="list-group-item-heading">{{selectedEvent.provider}}-{{selectedEvent.middlewareResource}}</h5>
+          <h5 class="list-group-item-heading">{{selectedEvent.provider}}-{{selectedEvent.resource}}</h5>
           <p class="list-group-item-text">{{selectedEvent.message}}</p>
         </li>
 
