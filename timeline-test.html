@@ -34,16 +34,27 @@
   <script>
     var app = angular.module('myApp', ['hawkular.charts']);
 
-    app.controller('TimelineController', function ($scope) {
+    app.controller('TimelineController', function ($scope, $timeout) {
+      $scope.timeRangeOptions = [
+        {label: '24 Hours',  value: 24, uom: 'hours' },
+        {label: '7 days',  value: 7, uom: 'days' },
+        {label: '30 days',  value: 30, uom: 'days' },
+        {label: '60 days',  value: 60, uom: 'days' },
+        {label: '90 days',  value: 90, uom: 'days' },
+        {label: 'Custom....',  value: undefined, uom: undefined }
+      ];
 
       console.log("Starting Event Timeline Tester");
       $scope.selectedEvents = [];
-      $scope.timeline = {showLabels: true};
+      $scope.timeline = {showLabels: false,
+        startTime: +moment().subtract('days', 30),
+        endTime: +moment(),
+        timeRange: '30d'};
 
       $scope.$on(Charts.EventNames.TIMELINE_CHART_TIMERANGE_CHANGED, function (event, data) {
         console.info('Received TimelineChartTimeRangeChanged: ' + data[0] + ' - ' + data[1]);
-        $scope.startTime = data[0];
-        $scope.endTime = data[1];
+        $scope.timeline.startTime = data[0];
+        $scope.timeline.endTime = data[1];
         $scope.refreshTimelineChartWithDateRange();
       });
 
@@ -65,30 +76,40 @@
         $scope.$digest();
       });
 
-      $scope.$watch('timeline.showLabels', function (newVal, oldVal) {
-        console.info('showLabels Changed');
-      }, true);
-
-      $scope.getData = function () {
-        console.info('get random Event Data');
-        var randomNumberOfPoints = Charts.Random.randomBetween(7, 20);
-        $scope.events = Charts.TimelineEvent.buildFakeEvents(randomNumberOfPoints, +moment().subtract(30, 'days'), +moment());
-        console.table($scope.events);
+      $scope.timeChange = function () {
+        var newVal = $scope.timeline.timeRange;
+        console.log('ng-change');
+        console.dir(newVal);
+        $scope.timeline.starTime = +moment().subtract(newVal.uom, newVal.startTimestamp);
+        $scope.timeline.endTime = +moment();
+        // this little hack is needed or else we get '$digets already in progress
+        $timeout(function() {
+          console.log('refresh with timeout fired')
+          $scope.getNewData();
+        }, 1000);
       };
 
+      $scope.getNewData = function () {
+        console.info('get random Event Data');
+        var randomNumberOfPoints = Charts.Random.randomBetween(5, 30);
+
+        $scope.events = Charts.TimelineEvent.buildFakeEvents(randomNumberOfPoints, $scope.timeline.startTime,
+          $scope.timeline.endTime);
+      };
 
       $scope.refreshTimelineChartWithDateRange = function () {
         console.info('refreshTimelineChartWithDateRange');
 
         $scope.events = $scope.events.filter(function (value) {
-          return new Date(value.timestamp) >= $scope.startTime && new Date(value.timestamp) <= $scope.endTime;
+          return new Date(value.timestamp) >= $scope.timeline.startTime
+            && new Date(value.timestamp) <= $scope.timeline.endTime;
         });
-        console.log('Events Selected: ' + $scope.events.length);
+        console.log('New Timerange Events Selected: ' + $scope.events.length);
         console.table($scope.events);
         $scope.$digest();
       };
 
-      $scope.getData();
+      $scope.getNewData();
 
     });
 
@@ -166,7 +187,7 @@
 
       <div class="page-header page-header-bleed-right">
         <div class="actions pull-right">
-          <a href="#" ng-click="getData()"><span class="pficon pficon-refresh"></span> Refresh Results</a>
+          <a href="#" ng-click="getNewData()"><span class="pficon pficon-refresh"></span> Refresh Results</a>
         </div>
         <h1>Event Timeline Examples</h1>
       </div>
@@ -175,15 +196,12 @@
         <div class="col-xs-12">
           <div class="card-pf">
             <div class="card-pf-heading">
-
               <div class="dropdown card-pf-time-frame-filter">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                  Last 30 Days <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                  <li><a href="#">Last 60 Days</a></li>
-                  <li><a href="#">Last 90 Days</a></li>
-                </ul>
+                <form name="timeRangeForm">
+                  <select name="timeRange" ng-model="timeline.timeRange" ng-change="timeChange()"
+                           ng-options="c.label for c in timeRangeOptions">
+                  </select>
+                </form>
               </div>
 
               <h2 class="card-pf-title">
@@ -191,10 +209,10 @@
               </h2>
             </div>
             <div class="card-pf-body">
-              <div class="chartWrapperLarge">
+              <div>
                 <hk-timeline-chart events="events"
-                                   start-timestamp="{{startTime}}"
-                                   end-timestamp="{{endTime}}"
+                                   start-timestamp="{{timeline.startTime}}"
+                                   end-timestamp="{{timeline.endTime}}"
                                    show-labels="{{timeline.showLabels}}"
                 />
               </div>
@@ -216,7 +234,7 @@
       <ul class="list-group">
         <li class="list-group-item">
           <label for="enableLabels">Show Labels:</label>
-          <input class="pull-right" id="enableLabels" type="checkbox" ng-model="timeline.showLabels"/>
+          <input class="pull-right" id="enableLabels" type="checkbox" ng-model="timeline.showLabels" ng-checked=""/>
         </li>
       </ul>
       <h5>Selected Events</h5>
