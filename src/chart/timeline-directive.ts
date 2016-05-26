@@ -136,7 +136,6 @@ namespace Charts {
       events: '=',
       startTimestamp: '@', // to provide for exact boundaries of start/stop times (if omitted, it will be calculated)
       endTimestamp: '@',
-      showLabels: '@'
     };
 
     public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
@@ -150,8 +149,7 @@ namespace Charts {
         // data specific vars
         let startTimestamp: number = +attrs.startTimestamp,
           endTimestamp: number = +attrs.endTimestamp,
-          chartHeight = TimelineChartDirective._CHART_HEIGHT,
-          showLabels:string  = attrs.showLabels;
+          chartHeight: number = TimelineChartDirective._CHART_HEIGHT;
 
         // chart specific vars
         let margin = { top: 10, right: 5, bottom: 5, left: 10 },
@@ -303,7 +301,7 @@ namespace Charts {
               return  d.color;
             })
             .attr('r', (d) => {
-              return 6;
+              return 3;
             }) .on('mouseover', (d, i) => {
               tip.show(d, i);
             }).on('mouseout', () => {
@@ -313,25 +311,6 @@ namespace Charts {
               d.selected = !d.selected;
               $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
           });
-
-          if (showLabels) {
-            svg.selectAll('text')
-              .data(timelineEventst)
-              .enter()
-              .append('text')
-              .attr('class', 'hkEventLabel')
-              .attr('x', (d: TimelineEvent) => {
-                return timelineTimeScale(new Date(d.timestamp)) + 10;
-              })
-              .attr('y', (d: TimelineEvent) => {
-                return yScale(d.row) + 5;
-              })
-              .style('text-anchor', 'start')
-              .text((d: TimelineEvent) => {
-                return d.middlewareResource;
-              });
-          }
-
         }
 
         function createXandYAxes() {

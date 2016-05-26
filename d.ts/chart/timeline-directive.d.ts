@@ -51,7 +51,6 @@ declare namespace Charts {
             events: string;
             startTimestamp: string;
             endTimestamp: string;
-            showLabels: string;
         };
         link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
         events: TimelineEvent[];

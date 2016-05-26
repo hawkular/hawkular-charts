@@ -213,7 +213,6 @@
                 <hk-timeline-chart events="events"
                                    start-timestamp="{{timeline.startTime}}"
                                    end-timestamp="{{timeline.endTime}}"
-                                   show-labels="{{timeline.showLabels}}"
                 />
               </div>
 
@@ -231,12 +230,11 @@
         </div>
         <h2 class="h5">Chart Settings</h2>
       </div>
-      <ul class="list-group">
-        <li class="list-group-item">
-          <label for="enableLabels">Show Labels:</label>
-          <input class="pull-right" id="enableLabels" type="checkbox" ng-model="timeline.showLabels" ng-checked=""/>
-        </li>
-      </ul>
+      <!--<ul class="list-group">-->
+        <!--<li class="list-group-item">-->
+          <!--<label >Show Feature:</label>-->
+        <!--</li>-->
+      <!--</ul>-->
       <h5>Selected Events</h5>
       <ul class="list-group">
         <li class="list-group-item"
