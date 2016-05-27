@@ -80,11 +80,12 @@
         var newVal = $scope.timeline.timeRange;
         console.log('ng-change');
         console.dir(newVal);
-        $scope.timeline.starTime = +moment().subtract(newVal.uom, newVal.startTimestamp);
+        $scope.timeline.startTime = +moment().subtract(newVal.uom, newVal.value);
         $scope.timeline.endTime = +moment();
         // this little hack is needed or else we get '$digets already in progress
         $timeout(function() {
-          console.log('refresh with timeout fired')
+          console.log('refresh with timeout fired for time range: '+new Date($scope.timeline.startTime) + ' - '+
+          new Date($scope.timeline.endTime));
           $scope.getNewData();
         }, 1000);
       };
