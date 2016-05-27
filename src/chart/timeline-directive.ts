@@ -11,7 +11,7 @@ namespace Charts {
                 public eventSource: string,
                 public provider: string,
                 public message?: string,
-                public middlewareResource?: string) {
+                public resource?: string) {
     }
   }
 
@@ -25,12 +25,12 @@ namespace Charts {
                 public eventSource: string,
                 public provider: string,
                 public message?: string,
-                public middlewareResource?: string,
+                public resource?: string,
                 public formattedDate?: string,
                 public color?: string,
                 public row?: number,
                 public selected?: boolean) {
-      super(timestamp, eventSource, provider, message, middlewareResource);
+      super(timestamp, eventSource, provider, message, resource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
       this.selected = false;
     }
@@ -48,7 +48,7 @@ namespace Charts {
             eventSource: emsEvent.eventSource,
             provider: emsEvent.eventSource,
             message: emsEvent.message,
-            middlewareResource: emsEvent.middlewareResource,
+            resource: emsEvent.resource,
             formattedDate: moment(emsEvent.timestamp).format('MMMM Do YYYY, h:mm:ss a'),
             color: emsEvent.eventSource === 'Hawkular' ? '#0088ce' : '#ec7a08',
             row: RowNumber.nextRow(),
@@ -136,7 +136,6 @@ namespace Charts {
       events: '=',
       startTimestamp: '@', // to provide for exact boundaries of start/stop times (if omitted, it will be calculated)
       endTimestamp: '@',
-      showLabels: '@'
     };
 
     public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
@@ -150,8 +149,7 @@ namespace Charts {
         // data specific vars
         let startTimestamp: number = +attrs.startTimestamp,
           endTimestamp: number = +attrs.endTimestamp,
-          chartHeight = TimelineChartDirective._CHART_HEIGHT,
-          showLabels = attrs.showLabels;
+          chartHeight: number = TimelineChartDirective._CHART_HEIGHT;
 
         // chart specific vars
         let margin = { top: 10, right: 5, bottom: 5, left: 10 },
@@ -190,7 +188,7 @@ namespace Charts {
             </div>
             <div class='info-item'>
               <span class='chartHoverLabel'>Middleware Resource:</span>
-              <span class='chartHoverValue'>${d.middlewareResource}</span>
+              <span class='chartHoverValue'>${d.resource}</span>
             </div>
             <div class='info-item'>
               <span class='chartHoverLabel'>Date Time:</span>
@@ -210,7 +208,8 @@ namespace Charts {
 
           tip = d3.tip()
             .attr('class', 'd3-tip')
-            .offset([-10, 0])
+            .direction('e')
+            .offset([0, 10])
             .html((d ) => {
               return TimelineHover(d);
             });
@@ -260,11 +259,11 @@ namespace Charts {
           }
         }
 
-        function createTimelineChart(timelineEventst: TimelineEvent[]) {
-          let xAxisMin = d3.min(timelineEventst, (d: TimelineEvent) => {
+        function createTimelineChart(timelineEvents: TimelineEvent[]) {
+          let xAxisMin = d3.min(timelineEvents, (d: TimelineEvent) => {
            return +d.timestamp;
           });
-          let xAxisMax = d3.max(timelineEventst, (d: TimelineEvent) => {
+          let xAxisMax = d3.max(timelineEvents, (d: TimelineEvent) => {
             return +d.timestamp;
           });
           let timelineTimeScale = d3.time.scale()
@@ -287,7 +286,7 @@ namespace Charts {
             .attr('class','hkTimelineBottomLine');
 
           svg.selectAll('circle')
-            .data(timelineEventst)
+            .data(timelineEvents)
             .enter()
             .append('circle')
             .attr('class', (d: TimelineEvent) => {
@@ -303,35 +302,16 @@ namespace Charts {
               return  d.color;
             })
             .attr('r', (d) => {
-              return 6;
+              return 3;
             }) .on('mouseover', (d, i) => {
               tip.show(d, i);
             }).on('mouseout', () => {
               tip.hide();
             }).on('dblclick', (d: TimelineEvent) => {
-              console.log('Double-Clicked:' + d.middlewareResource);
+              console.log('Double-Clicked:' + d.resource);
               d.selected = !d.selected;
               $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
           });
-
-          if (showLabels) {
-            svg.selectAll('text')
-              .data(timelineEventst)
-              .enter()
-              .append('text')
-              .attr('class', 'hkEventLabel')
-              .attr('x', (d: TimelineEvent) => {
-                return timelineTimeScale(new Date(d.timestamp)) + 10;
-              })
-              .attr('y', (d: TimelineEvent) => {
-                return yScale(d.row) + 5;
-              })
-              .style('text-anchor', 'start')
-              .text((d: TimelineEvent) => {
-                return d.middlewareResource;
-              });
-          }
-
         }
 
         function createXandYAxes() {
