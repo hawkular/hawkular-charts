@@ -14,6 +14,12 @@
   <link rel="stylesheet" href="node_modules/patternfly/dist/css/patternfly-additions.min.css">
   <link rel="stylesheet" href="dist/css/hawkular-charts.css">
 
+  <style>
+    .timerange {
+      margin-left: 20px;
+    }
+  </style>
+
   <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
   <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <script src="node_modules/patternfly/dist/js/patternfly.min.js"></script>
@@ -36,20 +42,22 @@
 
     app.controller('TimelineController', function ($scope, $timeout) {
       $scope.timeRangeOptions = [
-        {label: '24 Hours',  value: 24, uom: 'hours' },
-        {label: '7 days',  value: 7, uom: 'days' },
-        {label: '30 days',  value: 30, uom: 'days' },
-        {label: '60 days',  value: 60, uom: 'days' },
-        {label: '90 days',  value: 90, uom: 'days' },
-        {label: 'Custom....',  value: undefined, uom: undefined }
+        {label: '24 Hours', value: 24, uom: 'hours'},
+        {label: '7 days', value: 7, uom: 'days'},
+        {label: '30 days', value: 30, uom: 'days'},
+        {label: '60 days', value: 60, uom: 'days'},
+        {label: '90 days', value: 90, uom: 'days'},
+        {label: 'Custom....', value: undefined, uom: undefined}
       ];
 
       console.log("Starting Event Timeline Tester");
       $scope.selectedEvents = [];
-      $scope.timeline = {showLabels: false,
+      $scope.timeline = {
+        showLabels: false,
         startTime: +moment().subtract('days', 30),
         endTime: +moment(),
-        timeRange: '30d'};
+        timeRange: '30d'
+      };
 
       $scope.$on(Charts.EventNames.TIMELINE_CHART_TIMERANGE_CHANGED, function (event, data) {
         console.info('Received TimelineChartTimeRangeChanged: ' + data[0] + ' - ' + data[1]);
@@ -83,11 +91,30 @@
         $scope.timeline.startTime = +moment().subtract(newVal.uom, newVal.value);
         $scope.timeline.endTime = +moment();
         // this little hack is needed or else we get '$digets already in progress
-        $timeout(function() {
-          console.log('refresh with timeout fired for time range: '+new Date($scope.timeline.startTime) + ' - '+
-          new Date($scope.timeline.endTime));
+        $timeout(function () {
+          console.log('refresh with timeout fired for time range: ' + new Date($scope.timeline.startTime) + ' - ' +
+            new Date($scope.timeline.endTime));
           $scope.getNewData();
         }, 1000);
+      };
+
+      $scope.canGoForward = function () {
+        var interval = $scope.timeline.endTime - $scope.timeline.startTime;
+        return ($scope.timeline.endTime + interval) < +moment();
+      };
+
+      $scope.forward = function () {
+        var interval = $scope.timeline.endTime - $scope.timeline.startTime;
+        $scope.timeline.startTime = $scope.timeline.endTime;
+        $scope.timeline.endTime = $scope.timeline.endTime + interval;
+        $scope.getNewData();
+      };
+
+      $scope.backward = function () {
+        var interval = $scope.timeline.endTime - $scope.timeline.startTime;
+        $scope.timeline.endTime = $scope.timeline.startTime;
+        $scope.timeline.startTime = $scope.timeline.startTime - interval;
+        $scope.getNewData();
       };
 
       $scope.getNewData = function () {
@@ -199,8 +226,17 @@
             <div class="card-pf-heading">
               <div class="dropdown card-pf-time-frame-filter">
                 <form name="timeRangeForm">
-                  <select name="timeRange" ng-model="timeline.timeRange" ng-change="timeChange()"
-                           ng-options="c.label for c in timeRangeOptions">
+                  <button type="button" ng-click="backward()" class="btn btn-default btn-sm">
+                    <span class="fa fa-angle-left"></span>
+                  </button>
+                  <button type="button" ng-click="forward()" ng-disabled="!canGoForward()"
+                          class="btn btn-default btn-sm">
+                    <span class="fa fa-angle-right"></span>
+                  </button>
+
+                  <select class="timerange" name="timeRange" ng-model="timeline.timeRange"
+                          ng-change="timeChange()"
+                          ng-options="c.label for c in timeRangeOptions">
                   </select>
                 </form>
               </div>
@@ -226,16 +262,9 @@
 
     <div class="col-sm-4 col-md-3 sidebar-pf sidebar-pf-right">
       <div class="sidebar-header sidebar-header-bleed-left sidebar-header-bleed-right">
-        <div class="actions pull-right">
-          <!--<a href="#">Reset Settings</a>-->
-        </div>
         <h2 class="h5">Chart Settings</h2>
       </div>
-      <!--<ul class="list-group">-->
-        <!--<li class="list-group-item">-->
-          <!--<label >Show Feature:</label>-->
-        <!--</li>-->
-      <!--</ul>-->
+
       <h5>Selected Events</h5>
       <ul class="list-group">
         <li class="list-group-item"
