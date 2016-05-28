@@ -2,16 +2,16 @@
 namespace Charts {
   'use strict';
 
-  declare let d3: any;
+  declare let d3:any;
 
- // ManageIQ External Management System Event
+  // ManageIQ External Management System Event
   export class EmsEvent {
 
-    constructor(public timestamp: TimeInMillis,
-                public eventSource: string,
-                public provider: string,
-                public message?: string,
-                public resource?: string) {
+    constructor(public timestamp:TimeInMillis,
+                public eventSource:string,
+                public provider:string,
+                public message?:string,
+                public resource?:string) {
     }
   }
 
@@ -21,15 +21,15 @@ namespace Charts {
    */
   export class TimelineEvent extends EmsEvent {
 
-    constructor(public timestamp: TimeInMillis,
-                public eventSource: string,
-                public provider: string,
-                public message?: string,
-                public resource?: string,
-                public formattedDate?: string,
-                public color?: string,
-                public row?: number,
-                public selected?: boolean) {
+    constructor(public timestamp:TimeInMillis,
+                public eventSource:string,
+                public provider:string,
+                public message?:string,
+                public resource?:string,
+                public formattedDate?:string,
+                public color?:string,
+                public row?:number,
+                public selected?:boolean) {
       super(timestamp, eventSource, provider, message, resource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
       this.selected = false;
@@ -39,10 +39,10 @@ namespace Charts {
      * Build TimelineEvents from EmsEvents
      * @param emsEvents
      */
-    public static buildEvents(emsEvents: EmsEvent[]): TimelineEvent[] {
+    public static buildEvents(emsEvents:EmsEvent[]):TimelineEvent[] {
       //  The schema is different for bucketed output
       if (emsEvents) {
-        return emsEvents.map((emsEvent: EmsEvent) => {
+        return emsEvents.map((emsEvent:EmsEvent) => {
           return {
             timestamp: emsEvent.timestamp,
             eventSource: emsEvent.eventSource,
@@ -65,16 +65,16 @@ namespace Charts {
      * @param endTimestamp
      * @returns {TimelineEvent[]}
      */
-    public static buildFakeEvents(n: number,
-                                  startTimeStamp: TimeInMillis,
-                                  endTimestamp: TimeInMillis): TimelineEvent[] {
-      let events: TimelineEvent[] = [];
+    public static buildFakeEvents(n:number,
+                                  startTimeStamp:TimeInMillis,
+                                  endTimestamp:TimeInMillis):TimelineEvent[] {
+      let events:TimelineEvent[] = [];
       const step = (endTimestamp - startTimeStamp) / n;
 
-      for(let i =  startTimeStamp; i < endTimestamp; i += step) {
+      for (let i = startTimeStamp; i < endTimestamp; i += step) {
         let randomTime = Random.randomBetween(startTimeStamp, endTimestamp);
         const event = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider',
-          'Some Message', 'Resource' + '-' + Random.randomBetween(10,100),
+          'Some Message', 'Resource' + '-' + Random.randomBetween(10, 100),
           moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
 
         events.push(event);
@@ -89,7 +89,7 @@ namespace Charts {
    * Random number generator
    */
   export class Random {
-    public static randomBetween(min: number, max: number): number {
+    public static randomBetween(min:number, max:number):number {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
   }
@@ -106,12 +106,12 @@ namespace Charts {
      * Returns a row number from 1 to 5 for determining which row an event should be placed on.
      * @returns {number}
      */
-    public static nextRow(): number {
+    public static nextRow():number {
       const MAX_ROWS = 5;
 
       RowNumber._currentRow++;
 
-      if(RowNumber._currentRow > MAX_ROWS) {
+      if (RowNumber._currentRow > MAX_ROWS) {
         RowNumber._currentRow = 1; // reset back to zero
       }
       // reverse the ordering of the numbers so that 1 becomes 5
@@ -138,21 +138,21 @@ namespace Charts {
       endTimestamp: '@',
     };
 
-    public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
+    public link:(scope:any, element:ng.IAugmentedJQuery, attrs:any) => void;
 
-    public events: TimelineEvent[];
+    public events:TimelineEvent[];
 
-    constructor($rootScope: ng.IRootScopeService) {
+    constructor($rootScope:ng.IRootScopeService) {
 
       this.link = (scope, element, attrs) => {
 
         // data specific vars
-        let startTimestamp: number = +attrs.startTimestamp,
-          endTimestamp: number = +attrs.endTimestamp,
-          chartHeight: number = TimelineChartDirective._CHART_HEIGHT;
+        let startTimestamp:number = +attrs.startTimestamp,
+          endTimestamp:number = +attrs.endTimestamp,
+          chartHeight:number = TimelineChartDirective._CHART_HEIGHT;
 
         // chart specific vars
-        let margin = { top: 10, right: 5, bottom: 5, left: 10 },
+        let margin = {top: 10, right: 5, bottom: 5, left: 10},
           width = TimelineChartDirective._CHART_WIDTH - margin.left - margin.right,
           adjustedChartHeight = chartHeight - 50,
           height = adjustedChartHeight - margin.top - margin.bottom,
@@ -172,7 +172,7 @@ namespace Charts {
           chartParent,
           svg;
 
-        function TimelineHover(d: TimelineEvent) {
+        function TimelineHover(d:TimelineEvent) {
           return `<div class='chartHover'>
             <div class='info-item'>
               <span class='chartHoverLabel'>Event Source:</span>
@@ -187,7 +187,7 @@ namespace Charts {
               <span class='chartHoverValue'>${d.message}</span>
             </div>
             <div class='info-item'>
-              <span class='chartHoverLabel'>Middleware Resource:</span>
+              <span class='chartHoverLabel'>Resource Id:</span>
               <span class='chartHoverValue'>${d.resource}</span>
             </div>
             <div class='info-item'>
@@ -197,7 +197,7 @@ namespace Charts {
           </div>`;
         }
 
-        function timelineChartSetup(): void {
+        function timelineChartSetup():void {
           // destroy any previous charts
           if (chart) {
             chartParent.selectAll('*').remove();
@@ -210,7 +210,7 @@ namespace Charts {
             .attr('class', 'd3-tip')
             .direction('e')
             .offset([0, 10])
-            .html((d ) => {
+            .html((d) => {
               return TimelineHover(d);
             });
 
@@ -222,11 +222,11 @@ namespace Charts {
           svg.call(tip);
         }
 
-        function determineTimelineScale(timelineEvent: TimelineEvent[]) {
-          let adjustedTimeRange: number[] = [];
+        function determineTimelineScale(timelineEvent:TimelineEvent[]) {
+          let adjustedTimeRange:number[] = [];
 
           startTimestamp = +attrs.startTimestamp ||
-            d3.min(timelineEvent, (d: TimelineEvent) => {
+            d3.min(timelineEvent, (d:TimelineEvent) => {
               return d.timestamp;
             }) || +moment().subtract(24, 'hour');
 
@@ -240,30 +240,23 @@ namespace Charts {
               .rangeRound([70, 0])
               .domain([0, 175]);
 
-            yAxis = d3.svg.axis()
-              .scale(yScale)
-              .ticks(0)
-              .tickSize(0, 0)
-              .orient('left');
-
             timeScale = d3.time.scale()
               .range([0, width])
               .domain(adjustedTimeRange);
 
             xAxis = d3.svg.axis()
               .scale(timeScale)
-              .tickSize(-70, 0)
-              .orient('top')
-              .tickFormat(xAxisTimeFormats());
-
+              .ticks(10)
+              .tickSize(-80, 0)
+              .orient('bottom');
           }
         }
 
-        function createTimelineChart(timelineEvents: TimelineEvent[]) {
-          let xAxisMin = d3.min(timelineEvents, (d: TimelineEvent) => {
-           return +d.timestamp;
+        function createTimelineChart(timelineEvents:TimelineEvent[]) {
+          let xAxisMin = d3.min(timelineEvents, (d:TimelineEvent) => {
+            return +d.timestamp;
           });
-          let xAxisMax = d3.max(timelineEvents, (d: TimelineEvent) => {
+          let xAxisMax = d3.max(timelineEvents, (d:TimelineEvent) => {
             return +d.timestamp;
           });
           let timelineTimeScale = d3.time.scale()
@@ -273,44 +266,36 @@ namespace Charts {
           // 0-6 is the y-axis range, this means 1-5 is the valid range for
           // values that won't be cut off half way be either axis.
           let yScale = d3.scale.linear()
-              .clamp(true)
-              .range([height, 0])
-              .domain([0, 6]);
-
-          // The bottom line of the timeline chart
-          svg.append('line')
-            .attr('x1', 0)
-            .attr('y1', 70)
-            .attr('x2', 735)
-            .attr('y2', 70)
-            .attr('class','hkTimelineBottomLine');
+            .clamp(true)
+            .range([height, 0])
+            .domain([0, 6]);
 
           svg.selectAll('circle')
             .data(timelineEvents)
             .enter()
             .append('circle')
-            .attr('class', (d: TimelineEvent) => {
+            .attr('class', (d:TimelineEvent) => {
               return d.selected ? 'hkEventSelected' : 'hkEvent';
             })
-            .attr('cx', (d: TimelineEvent) => {
+            .attr('cx', (d:TimelineEvent) => {
               return timelineTimeScale(new Date(d.timestamp));
             })
-            .attr('cy', (d: TimelineEvent) => {
+            .attr('cy', (d:TimelineEvent) => {
               return yScale(d.row);
             })
-            .attr('fill', (d: TimelineEvent) => {
-              return  d.color;
+            .attr('fill', (d:TimelineEvent) => {
+              return d.color;
             })
             .attr('r', (d) => {
-              return 3;
+              return 4;
             }) .on('mouseover', (d, i) => {
-              tip.show(d, i);
-            }).on('mouseout', () => {
-              tip.hide();
-            }).on('dblclick', (d: TimelineEvent) => {
-              console.log('Double-Clicked:' + d.resource);
-              d.selected = !d.selected;
-              $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
+            tip.show(d, i);
+          }).on('mouseout', () => {
+            tip.hide();
+          }).on('dblclick', (d:TimelineEvent) => {
+            console.log('Double-Clicked:' + d.resource);
+            d.selected = !d.selected;
+            $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
           });
         }
 
@@ -321,12 +306,9 @@ namespace Charts {
           // create x-axis
           xAxisGroup = svg.append('g')
             .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + height + ')')
             .call(xAxis);
 
-          // create y-axis
-          svg.append('g')
-            .attr('class', 'y axis')
-            .call(yAxis);
         }
 
         function createXAxisBrush() {
@@ -376,7 +358,7 @@ namespace Charts {
           scope.render(this.events);
         });
 
-        scope.render = (timelineEvent: TimelineEvent[]) => {
+        scope.render = (timelineEvent:TimelineEvent[]) => {
           if (timelineEvent && timelineEvent.length > 0) {
             ///NOTE: layering order is important!
             timelineChartSetup();
@@ -390,7 +372,7 @@ namespace Charts {
     }
 
     public static Factory() {
-      let directive = ($rootScope: ng.IRootScopeService) => {
+      let directive = ($rootScope:ng.IRootScopeService) => {
         return new TimelineChartDirective($rootScope);
       };
 
