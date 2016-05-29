@@ -2,34 +2,34 @@
 namespace Charts {
   'use strict';
 
-  declare let d3:any;
+  declare let d3: any;
 
   // ManageIQ External Management System Event
   export class EmsEvent {
 
-    constructor(public timestamp:TimeInMillis,
-                public eventSource:string,
-                public provider:string,
-                public message?:string,
-                public resource?:string) {
+    constructor(public timestamp: TimeInMillis,
+      public eventSource: string,
+      public provider: string,
+      public message?: string,
+      public resource?: string) {
     }
   }
 
-// Timeline specific for ManageIQ Timeline component
+  // Timeline specific for ManageIQ Timeline component
   /**
    * TimelineEvent is a subclass of EmsEvent that is specialized toward screen display
    */
   export class TimelineEvent extends EmsEvent {
 
-    constructor(public timestamp:TimeInMillis,
-                public eventSource:string,
-                public provider:string,
-                public message?:string,
-                public resource?:string,
-                public formattedDate?:string,
-                public color?:string,
-                public row?:number,
-                public selected?:boolean) {
+    constructor(public timestamp: TimeInMillis,
+      public eventSource: string,
+      public provider: string,
+      public message?: string,
+      public resource?: string,
+      public formattedDate?: string,
+      public color?: string,
+      public row?: number,
+      public selected?: boolean) {
       super(timestamp, eventSource, provider, message, resource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
       this.selected = false;
@@ -39,10 +39,10 @@ namespace Charts {
      * Build TimelineEvents from EmsEvents
      * @param emsEvents
      */
-    public static buildEvents(emsEvents:EmsEvent[]):TimelineEvent[] {
+    public static buildEvents(emsEvents: EmsEvent[]): TimelineEvent[] {
       //  The schema is different for bucketed output
       if (emsEvents) {
-        return emsEvents.map((emsEvent:EmsEvent) => {
+        return emsEvents.map((emsEvent: EmsEvent) => {
           return {
             timestamp: emsEvent.timestamp,
             eventSource: emsEvent.eventSource,
@@ -65,10 +65,10 @@ namespace Charts {
      * @param endTimestamp
      * @returns {TimelineEvent[]}
      */
-    public static buildFakeEvents(n:number,
-                                  startTimeStamp:TimeInMillis,
-                                  endTimestamp:TimeInMillis):TimelineEvent[] {
-      let events:TimelineEvent[] = [];
+    public static buildFakeEvents(n: number,
+      startTimeStamp: TimeInMillis,
+      endTimestamp: TimeInMillis): TimelineEvent[] {
+      let events: TimelineEvent[] = [];
       const step = (endTimestamp - startTimeStamp) / n;
 
       for (let i = startTimeStamp; i < endTimestamp; i += step) {
@@ -89,7 +89,7 @@ namespace Charts {
    * Random number generator
    */
   export class Random {
-    public static randomBetween(min:number, max:number):number {
+    public static randomBetween(min: number, max: number): number {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
   }
@@ -106,7 +106,7 @@ namespace Charts {
      * Returns a row number from 1 to 5 for determining which row an event should be placed on.
      * @returns {number}
      */
-    public static nextRow():number {
+    public static nextRow(): number {
       const MAX_ROWS = 5;
 
       RowNumber._currentRow++;
@@ -116,7 +116,7 @@ namespace Charts {
       }
       // reverse the ordering of the numbers so that 1 becomes 5
       // so that the events are laid out from top -> bottom instead of bottom -> top
-      return (MAX_ROWS + 1 ) - RowNumber._currentRow;
+      return (MAX_ROWS + 1) - RowNumber._currentRow;
     }
 
   }
@@ -138,21 +138,21 @@ namespace Charts {
       endTimestamp: '@',
     };
 
-    public link:(scope:any, element:ng.IAugmentedJQuery, attrs:any) => void;
+    public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
 
-    public events:TimelineEvent[];
+    public events: TimelineEvent[];
 
-    constructor($rootScope:ng.IRootScopeService) {
+    constructor($rootScope: ng.IRootScopeService) {
 
       this.link = (scope, element, attrs) => {
 
         // data specific vars
-        let startTimestamp:number = +attrs.startTimestamp,
-          endTimestamp:number = +attrs.endTimestamp,
-          chartHeight:number = TimelineChartDirective._CHART_HEIGHT;
+        let startTimestamp: number = +attrs.startTimestamp,
+          endTimestamp: number = +attrs.endTimestamp,
+          chartHeight: number = TimelineChartDirective._CHART_HEIGHT;
 
         // chart specific vars
-        let margin = {top: 10, right: 5, bottom: 5, left: 10},
+        let margin = { top: 10, right: 5, bottom: 5, left: 10 },
           width = TimelineChartDirective._CHART_WIDTH - margin.left - margin.right,
           adjustedChartHeight = chartHeight - 50,
           height = adjustedChartHeight - margin.top - margin.bottom,
@@ -172,7 +172,7 @@ namespace Charts {
           chartParent,
           svg;
 
-        function TimelineHover(d:TimelineEvent) {
+        function TimelineHover(d: TimelineEvent) {
           return `<div class='chartHover'>
             <div class='info-item'>
               <span class='chartHoverLabel'>Event Source:</span>
@@ -197,7 +197,7 @@ namespace Charts {
           </div>`;
         }
 
-        function timelineChartSetup():void {
+        function timelineChartSetup(): void {
           // destroy any previous charts
           if (chart) {
             chartParent.selectAll('*').remove();
@@ -222,11 +222,11 @@ namespace Charts {
           svg.call(tip);
         }
 
-        function determineTimelineScale(timelineEvent:TimelineEvent[]) {
-          let adjustedTimeRange:number[] = [];
+        function determineTimelineScale(timelineEvent: TimelineEvent[]) {
+          let adjustedTimeRange: number[] = [];
 
           startTimestamp = +attrs.startTimestamp ||
-            d3.min(timelineEvent, (d:TimelineEvent) => {
+            d3.min(timelineEvent, (d: TimelineEvent) => {
               return d.timestamp;
             }) || +moment().subtract(24, 'hour');
 
@@ -252,11 +252,11 @@ namespace Charts {
           }
         }
 
-        function createTimelineChart(timelineEvents:TimelineEvent[]) {
-          let xAxisMin = d3.min(timelineEvents, (d:TimelineEvent) => {
+        function createTimelineChart(timelineEvents: TimelineEvent[]) {
+          let xAxisMin = d3.min(timelineEvents, (d: TimelineEvent) => {
             return +d.timestamp;
           });
-          let xAxisMax = d3.max(timelineEvents, (d:TimelineEvent) => {
+          let xAxisMax = d3.max(timelineEvents, (d: TimelineEvent) => {
             return +d.timestamp;
           });
           let timelineTimeScale = d3.time.scale()
@@ -274,29 +274,29 @@ namespace Charts {
             .data(timelineEvents)
             .enter()
             .append('circle')
-            .attr('class', (d:TimelineEvent) => {
+            .attr('class', (d: TimelineEvent) => {
               return d.selected ? 'hkEventSelected' : 'hkEvent';
             })
-            .attr('cx', (d:TimelineEvent) => {
+            .attr('cx', (d: TimelineEvent) => {
               return timelineTimeScale(new Date(d.timestamp));
             })
-            .attr('cy', (d:TimelineEvent) => {
+            .attr('cy', (d: TimelineEvent) => {
               return yScale(d.row);
             })
-            .attr('fill', (d:TimelineEvent) => {
+            .attr('fill', (d: TimelineEvent) => {
               return d.color;
             })
             .attr('r', (d) => {
               return 4;
-            }) .on('mouseover', (d, i) => {
-            tip.show(d, i);
-          }).on('mouseout', () => {
-            tip.hide();
-          }).on('dblclick', (d:TimelineEvent) => {
-            console.log('Double-Clicked:' + d.resource);
-            d.selected = !d.selected;
-            $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
-          });
+            }).on('mouseover', (d, i) => {
+              tip.show(d, i);
+            }).on('mouseout', () => {
+              tip.hide();
+            }).on('dblclick', (d: TimelineEvent) => {
+              console.log('Double-Clicked:' + d.resource);
+              d.selected = !d.selected;
+              $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
+            });
         }
 
         function createXandYAxes() {
@@ -358,7 +358,7 @@ namespace Charts {
           scope.render(this.events);
         });
 
-        scope.render = (timelineEvent:TimelineEvent[]) => {
+        scope.render = (timelineEvent: TimelineEvent[]) => {
           if (timelineEvent && timelineEvent.length > 0) {
             ///NOTE: layering order is important!
             timelineChartSetup();
@@ -372,7 +372,7 @@ namespace Charts {
     }
 
     public static Factory() {
-      let directive = ($rootScope:ng.IRootScopeService) => {
+      let directive = ($rootScope: ng.IRootScopeService) => {
         return new TimelineChartDirective($rootScope);
       };
 
