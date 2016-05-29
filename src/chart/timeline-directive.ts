@@ -15,7 +15,6 @@ namespace Charts {
     }
   }
 
-  // Timeline specific for ManageIQ Timeline component
   /**
    * TimelineEvent is a subclass of EmsEvent that is specialized toward screen display
    */
@@ -156,13 +155,10 @@ namespace Charts {
           width = TimelineChartDirective._CHART_WIDTH - margin.left - margin.right,
           adjustedChartHeight = chartHeight - 50,
           height = adjustedChartHeight - margin.top - margin.bottom,
-          titleHeight = 30,
-          titleSpace = 10,
-          innerChartHeight = height + margin.top - titleHeight - titleSpace,
-          adjustedChartHeight2 = +titleHeight + titleSpace + margin.top,
+          innerChartHeight = height + margin.top,
+          adjustedChartHeight2 = margin.top,
           yScale,
           timeScale,
-          yAxis,
           xAxis,
           xAxisGroup,
           brush,
@@ -222,53 +218,58 @@ namespace Charts {
           svg.call(tip);
         }
 
-        function determineTimelineScale(timelineEvent: TimelineEvent[]) {
-          let adjustedTimeRange: number[] = [];
+        function createScaleAndAxes(timelineEvents: TimelineEvent[]) {
 
-          startTimestamp = +attrs.startTimestamp ||
-            d3.min(timelineEvent, (d: TimelineEvent) => {
-              return d.timestamp;
-            }) || +moment().subtract(24, 'hour');
+          if (attrs.startTimestamp) {
+            // explicit start/end timestamps are set
+            let adjustedTimeRange: number[] = [];
 
-          if (timelineEvent && timelineEvent.length > 0) {
+            startTimestamp = +attrs.startTimestamp;
 
-            adjustedTimeRange[0] = startTimestamp;
+            adjustedTimeRange[0] = startTimestamp || +moment().subtract('days', '7');
             adjustedTimeRange[1] = endTimestamp || +moment();
-
-            yScale = d3.scale.linear()
-              .clamp(true)
-              .rangeRound([70, 0])
-              .domain([0, 175]);
 
             timeScale = d3.time.scale()
               .range([0, width])
               .domain(adjustedTimeRange);
 
-            xAxis = d3.svg.axis()
-              .scale(timeScale)
-              .ticks(10)
-              .tickSize(-80, 0)
-              .orient('bottom');
-          }
-        }
+          } else {
+            // no start/end set so determine through the data
+            let xAxisMin = d3.min(timelineEvents, (d: TimelineEvent) => {
+              return +d.timestamp;
+            });
+            let xAxisMax = d3.max(timelineEvents, (d: TimelineEvent) => {
+              return +d.timestamp;
+            });
 
-        function createTimelineChart(timelineEvents: TimelineEvent[]) {
-          let xAxisMin = d3.min(timelineEvents, (d: TimelineEvent) => {
-            return +d.timestamp;
-          });
-          let xAxisMax = d3.max(timelineEvents, (d: TimelineEvent) => {
-            return +d.timestamp;
-          });
-          let timelineTimeScale = d3.time.scale()
-            .range([0, width])
-            .domain([xAxisMin, xAxisMax]);
+            timeScale = d3.time.scale()
+              .range([0, width])
+              .domain([xAxisMin, xAxisMax]);
+          }
+
+          xAxis = d3.svg.axis()
+            .scale(timeScale)
+            .ticks(10)
+            .tickSize(-80, 0)
+            .orient('bottom');
+
+          svg.selectAll('g.axis').remove();
+
+          // create x-axis
+          xAxisGroup = svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + height + ')')
+            .call(xAxis);
 
           // 0-6 is the y-axis range, this means 1-5 is the valid range for
           // values that won't be cut off half way be either axis.
-          let yScale = d3.scale.linear()
+          yScale = d3.scale.linear()
             .clamp(true)
             .range([height, 0])
             .domain([0, 6]);
+        }
+
+        function createTimelineChart(timelineEvents: TimelineEvent[]) {
 
           svg.selectAll('circle')
             .data(timelineEvents)
@@ -278,7 +279,7 @@ namespace Charts {
               return d.selected ? 'hkEventSelected' : 'hkEvent';
             })
             .attr('cx', (d: TimelineEvent) => {
-              return timelineTimeScale(new Date(d.timestamp));
+              return timeScale(new Date(d.timestamp));
             })
             .attr('cy', (d: TimelineEvent) => {
               return yScale(d.row);
@@ -297,18 +298,6 @@ namespace Charts {
               d.selected = !d.selected;
               $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
             });
-        }
-
-        function createXandYAxes() {
-
-          svg.selectAll('g.axis').remove();
-
-          // create x-axis
-          xAxisGroup = svg.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + height + ')')
-            .call(xAxis);
-
         }
 
         function createXAxisBrush() {
@@ -362,8 +351,7 @@ namespace Charts {
           if (timelineEvent && timelineEvent.length > 0) {
             ///NOTE: layering order is important!
             timelineChartSetup();
-            determineTimelineScale(timelineEvent);
-            createXandYAxes();
+            createScaleAndAxes(timelineEvent);
             createXAxisBrush();
             createTimelineChart(timelineEvent);
           }
