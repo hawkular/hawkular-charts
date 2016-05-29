@@ -4,32 +4,32 @@ namespace Charts {
 
   declare let d3: any;
 
- // ManageIQ External Management System Event
+  // ManageIQ External Management System Event
   export class EmsEvent {
 
     constructor(public timestamp: TimeInMillis,
-                public eventSource: string,
-                public provider: string,
-                public message?: string,
-                public resource?: string) {
+      public eventSource: string,
+      public provider: string,
+      public message?: string,
+      public resource?: string) {
     }
   }
 
-// Timeline specific for ManageIQ Timeline component
+  // Timeline specific for ManageIQ Timeline component
   /**
    * TimelineEvent is a subclass of EmsEvent that is specialized toward screen display
    */
   export class TimelineEvent extends EmsEvent {
 
     constructor(public timestamp: TimeInMillis,
-                public eventSource: string,
-                public provider: string,
-                public message?: string,
-                public resource?: string,
-                public formattedDate?: string,
-                public color?: string,
-                public row?: number,
-                public selected?: boolean) {
+      public eventSource: string,
+      public provider: string,
+      public message?: string,
+      public resource?: string,
+      public formattedDate?: string,
+      public color?: string,
+      public row?: number,
+      public selected?: boolean) {
       super(timestamp, eventSource, provider, message, resource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
       this.selected = false;
@@ -66,15 +66,15 @@ namespace Charts {
      * @returns {TimelineEvent[]}
      */
     public static buildFakeEvents(n: number,
-                                  startTimeStamp: TimeInMillis,
-                                  endTimestamp: TimeInMillis): TimelineEvent[] {
+      startTimeStamp: TimeInMillis,
+      endTimestamp: TimeInMillis): TimelineEvent[] {
       let events: TimelineEvent[] = [];
       const step = (endTimestamp - startTimeStamp) / n;
 
-      for(let i =  startTimeStamp; i < endTimestamp; i += step) {
+      for (let i = startTimeStamp; i < endTimestamp; i += step) {
         let randomTime = Random.randomBetween(startTimeStamp, endTimestamp);
         const event = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider',
-          'Some Message', 'Resource' + '-' + Random.randomBetween(10,100),
+          'Some Message', 'Resource' + '-' + Random.randomBetween(10, 100),
           moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
 
         events.push(event);
@@ -111,12 +111,12 @@ namespace Charts {
 
       RowNumber._currentRow++;
 
-      if(RowNumber._currentRow > MAX_ROWS) {
+      if (RowNumber._currentRow > MAX_ROWS) {
         RowNumber._currentRow = 1; // reset back to zero
       }
       // reverse the ordering of the numbers so that 1 becomes 5
       // so that the events are laid out from top -> bottom instead of bottom -> top
-      return (MAX_ROWS + 1 ) - RowNumber._currentRow;
+      return (MAX_ROWS + 1) - RowNumber._currentRow;
     }
 
   }
@@ -187,7 +187,7 @@ namespace Charts {
               <span class='chartHoverValue'>${d.message}</span>
             </div>
             <div class='info-item'>
-              <span class='chartHoverLabel'>Middleware Resource:</span>
+              <span class='chartHoverLabel'>Resource Id:</span>
               <span class='chartHoverValue'>${d.resource}</span>
             </div>
             <div class='info-item'>
@@ -210,7 +210,7 @@ namespace Charts {
             .attr('class', 'd3-tip')
             .direction('e')
             .offset([0, 10])
-            .html((d ) => {
+            .html((d) => {
               return TimelineHover(d);
             });
 
@@ -240,28 +240,21 @@ namespace Charts {
               .rangeRound([70, 0])
               .domain([0, 175]);
 
-            yAxis = d3.svg.axis()
-              .scale(yScale)
-              .ticks(0)
-              .tickSize(0, 0)
-              .orient('left');
-
             timeScale = d3.time.scale()
               .range([0, width])
               .domain(adjustedTimeRange);
 
             xAxis = d3.svg.axis()
               .scale(timeScale)
-              .tickSize(-70, 0)
-              .orient('top')
-              .tickFormat(xAxisTimeFormats());
-
+              .ticks(10)
+              .tickSize(-80, 0)
+              .orient('bottom');
           }
         }
 
         function createTimelineChart(timelineEvents: TimelineEvent[]) {
           let xAxisMin = d3.min(timelineEvents, (d: TimelineEvent) => {
-           return +d.timestamp;
+            return +d.timestamp;
           });
           let xAxisMax = d3.max(timelineEvents, (d: TimelineEvent) => {
             return +d.timestamp;
@@ -273,17 +266,9 @@ namespace Charts {
           // 0-6 is the y-axis range, this means 1-5 is the valid range for
           // values that won't be cut off half way be either axis.
           let yScale = d3.scale.linear()
-              .clamp(true)
-              .range([height, 0])
-              .domain([0, 6]);
-
-          // The bottom line of the timeline chart
-          svg.append('line')
-            .attr('x1', 0)
-            .attr('y1', 70)
-            .attr('x2', 735)
-            .attr('y2', 70)
-            .attr('class','hkTimelineBottomLine');
+            .clamp(true)
+            .range([height, 0])
+            .domain([0, 6]);
 
           svg.selectAll('circle')
             .data(timelineEvents)
@@ -299,11 +284,11 @@ namespace Charts {
               return yScale(d.row);
             })
             .attr('fill', (d: TimelineEvent) => {
-              return  d.color;
+              return d.color;
             })
             .attr('r', (d) => {
-              return 3;
-            }) .on('mouseover', (d, i) => {
+              return 4;
+            }).on('mouseover', (d, i) => {
               tip.show(d, i);
             }).on('mouseout', () => {
               tip.hide();
@@ -311,7 +296,7 @@ namespace Charts {
               console.log('Double-Clicked:' + d.resource);
               d.selected = !d.selected;
               $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
-          });
+            });
         }
 
         function createXandYAxes() {
@@ -321,12 +306,9 @@ namespace Charts {
           // create x-axis
           xAxisGroup = svg.append('g')
             .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + height + ')')
             .call(xAxis);
 
-          // create y-axis
-          svg.append('g')
-            .attr('class', 'y axis')
-            .call(yAxis);
         }
 
         function createXAxisBrush() {
