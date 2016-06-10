@@ -20,6 +20,8 @@ namespace Charts {
     public scope = {
       data: '=',
       showYAxisValues: '=',
+      startTimestamp: '@',
+      endTimestamp: '@',
     };
 
     public link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
@@ -64,9 +66,9 @@ namespace Charts {
 
           const parentNode = element[0].parentNode;
 
-          width = (<any>parentNode).clientWidth;
+          //let's use 92.5% of parents width
+          width = (<any>parentNode).clientWidth * 0.925;
           height = (<any>parentNode).clientHeight;
-
           modifiedInnerChartHeight = height - margin.top - margin.bottom - ContextChartDirective._XAXIS_HEIGHT,
 
             //console.log('Context Width: %i',width);
@@ -217,12 +219,19 @@ namespace Charts {
               startTime = Math.round(brushExtent[0].getTime()),
               endTime = Math.round(brushExtent[1].getTime()),
               dragSelectionDelta = endTime - startTime;
-
             /// We ignore drag selections under a minute
             if (dragSelectionDelta >= 60000) {
               $rootScope.$broadcast(EventNames.CONTEXT_CHART_TIMERANGE_CHANGED.toString(), brushExtent);
             }
             //brushGroup.call(brush.clear());
+          }
+        }
+
+        function redrawBrush(startTimestamp, endTimestamp) {
+          if (brush) {
+            brush.extent([new Date(startTimestamp), new Date(endTimestamp)]);
+            brush(d3.select('hk-context-chart .brush').transition());
+            brush.event(d3.select('hk-context-chart .brush').transition());
           }
         }
 
@@ -233,6 +242,12 @@ namespace Charts {
             this.dataPoints = formatBucketedChartOutput(angular.fromJson(newData));
             scope.render(this.dataPoints);
           }
+        });
+
+        scope.$watchGroup(['startTimestamp', 'endTimestamp'], (newTimestamp) => {
+          let startTimestamp = +newTimestamp[0] || +scope.startTimestamp;
+          let endTimestamp = +newTimestamp[1] || +scope.endTimestamp;
+          redrawBrush(startTimestamp, endTimestamp);
         });
 
         function formatBucketedChartOutput(response): IChartDataPoint[] {
