@@ -100,6 +100,55 @@ _Example:_
   ];
 ----
 
+==== Event Timeline Chart
+image::img/event-timeline.png[Event Timeline Chart Type]
+
+The Event Timeline chart renders events along a timeline. In most timelines, the events would be laid out on a
+single horizontal axis. However, with many events clustering around the same point in time the event points start to
+overlap and hide one another. To eliminate this overlap, we lay out events in 5 horizontal slots to further give some
+breathing room to event elements on the timeline[i.e., this means it would take more than 6 events at the same time to
+overlap one another.] Cluster of events can also be drilled into by just dragging a selection across the points of
+interest and then only the time range of those points selected will be displayed.
+
+_Sample code for this chart:_
+
+[source,javascript]
+----
+<hk-timeline-chart
+  events="events"
+  start-timestamp="{{timeline.startTime}}"
+  end-timestamp="{{timeline.endTime}}"
+/>
+
+// Where events is TimelineEvent[] is:
+// ManageIQ External Management System Event
+  export class EmsEvent {
+    constructor(public timestamp: TimeInMillis,
+      public eventSource: string,
+      public provider: string,
+      public message?: string,
+      public resource?: string) {
+    }
+  }
+
+  /**
+   * TimelineEvent is a subclass of EmsEvent that is specialized toward screen display
+   */
+  export class TimelineEvent extends EmsEvent {
+    constructor(public timestamp: TimeInMillis,
+      public eventSource: string,
+      public provider: string,
+      public message?: string,
+      public resource?: string,
+      public formattedDate?: string,
+      public color?: string,
+      public row?: number,
+      public selected?: boolean) {
+      super(timestamp, eventSource, provider, message, resource);
+      this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
+      this.selected = false;
+    }
+----
 
 ==== Availability Chart Type
 image::img/avail-chart.png[Hawkular Availability Chart Type]
