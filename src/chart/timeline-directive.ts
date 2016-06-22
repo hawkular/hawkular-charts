@@ -150,8 +150,8 @@ namespace Charts {
       this.link = (scope, element, attrs) => {
 
         // data specific vars
-        let startTimestamp: number = +scope.startTimestamp,
-          endTimestamp: number = +scope.endTimestamp,
+        let startTimestamp: number = +attrs.startTimestamp,
+          endTimestamp: number = +attrs.endTimestamp,
           chartHeight: number = TimelineChartDirective._CHART_HEIGHT;
 
         // chart specific vars
