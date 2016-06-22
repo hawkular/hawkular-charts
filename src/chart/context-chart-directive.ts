@@ -65,9 +65,8 @@ namespace Charts {
           chartParent = d3.select(element[0]);
 
           const parentNode = element[0].parentNode;
-
-          //let's use 92.5% of parents width
-          width = (<any>parentNode).clientWidth * 0.925;
+          
+          width = (<any>parentNode).clientWidth;
           height = (<any>parentNode).clientHeight;
           modifiedInnerChartHeight = height - margin.top - margin.bottom - ContextChartDirective._XAXIS_HEIGHT,
 
@@ -79,9 +78,9 @@ namespace Charts {
           chart = chartParent.append('svg')
             .attr('width', width - margin.left - margin.right)
             .attr('height', innerChartHeight);
-
+          console.log(margin.left);
           svg = chart.append('g')
-            .attr('transform', 'translate(' + margin.left + ', 0)')
+            .attr('transform', 'translate(' + margin.left + ', 0) scale(0.93)')
             .attr('class', 'contextChart');
 
         }
@@ -227,11 +226,12 @@ namespace Charts {
           }
         }
 
-        function redrawBrush(startTimestamp, endTimestamp) {
+        function redrawBrush(startTimestamp: TimeInMillis, endTimestamp: TimeInMillis) {
           if (brush) {
             brush.extent([new Date(startTimestamp), new Date(endTimestamp)]);
-            brush(d3.select('hk-context-chart .brush').transition());
-            brush.event(d3.select('hk-context-chart .brush').transition());
+            let contextChartBrush = d3.select('hk-context-chart').select('.brush');
+            brush(contextChartBrush.transition());
+            brush.event(contextChartBrush.transition());
           }
         }
 

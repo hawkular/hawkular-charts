@@ -223,7 +223,8 @@ namespace Charts {
           svg.call(tip);
         }
 
-        function positionTip(circle, d, i) {
+        function positionTip(d, i) {
+          let circle = d3.select(this);
           tip.show(d, i);
           let tipPosition = Number(circle.attr('cx')) + Number(tip.style('width').slice(0, -2));
           if (tipPosition > TimelineChartDirective._CHART_WIDTH) {
@@ -318,10 +319,9 @@ namespace Charts {
             })
             .attr('r', (d) => {
               return 3;
-            }) .on('mouseover', function(d, i) {
-              let circle = d3.select(this);
-              positionTip(circle, d, i);
-            }).on('mouseout', () => {
+            })
+            .on('mouseover', positionTip)
+            .on('mouseout', () => {
               tip.hide();
             }).on('dblclick', (d: TimelineEvent) => {
               console.log('Double-Clicked:',  d);
