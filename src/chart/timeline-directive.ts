@@ -10,11 +10,13 @@ namespace Charts {
     constructor(public timestamp: TimeInMillis,
       public eventSource: string,
       public provider: string,
+      public html?: string,
       public message?: string,
       public resource?: string) {
     }
   }
 
+  // Timeline specific for ManageIQ Timeline component
   /**
    * TimelineEvent is a subclass of EmsEvent that is specialized toward screen display
    */
@@ -23,13 +25,14 @@ namespace Charts {
     constructor(public timestamp: TimeInMillis,
       public eventSource: string,
       public provider: string,
+      public html?: string,
       public message?: string,
       public resource?: string,
       public formattedDate?: string,
       public color?: string,
       public row?: number,
       public selected?: boolean) {
-      super(timestamp, eventSource, provider, message, resource);
+      super(timestamp, eventSource, provider, html, message, resource);
       this.formattedDate = moment(timestamp).format('MMMM Do YYYY, h:mm:ss a');
       this.selected = false;
     }
@@ -46,6 +49,7 @@ namespace Charts {
             timestamp: emsEvent.timestamp,
             eventSource: emsEvent.eventSource,
             provider: emsEvent.eventSource,
+            html: emsEvent.html && `<div class='chartHover'> ${emsEvent.html}</div>`,
             message: emsEvent.message,
             resource: emsEvent.resource,
             formattedDate: moment(emsEvent.timestamp).format('MMMM Do YYYY, h:mm:ss a'),
@@ -72,7 +76,7 @@ namespace Charts {
 
       for (let i = startTimeStamp; i < endTimestamp; i += step) {
         let randomTime = Random.randomBetween(startTimeStamp, endTimestamp);
-        const event = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider',
+        const event = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider', null,
           'Some Message', 'Resource' + '-' + Random.randomBetween(10, 100),
           moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
 
@@ -155,10 +159,13 @@ namespace Charts {
           width = TimelineChartDirective._CHART_WIDTH - margin.left - margin.right,
           adjustedChartHeight = chartHeight - 50,
           height = adjustedChartHeight - margin.top - margin.bottom,
-          innerChartHeight = height + margin.top,
-          adjustedChartHeight2 = margin.top,
+          titleHeight = 30,
+          titleSpace = 10,
+          innerChartHeight = height + margin.top - titleHeight - titleSpace,
+          adjustedChartHeight2 = +titleHeight + titleSpace + margin.top,
           yScale,
           timeScale,
+          yAxis,
           xAxis,
           xAxisGroup,
           brush,
@@ -183,12 +190,12 @@ namespace Charts {
               <span class='chartHoverValue'>${d.message}</span>
             </div>
             <div class='info-item'>
-              <span class='chartHoverLabel'>Resource Id:</span>
+              <span class='chartHoverLabel'>Middleware Resource:</span>
               <span class='chartHoverValue'>${d.resource}</span>
             </div>
             <div class='info-item'>
               <span class='chartHoverLabel'>Date Time:</span>
-              <span class='chartHoverValue'>${moment(d.timestamp).format('M/d/YY, H:mm:ss ')}</span>
+              <span class='chartHoverValue'>${moment(d.timestamp).format('M/D/YY, H:mm:ss ')}</span>
             </div>
           </div>`;
         }
@@ -204,10 +211,8 @@ namespace Charts {
 
           tip = d3.tip()
             .attr('class', 'd3-tip')
-            .direction('e')
-            .offset([0, 10])
             .html((d) => {
-              return TimelineHover(d);
+              return (d.html) ? d.html : TimelineHover(d);
             });
 
           svg = chart.append('g')
@@ -218,58 +223,83 @@ namespace Charts {
           svg.call(tip);
         }
 
-        function createScaleAndAxes(timelineEvents: TimelineEvent[]) {
+        function positionTip(d, i) {
+          let circle = d3.select(this);
+          tip.show(d, i);
+          let tipPosition = Number(circle.attr('cx')) + Number(tip.style('width').slice(0, -2));
+          if (tipPosition > TimelineChartDirective._CHART_WIDTH) {
+            tip.direction('w')
+              .offset([0, -10])
+              .show(d, i);
+          } else {
+            tip.direction('e')
+              .offset([0, 10])
+              .show(d, i);
+          }
+        }
 
-          if (attrs.startTimestamp) {
-            // explicit start/end timestamps are set
-            let adjustedTimeRange: number[] = [];
+        function determineTimelineScale(timelineEvent: TimelineEvent[]) {
+          let adjustedTimeRange: number[] = [];
 
-            startTimestamp = +attrs.startTimestamp;
+          startTimestamp = +attrs.startTimestamp ||
+            d3.min(timelineEvent, (d: TimelineEvent) => {
+              return d.timestamp;
+            }) || +moment().subtract(24, 'hour');
 
-            adjustedTimeRange[0] = startTimestamp || +moment().subtract('days', '7');
+          if (timelineEvent && timelineEvent.length > 0) {
+
+            adjustedTimeRange[0] = startTimestamp;
             adjustedTimeRange[1] = endTimestamp || +moment();
+            yScale = d3.scale.linear()
+              .clamp(true)
+              .rangeRound([70, 0])
+              .domain([0, 175]);
+
+            yAxis = d3.svg.axis()
+              .scale(yScale)
+              .ticks(0)
+              .tickSize(0, 0)
+              .orient('left');
 
             timeScale = d3.time.scale()
               .range([0, width])
               .domain(adjustedTimeRange);
 
-          } else {
-            // no start/end set so determine through the data
-            let xAxisMin = d3.min(timelineEvents, (d: TimelineEvent) => {
-              return +d.timestamp;
-            });
-            let xAxisMax = d3.max(timelineEvents, (d: TimelineEvent) => {
-              return +d.timestamp;
-            });
-
-            timeScale = d3.time.scale()
-              .range([0, width])
-              .domain([xAxisMin, xAxisMax]);
+            xAxis = d3.svg.axis()
+              .scale(timeScale)
+              .tickSize(-70, 0)
+              .orient('top')
+              .tickFormat(xAxisTimeFormats());
           }
-
-          xAxis = d3.svg.axis()
-            .scale(timeScale)
-            .ticks(10)
-            .tickSize(-80, 0)
-            .orient('bottom');
-
-          svg.selectAll('g.axis').remove();
-
-          // create x-axis
-          xAxisGroup = svg.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + height + ')')
-            .call(xAxis);
-
-          // 0-6 is the y-axis range, this means 1-5 is the valid range for
-          // values that won't be cut off half way be either axis.
-          yScale = d3.scale.linear()
-            .clamp(true)
-            .range([height, 0])
-            .domain([0, 6]);
         }
 
         function createTimelineChart(timelineEvents: TimelineEvent[]) {
+          let xAxisMin = +attrs.startTimestamp ||
+            d3.min(timelineEvents, (d: TimelineEvent) => {
+              return +d.timestamp;
+            });
+          let xAxisMax = +attrs.endTimestamp || d3.max(timelineEvents, (d: TimelineEvent) => {
+            return +d.timestamp;
+          });
+
+          let timelineTimeScale = d3.time.scale()
+            .range([0, width])
+            .domain([xAxisMin, xAxisMax]);
+
+          // 0-6 is the y-axis range, this means 1-5 is the valid range for
+          // values that won't be cut off half way be either axis.
+          let yScale = d3.scale.linear()
+            .clamp(true)
+            .range([height, 0])
+            .domain([0, 6]);
+
+          // The bottom line of the timeline chart
+          svg.append('line')
+            .attr('x1', 0)
+            .attr('y1', 70)
+            .attr('x2', 735)
+            .attr('y2', 70)
+            .attr('class', 'hkTimelineBottomLine');
 
           svg.selectAll('circle')
             .data(timelineEvents)
@@ -279,7 +309,7 @@ namespace Charts {
               return d.selected ? 'hkEventSelected' : 'hkEvent';
             })
             .attr('cx', (d: TimelineEvent) => {
-              return timeScale(new Date(d.timestamp));
+              return timelineTimeScale(new Date(d.timestamp));
             })
             .attr('cy', (d: TimelineEvent) => {
               return yScale(d.row);
@@ -288,16 +318,31 @@ namespace Charts {
               return d.color;
             })
             .attr('r', (d) => {
-              return 4;
-            }).on('mouseover', (d, i) => {
-              tip.show(d, i);
-            }).on('mouseout', () => {
+              return 3;
+            })
+            .on('mouseover', positionTip)
+            .on('mouseout', () => {
               tip.hide();
             }).on('dblclick', (d: TimelineEvent) => {
-              console.log('Double-Clicked:' + d.resource);
+              console.log('Double-Clicked:', d);
               d.selected = !d.selected;
               $rootScope.$broadcast(EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
             });
+        }
+
+        function createXandYAxes() {
+
+          svg.selectAll('g.axis').remove();
+
+          // create x-axis
+          xAxisGroup = svg.append('g')
+            .attr('class', 'x axis')
+            .call(xAxis);
+
+          // create y-axis
+          svg.append('g')
+            .attr('class', 'y axis')
+            .call(yAxis);
         }
 
         function createXAxisBrush() {
@@ -351,7 +396,8 @@ namespace Charts {
           if (timelineEvent && timelineEvent.length > 0) {
             ///NOTE: layering order is important!
             timelineChartSetup();
-            createScaleAndAxes(timelineEvent);
+            determineTimelineScale(timelineEvent);
+            createXandYAxes();
             createXAxisBrush();
             createTimelineChart(timelineEvent);
           }

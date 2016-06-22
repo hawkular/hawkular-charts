@@ -10,6 +10,8 @@ declare namespace Charts {
         scope: {
             data: string;
             showYAxisValues: string;
+            startTimestamp: string;
+            endTimestamp: string;
         };
         link: (scope: any, element: ng.IAugmentedJQuery, attrs: any) => void;
         dataPoints: IChartDataPoint[];

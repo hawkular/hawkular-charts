@@ -498,6 +498,8 @@ var Charts;
             this.scope = {
                 data: '=',
                 showYAxisValues: '=',
+                startTimestamp: '@',
+                endTimestamp: '@',
             };
             this.link = function (scope, element, attrs) {
                 var margin = { top: 0, right: 5, bottom: 5, left: 90 };
@@ -515,15 +517,13 @@ var Charts;
                     var parentNode = element[0].parentNode;
                     width = parentNode.clientWidth;
                     height = parentNode.clientHeight;
-                    modifiedInnerChartHeight = height - margin.top - margin.bottom - ContextChartDirective._XAXIS_HEIGHT,
-                        //console.log('Context Width: %i',width);
-                        //console.log('Context Height: %i',height);
-                        innerChartHeight = height + margin.top;
+                    modifiedInnerChartHeight = height - margin.top - margin.bottom - ContextChartDirective._XAXIS_HEIGHT;
+                    innerChartHeight = height + margin.top;
                     chart = chartParent.append('svg')
                         .attr('width', width - margin.left - margin.right)
                         .attr('height', innerChartHeight);
                     svg = chart.append('g')
-                        .attr('transform', 'translate(' + margin.left + ', 0)')
+                        .attr('transform', 'translate(' + margin.left + ', 0) scale(0.93)')
                         .attr('class', 'contextChart');
                 }
                 function createContextChart(dataPoints) {
@@ -636,12 +636,25 @@ var Charts;
                         //brushGroup.call(brush.clear());
                     }
                 }
+                function redrawBrush(startTimestamp, endTimestamp) {
+                    if (brush) {
+                        brush.extent([new Date(startTimestamp), new Date(endTimestamp)]);
+                        var contextChartBrush = d3.select('hk-context-chart').select('.brush');
+                        brush(contextChartBrush.transition());
+                        brush.event(contextChartBrush.transition());
+                    }
+                }
                 //d3.select(window).on('resize', scope.render(this.dataPoints));
                 scope.$watchCollection('data', function (newData) {
                     if (newData) {
                         _this.dataPoints = formatBucketedChartOutput(angular.fromJson(newData));
                         scope.render(_this.dataPoints);
                     }
+                });
+                scope.$watchGroup(['startTimestamp', 'endTimestamp'], function (newTimestamp) {
+                    var startTimestamp = +newTimestamp[0] || +scope.startTimestamp;
+                    var endTimestamp = +newTimestamp[1] || +scope.endTimestamp;
+                    redrawBrush(startTimestamp, endTimestamp);
                 });
                 function formatBucketedChartOutput(response) {
                     //  The schema is different for bucketed output
@@ -662,12 +675,10 @@ var Charts;
                 }
                 scope.render = function (dataPoints) {
                     if (dataPoints && dataPoints.length > 0) {
-                        console.time('contextChartRender');
                         ///NOTE: layering order is important!
                         resize();
                         createContextChart(dataPoints);
                         createXAxisBrush();
-                        console.timeEnd('contextChartRender');
                     }
                 };
             };
@@ -1440,26 +1451,29 @@ var Charts;
     'use strict';
     // ManageIQ External Management System Event
     var EmsEvent = (function () {
-        function EmsEvent(timestamp, eventSource, provider, message, resource) {
+        function EmsEvent(timestamp, eventSource, provider, html, message, resource) {
             this.timestamp = timestamp;
             this.eventSource = eventSource;
             this.provider = provider;
+            this.html = html;
             this.message = message;
             this.resource = resource;
         }
         return EmsEvent;
     }());
     Charts.EmsEvent = EmsEvent;
+    // Timeline specific for ManageIQ Timeline component
     /**
      * TimelineEvent is a subclass of EmsEvent that is specialized toward screen display
      */
     var TimelineEvent = (function (_super) {
         __extends(TimelineEvent, _super);
-        function TimelineEvent(timestamp, eventSource, provider, message, resource, formattedDate, color, row, selected) {
-            _super.call(this, timestamp, eventSource, provider, message, resource);
+        function TimelineEvent(timestamp, eventSource, provider, html, message, resource, formattedDate, color, row, selected) {
+            _super.call(this, timestamp, eventSource, provider, html, message, resource);
             this.timestamp = timestamp;
             this.eventSource = eventSource;
             this.provider = provider;
+            this.html = html;
             this.message = message;
             this.resource = resource;
             this.formattedDate = formattedDate;
@@ -1481,6 +1495,7 @@ var Charts;
                         timestamp: emsEvent.timestamp,
                         eventSource: emsEvent.eventSource,
                         provider: emsEvent.eventSource,
+                        html: emsEvent.html && "<div class='chartHover'> " + emsEvent.html + "</div>",
                         message: emsEvent.message,
                         resource: emsEvent.resource,
                         formattedDate: moment(emsEvent.timestamp).format('MMMM Do YYYY, h:mm:ss a'),
@@ -1503,7 +1518,7 @@ var Charts;
             var step = (endTimestamp - startTimeStamp) / n;
             for (var i = startTimeStamp; i < endTimestamp; i += step) {
                 var randomTime = Random.randomBetween(startTimeStamp, endTimestamp);
-                var event_1 = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider', 'Some Message', 'Resource' + '-' + Random.randomBetween(10, 100), moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
+                var event_1 = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider', null, 'Some Message', 'Resource' + '-' + Random.randomBetween(10, 100), moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
                 events.push(event_1);
             }
             return events;
@@ -1564,9 +1579,9 @@ var Charts;
                 // data specific vars
                 var startTimestamp = +attrs.startTimestamp, endTimestamp = +attrs.endTimestamp, chartHeight = TimelineChartDirective._CHART_HEIGHT;
                 // chart specific vars
-                var margin = { top: 10, right: 5, bottom: 5, left: 10 }, width = TimelineChartDirective._CHART_WIDTH - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, innerChartHeight = height + margin.top, adjustedChartHeight2 = margin.top, yScale, timeScale, xAxis, xAxisGroup, brush, brushGroup, tip, chart, chartParent, svg;
+                var margin = { top: 10, right: 5, bottom: 5, left: 10 }, width = TimelineChartDirective._CHART_WIDTH - margin.left - margin.right, adjustedChartHeight = chartHeight - 50, height = adjustedChartHeight - margin.top - margin.bottom, titleHeight = 30, titleSpace = 10, innerChartHeight = height + margin.top - titleHeight - titleSpace, adjustedChartHeight2 = +titleHeight + titleSpace + margin.top, yScale, timeScale, yAxis, xAxis, xAxisGroup, brush, brushGroup, tip, chart, chartParent, svg;
                 function TimelineHover(d) {
-                    return "<div class='chartHover'>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Event Source:</span>\n              <span class='chartHoverValue'>" + d.eventSource + "</span>\n            </div>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Provider:</span>\n              <span class='chartHoverValue'>" + d.provider + "</span>\n            </div>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Message:</span>\n              <span class='chartHoverValue'>" + d.message + "</span>\n            </div>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Resource Id:</span>\n              <span class='chartHoverValue'>" + d.resource + "</span>\n            </div>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Date Time:</span>\n              <span class='chartHoverValue'>" + moment(d.timestamp).format('M/d/YY, H:mm:ss ') + "</span>\n            </div>\n          </div>";
+                    return "<div class='chartHover'>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Event Source:</span>\n              <span class='chartHoverValue'>" + d.eventSource + "</span>\n            </div>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Provider:</span>\n              <span class='chartHoverValue'>" + d.provider + "</span>\n            </div>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Message:</span>\n              <span class='chartHoverValue'>" + d.message + "</span>\n            </div>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Middleware Resource:</span>\n              <span class='chartHoverValue'>" + d.resource + "</span>\n            </div>\n            <div class='info-item'>\n              <span class='chartHoverLabel'>Date Time:</span>\n              <span class='chartHoverValue'>" + moment(d.timestamp).format('M/D/YY, H:mm:ss ') + "</span>\n            </div>\n          </div>";
                 }
                 function timelineChartSetup() {
                     // destroy any previous charts
@@ -1578,10 +1593,8 @@ var Charts;
                         .attr('viewBox', '0 0 760 150').attr('preserveAspectRatio', 'xMinYMin meet');
                     tip = d3.tip()
                         .attr('class', 'd3-tip')
-                        .direction('e')
-                        .offset([0, 10])
                         .html(function (d) {
-                        return TimelineHover(d);
+                        return (d.html) ? d.html : TimelineHover(d);
                     });
                     svg = chart.append('g')
                         .attr('width', width + margin.left + margin.right)
@@ -1589,48 +1602,73 @@ var Charts;
                         .attr('transform', 'translate(' + margin.left + ',' + (adjustedChartHeight2) + ')');
                     svg.call(tip);
                 }
-                function createScaleAndAxes(timelineEvents) {
-                    if (attrs.startTimestamp) {
-                        // explicit start/end timestamps are set
-                        var adjustedTimeRange = [];
-                        startTimestamp = +attrs.startTimestamp;
-                        adjustedTimeRange[0] = startTimestamp || +moment().subtract('days', '7');
+                function positionTip(d, i) {
+                    var circle = d3.select(this);
+                    tip.show(d, i);
+                    var tipPosition = Number(circle.attr('cx')) + Number(tip.style('width').slice(0, -2));
+                    if (tipPosition > TimelineChartDirective._CHART_WIDTH) {
+                        tip.direction('w')
+                            .offset([0, -10])
+                            .show(d, i);
+                    }
+                    else {
+                        tip.direction('e')
+                            .offset([0, 10])
+                            .show(d, i);
+                    }
+                }
+                function determineTimelineScale(timelineEvent) {
+                    var adjustedTimeRange = [];
+                    startTimestamp = +attrs.startTimestamp ||
+                        d3.min(timelineEvent, function (d) {
+                            return d.timestamp;
+                        }) || +moment().subtract(24, 'hour');
+                    if (timelineEvent && timelineEvent.length > 0) {
+                        adjustedTimeRange[0] = startTimestamp;
                         adjustedTimeRange[1] = endTimestamp || +moment();
+                        yScale = d3.scale.linear()
+                            .clamp(true)
+                            .rangeRound([70, 0])
+                            .domain([0, 175]);
+                        yAxis = d3.svg.axis()
+                            .scale(yScale)
+                            .ticks(0)
+                            .tickSize(0, 0)
+                            .orient('left');
                         timeScale = d3.time.scale()
                             .range([0, width])
                             .domain(adjustedTimeRange);
+                        xAxis = d3.svg.axis()
+                            .scale(timeScale)
+                            .tickSize(-70, 0)
+                            .orient('top')
+                            .tickFormat(Charts.xAxisTimeFormats());
                     }
-                    else {
-                        // no start/end set so determine through the data
-                        var xAxisMin = d3.min(timelineEvents, function (d) {
+                }
+                function createTimelineChart(timelineEvents) {
+                    var xAxisMin = +attrs.startTimestamp ||
+                        d3.min(timelineEvents, function (d) {
                             return +d.timestamp;
                         });
-                        var xAxisMax = d3.max(timelineEvents, function (d) {
-                            return +d.timestamp;
-                        });
-                        timeScale = d3.time.scale()
-                            .range([0, width])
-                            .domain([xAxisMin, xAxisMax]);
-                    }
-                    xAxis = d3.svg.axis()
-                        .scale(timeScale)
-                        .ticks(10)
-                        .tickSize(-80, 0)
-                        .orient('bottom');
-                    svg.selectAll('g.axis').remove();
-                    // create x-axis
-                    xAxisGroup = svg.append('g')
-                        .attr('class', 'x axis')
-                        .attr('transform', 'translate(0,' + height + ')')
-                        .call(xAxis);
+                    var xAxisMax = +attrs.endTimestamp || d3.max(timelineEvents, function (d) {
+                        return +d.timestamp;
+                    });
+                    var timelineTimeScale = d3.time.scale()
+                        .range([0, width])
+                        .domain([xAxisMin, xAxisMax]);
                     // 0-6 is the y-axis range, this means 1-5 is the valid range for
                     // values that won't be cut off half way be either axis.
-                    yScale = d3.scale.linear()
+                    var yScale = d3.scale.linear()
                         .clamp(true)
                         .range([height, 0])
                         .domain([0, 6]);
-                }
-                function createTimelineChart(timelineEvents) {
+                    // The bottom line of the timeline chart
+                    svg.append('line')
+                        .attr('x1', 0)
+                        .attr('y1', 70)
+                        .attr('x2', 735)
+                        .attr('y2', 70)
+                        .attr('class', 'hkTimelineBottomLine');
                     svg.selectAll('circle')
                         .data(timelineEvents)
                         .enter()
@@ -1639,7 +1677,7 @@ var Charts;
                         return d.selected ? 'hkEventSelected' : 'hkEvent';
                     })
                         .attr('cx', function (d) {
-                        return timeScale(new Date(d.timestamp));
+                        return timelineTimeScale(new Date(d.timestamp));
                     })
                         .attr('cy', function (d) {
                         return yScale(d.row);
@@ -1648,16 +1686,27 @@ var Charts;
                         return d.color;
                     })
                         .attr('r', function (d) {
-                        return 4;
-                    }).on('mouseover', function (d, i) {
-                        tip.show(d, i);
-                    }).on('mouseout', function () {
+                        return 3;
+                    })
+                        .on('mouseover', positionTip)
+                        .on('mouseout', function () {
                         tip.hide();
                     }).on('dblclick', function (d) {
-                        console.log('Double-Clicked:' + d.resource);
+                        console.log('Double-Clicked:', d);
                         d.selected = !d.selected;
                         $rootScope.$broadcast(Charts.EventNames.TIMELINE_CHART_DOUBLE_CLICK_EVENT.toString(), d);
                     });
+                }
+                function createXandYAxes() {
+                    svg.selectAll('g.axis').remove();
+                    // create x-axis
+                    xAxisGroup = svg.append('g')
+                        .attr('class', 'x axis')
+                        .call(xAxis);
+                    // create y-axis
+                    svg.append('g')
+                        .attr('class', 'y axis')
+                        .call(yAxis);
                 }
                 function createXAxisBrush() {
                     brush = d3.svg.brush()
@@ -1697,7 +1746,8 @@ var Charts;
                     if (timelineEvent && timelineEvent.length > 0) {
                         ///NOTE: layering order is important!
                         timelineChartSetup();
-                        createScaleAndAxes(timelineEvent);
+                        determineTimelineScale(timelineEvent);
+                        createXandYAxes();
                         createXAxisBrush();
                         createTimelineChart(timelineEvent);
                     }
