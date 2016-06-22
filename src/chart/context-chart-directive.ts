@@ -63,22 +63,15 @@ namespace Charts {
             chartParent.selectAll('*').remove();
           }
           chartParent = d3.select(element[0]);
-
           const parentNode = element[0].parentNode;
-          
           width = (<any>parentNode).clientWidth;
           height = (<any>parentNode).clientHeight;
-          modifiedInnerChartHeight = height - margin.top - margin.bottom - ContextChartDirective._XAXIS_HEIGHT,
-
-            //console.log('Context Width: %i',width);
-            //console.log('Context Height: %i',height);
-
-            innerChartHeight = height + margin.top;
+          modifiedInnerChartHeight = height - margin.top - margin.bottom - ContextChartDirective._XAXIS_HEIGHT;
+          innerChartHeight = height + margin.top;
 
           chart = chartParent.append('svg')
             .attr('width', width - margin.left - margin.right)
             .attr('height', innerChartHeight);
-          console.log(margin.left);
           svg = chart.append('g')
             .attr('transform', 'translate(' + margin.left + ', 0) scale(0.93)')
             .attr('class', 'contextChart');
@@ -270,13 +263,11 @@ namespace Charts {
 
         scope.render = (dataPoints: IChartDataPoint[]) => {
           if (dataPoints && dataPoints.length > 0) {
-            console.time('contextChartRender');
 
             ///NOTE: layering order is important!
             resize();
             createContextChart(dataPoints);
             createXAxisBrush();
-            console.timeEnd('contextChartRender');
           }
         };
       };
