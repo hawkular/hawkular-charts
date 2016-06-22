@@ -4,9 +4,10 @@ declare namespace Charts {
         timestamp: TimeInMillis;
         eventSource: string;
         provider: string;
+        html: string;
         message: string;
         resource: string;
-        constructor(timestamp: TimeInMillis, eventSource: string, provider: string, message?: string, resource?: string);
+        constructor(timestamp: TimeInMillis, eventSource: string, provider: string, html?: string, message?: string, resource?: string);
     }
     /**
      * TimelineEvent is a subclass of EmsEvent that is specialized toward screen display
@@ -15,13 +16,14 @@ declare namespace Charts {
         timestamp: TimeInMillis;
         eventSource: string;
         provider: string;
+        html: string;
         message: string;
         resource: string;
         formattedDate: string;
         color: string;
         row: number;
         selected: boolean;
-        constructor(timestamp: TimeInMillis, eventSource: string, provider: string, message?: string, resource?: string, formattedDate?: string, color?: string, row?: number, selected?: boolean);
+        constructor(timestamp: TimeInMillis, eventSource: string, provider: string, html?: string, message?: string, resource?: string, formattedDate?: string, color?: string, row?: number, selected?: boolean);
         /**
          * Build TimelineEvents from EmsEvents
          * @param emsEvents
