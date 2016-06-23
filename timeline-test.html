@@ -61,8 +61,8 @@
 
       $scope.$on(Charts.EventNames.TIMELINE_CHART_TIMERANGE_CHANGED, function (event, data) {
         console.info('Received TimelineChartTimeRangeChanged: ' + data[0] + ' - ' + data[1]);
-        $scope.timeline.startTime = data[0];
-        $scope.timeline.endTime = data[1];
+        $scope.timeline.startTime = new Date(data[0]).getTime();
+        $scope.timeline.endTime = new Date(data[1]).getTime();
         $scope.filterTimelineByDateRange();
       });
 
@@ -129,8 +129,8 @@
         console.info('filterTimelineByDateRange');
 
         $scope.events = $scope.events.filter(function (value) {
-          return new Date(value.timestamp) >= $scope.timeline.startTime
-            && new Date(value.timestamp) <= $scope.timeline.endTime;
+          return value.timestamp >= $scope.timeline.startTime
+            && value.timestamp <= $scope.timeline.endTime;
         });
         console.log('New Timerange Events Selected: ' + $scope.events.length);
         console.table($scope.events);

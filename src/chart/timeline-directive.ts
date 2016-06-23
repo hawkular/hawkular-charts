@@ -381,7 +381,11 @@ namespace Charts {
 
         scope.$watchCollection('events', (newEvents) => {
           if (newEvents) {
-            this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
+            if (!(newEvents[0] instanceof TimelineEvent)) {
+              this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
+            } else {
+              this.events = newEvents;
+            }
             scope.render(this.events);
           }
         });

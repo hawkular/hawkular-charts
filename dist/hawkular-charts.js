@@ -1733,7 +1733,12 @@ var Charts;
                 }
                 scope.$watchCollection('events', function (newEvents) {
                     if (newEvents) {
-                        _this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
+                        if (!(newEvents[0] instanceof TimelineEvent)) {
+                            _this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
+                        }
+                        else {
+                            _this.events = newEvents;
+                        }
                         scope.render(_this.events);
                     }
                 });
