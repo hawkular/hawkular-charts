@@ -78,7 +78,7 @@ namespace Charts {
         let randomTime = Random.randomBetween(startTimeStamp, endTimestamp);
         const event = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider', null,
           'Some Message', 'Resource' + '-' + Random.randomBetween(10, 100),
-          moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
+          moment(i).format('MMMM Do YYYY, h:mm:ss a'), '#0088ce', RowNumber.nextRow());
 
         events.push(event);
 
