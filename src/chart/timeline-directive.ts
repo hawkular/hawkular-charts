@@ -78,7 +78,7 @@ namespace Charts {
         let randomTime = Random.randomBetween(startTimeStamp, endTimestamp);
         const event = new TimelineEvent(randomTime, 'Hawkular', 'Hawkular Provider', null,
           'Some Message', 'Resource' + '-' + Random.randomBetween(10, 100),
-          moment(i).format('MMMM Do YYYY, h:mm:ss a'), '0088ce', RowNumber.nextRow());
+          moment(i).format('MMMM Do YYYY, h:mm:ss a'), '#0088ce', RowNumber.nextRow());
 
         events.push(event);
 
@@ -381,7 +381,11 @@ namespace Charts {
 
         scope.$watchCollection('events', (newEvents) => {
           if (newEvents) {
-            this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
+            if (!(newEvents[0] instanceof TimelineEvent)) {
+              this.events = TimelineEvent.buildEvents(angular.fromJson(newEvents));
+            } else {
+              this.events = newEvents;
+            }
             scope.render(this.events);
           }
         });
