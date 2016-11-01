@@ -10,9 +10,9 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.8
-
 before_install:
-  - 'npm install -g bower gulp typescript'
-
-script:
-  - 'npm install && bower install && gulp build'
+- npm install -g yarn gulp bower typescript
+install:
+- yarn install
+- bower install -F
+- gulp build
