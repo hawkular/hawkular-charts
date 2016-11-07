@@ -27,7 +27,9 @@ The quickest way to start using the charts is to fire up a http server and start
 that https://nodejs.org[Node.js version 6.x] is installed. Then, to run the examples, from the
 _hawkular-charts_ root directory:
 
-`npm install && bower install`
+`yarn`
+
+This runs *yarn* dependency mgmt to load up all the npm packages and runs `bower install -F` to install the bower packages.
 
 `gulp` for a dev build that live loads or `gulp build` to build a production build.
 
