@@ -1,0 +1,433 @@
+ /*You can add global styles to this file, and also import other style files 
+/***
+ * CSS/LESS for the d3 SVG charts. This is SVG css not HTML css so some elements
+ * may look different from standard CSS/LESS.
+ */
+
+.hawkular-charts svg {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Trying to get SVG to act like a greedy block in all browsers */
+  display: block;
+  /*width: 100%;
+  height: 100%;*/
+}
+
+.hawkular-charts .axis path,
+.hawkular-charts .axis line {
+    fill: #a7a7ac;
+    stroke: #a7a7ac;
+    shape-rendering: crispEdges;
+}
+
+/* Horizontal gridlines */
+
+.hawkular-charts .grid .tick {
+  stroke: #e6e6e6;
+}
+
+.hawkular-charts .y.axis .tick.minor {
+  stroke: #a7a7ac;
+}
+
+.hawkular-charts .x.axis .tick.minor {
+  stroke: #a7a7ac;
+}
+
+.hawkular-charts .y.axis text,
+.hawkular-charts .x.axis text {
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: normal;
+  font-style: normal;
+  fill: #50505a;
+  text-rendering: optimizeLegibility;
+}
+
+.hawkular-charts .sparkline .x.axis text,
+.hawkular-charts .sparkline .y.axis text {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: normal;
+    font-style: normal;
+    text-rendering: optimizeLegibility;
+}
+
+.hawkular-charts .contextChart .x.axis text,
+.hawkular-charts .contextChart .y.axis text {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    font-size: 9px;
+    font-weight: normal;
+    font-style: normal;
+    fill: #bbbbbb;
+    text-rendering: optimizeLegibility;
+}
+
+.hawkular-charts .x.axis path,
+.hawkular-charts .y.axis path {
+  stroke: #d1d1d1;
+}
+
+.hawkular-charts .yAxisUnitsLabel {
+  fill: #bbbbbb b;
+  opacity: .5;
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  text-rendering: optimizeLegibility;
+}
+
+/* Brush related rules */
+
+.hawkular-charts .brush rect.extent {
+  fill: rgba(0,125,199,0.1);
+  shape-rendering: crispEdges;
+}
+
+.hawkular-charts .brush .resize path {
+  fill: #666666;
+  fill-opacity: .8;
+  stroke: #000000;
+  stroke-width: 1px;
+}
+
+.hawkular-charts .minLabel,
+.hawkular-charts .avgLabel,
+.hawkular-charts .highLabel {
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  text-anchor: start;
+  fill: #003168;
+  text-rendering: optimizeLegibility;
+}
+
+.hawkular-charts .minText,
+.hawkular-charts .avgText,
+.hawkular-charts .highText {
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 12px;
+  text-anchor: start;
+  fill: #003168;
+  text-rendering: optimizeLegibility;
+}
+
+/* Availability */
+
+.hawkular-charts .availYAxisLine {
+  stroke: #000000;
+  fill: #000000;
+  stroke-width: 1px;
+}
+
+/*
+.hawkular-charts .availUpLabel {
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 14px;
+  fill: "#999";
+  text-anchor: "end";
+}
+
+.hawkular-charts .availDownLabel {
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 14px;
+  fill: "#999";
+  text-anchor: "end";
+}
+*/
+
+/* Bar Chart */
+
+.hawkular-charts rect.high {
+  fill: #1794bc;
+}
+
+.hawkular-charts rect.low {
+  fill: #70c4e2;
+}
+
+.hawkular-charts .barAvgLine {
+  fill: none;
+  stroke: #2e376a;
+  stroke-width: 1.5;
+  stroke-opacity: 0.7;
+}
+
+.hawkular-charts .alertLine {
+  fill: #cc0000;
+  stroke: #cc0000;
+  stroke-width: 2px;
+  stroke-dasharray: 10, 5;
+}
+
+.hawkular-charts .alertBounds {
+  fill: #feedee;
+}
+
+.hawkular-charts .sparklineAlertLine {
+  stroke: #cc0000;
+  stroke-width: 1px;
+  stroke-dasharray: 5, 5;
+}
+
+.hawkular-charts .prevRangeAvgLine {
+  fill: none;
+  stroke: #ff1a13;
+  stroke-width: 3;
+  stroke-opacity: 0.4;
+}
+
+.hawkular-charts .metricLine {
+  fill: none;
+  stroke: #1884c7;
+  stroke-width: 2px;
+}
+
+.hawkular-charts .multiLine {
+  stroke-width: 2px;
+}
+
+.hawkular-charts .dataPointDot {
+  fill: #1884c7;
+  stroke-width: 1;
+  stroke: black;
+}
+
+.hawkular-charts .avgLine {
+  fill: none;
+  stroke: #2e376a;
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
+}
+
+.hawkular-charts .highLine {
+  fill: none;
+  stroke: #ff1a13;
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
+}
+
+.hawkular-charts .lowLine {
+  fill: none;
+  stroke: #70c4e2;
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
+}
+
+.hawkular-charts .chartLine {
+  fill: none;
+  stroke: #0757ff;
+  stroke-width: 2;
+}
+
+.hawkular-charts .areaLine {
+  fill: none;
+  stroke: #0757ff;
+  stroke-width: 2;
+  stroke-opacity: 0.9;
+}
+
+/* Context Chart */
+
+.hawkular-charts .contextArea {
+  fill: #ededed;
+  stroke: none;
+  stroke-width: 0;
+  opacity: .8;
+}
+
+.hawkular-charts .contextLine {
+  fill: none;
+  stroke: #9b9b9b;
+  stroke-width: 2;
+}
+
+/* Sparkline Chart */
+
+.hawkular-charts .sparklineArea {
+  fill: #edf7ff;
+  stroke: #cce7f5;
+  stroke-width: 0;
+  opacity: .8;
+}
+
+.hawkular-charts .sparklineLine {
+  fill: none;
+  stroke: #0088ce;
+  stroke-width: 2;
+}
+
+.hawkular-charts .forecastLine {
+  fill: none;
+  stroke: #0757ff;
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  stroke-opacity: 0.9;
+}
+
+/* Tooltip */
+
+.hawkular-charts .d3-tip {
+  background-color: rgba(67,67,67,0.95);
+  border-radius: 1px;
+  line-height: 1.2;
+  padding: 10px;
+  transition: opacity 0.3s ease;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.hawkular-charts .d3-tip:after {
+  bottom: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-top-color: #4d4d4d;
+  border-width: 8px 8px 0;
+  content: "";
+  height: 0;
+  position: absolute;
+  width: 0;
+}
+
+/* Style northward tooltips differently */
+.hawkular-charts .d3-tip.n:after {
+  margin: 0 0 0 -8px;
+  top: 100%;
+  left: 50%;
+}
+
+/* Eastward tooltips */
+.hawkular-charts .d3-tip.e:after {
+  content: "\25C0";
+  margin: -4px 0 0 0;
+  top: 50%;
+  left: -8px;
+}
+
+.hawkular-charts .chartHover {
+  color: #ffffff;
+  display: table;
+  font-family: "Open Sans", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+}
+
+.hawkular-charts .chartHover .info-item {
+    display: table-row;
+}
+.hawkular-charts .chartHover .info-item span {
+    display: table-cell;
+    padding: 3px 5px;
+}
+
+.hawkular-charts .chartHover .separator span {
+    border-top: 1px solid #777777;
+    padding-top: 10px;
+}
+
+.hawkular-charts .chartHover .before-separator span {
+    padding-bottom: 10px;
+}
+
+.hawkular-charts .chartHoverLabel {
+  color: #d3d3d3;
+}
+
+/* Area Chart */
+
+.hawkular-charts .highArea {
+  fill: #004368;
+  opacity: 0.85;
+  stroke-width: 1;
+  stroke: #000000;
+}
+
+.hawkular-charts .avgArea {
+  fill: #0088ce;
+  opacity: 0.85;
+  stroke-width: 0.5;
+  stroke: none;
+}
+
+.hawkular-charts .lowArea {
+  fill: #bee1f4;
+  opacity: 0.85;
+  stroke-width: 0.5;
+  stroke: none;
+}
+
+.hawkular-charts .areaChart {
+  fill: #e3f1fa;
+  fill-opacity: 0.9;
+  stroke-width: 2;
+  stroke: #3e81c7;
+  stroke-opacity: .8;
+}
+
+/* Predictive Cone for forecasting */
+.hawkular-charts .coneArea {
+  fill: #229ece;
+  opacity: 0.1;
+  stroke-width: 0.5;
+  stroke: none;
+}
+
+/* Scatter chart */
+.hawkular-charts .highDot {
+  fill: #ff1a13;
+  stroke-width: 1;
+  stroke: black;
+}
+
+.hawkular-charts .avgDot {
+  fill: gray;
+  stroke-width: 1;
+  stroke: black;
+}
+
+.hawkular-charts .lowDot {
+  fill: #70c4e2;
+  stroke-width: 1;
+  stroke: black;
+}
+
+/*
+.hawkular-charts .histogram {
+  stroke-width: 1.5;
+  stroke-opacity: 0.9;
+  stroke: black;
+ opacity: 0.3;
+}
+*/
+
+.hawkular-charts .annotationDot {
+  fill: #ff1a13;
+  opacity: 0.6;
+  stroke-width: 1;
+  stroke: #000;
+}
+
+.hawkular-charts .hkEvent {
+  stroke-width: 1;
+  stroke: #000;
+}
+
+.hawkular-charts .hkEventSelected {
+  stroke-width: 2;
+  stroke: #000;
+  fill: #ff1a13;
+}
+
+.hawkular-charts .hkTimelineBottomLine {
+  stroke-width: 1;
+  stroke: #D0D0D0;
+}
+
+.hawkular-charts .hkEventLabel {
+  fill: #000;
+  font-family: "Open Sans", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+}

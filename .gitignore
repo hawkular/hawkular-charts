@@ -1,24 +1,8 @@
-# Logs
-logs
+$ cat .gitignore
+/node_modules
+/dist
+/documentation
+.vscode/
+
 *.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-
-.grunt/
-
-.idea/
-
-# Dependency directory
-# Commenting this out is preferred by some people, see
-# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git-
-node_modules/
-libs/
-
-# Users Environment Variables
-.lock-wscript
-
-# Mac OSX
-.DS_Store
+*.tgz
