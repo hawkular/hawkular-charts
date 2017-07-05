@@ -1,14 +1,10 @@
-= http://github.com/hawkular/hawkular-charts[Angular Directives for Metrics Visualization]
+= http://github.com/hawkular/hawkular-charts[Angular Components for Metrics Visualization]
 
 __"Legos for Metrics Visualization"__
 
-image::https://www.bithound.io/github/hawkular/hawkular-charts/badges/score.svg[link="https://www.bithound.io/github/hawkular/hawkular-charts"]
-image::https://www.bithound.io/github/hawkular/hawkular-charts/badges/dependencies.svg[link="https://www.bithound.io/github/hawkular/hawkular-charts/master/dependencies/npm"]
-
-
-This project provides AngularJS directives for displaying custom visual representations of time series data as charts.
+This project provides Angular 4 components for displaying custom visual representations of time series data as charts.
 It uses http://d3js.org[D3] as its charting toolkit and tries to simplify creating advanced metrics visualizations
-with Angular.js directives.
+with Angular.io components
 
 While designed for use in the Hawkular UI console, it is a general purpose, metrics charting library designed to work with any array of data as long as it can be transformed into a tuple of datetime/value pairs.
 
@@ -23,24 +19,20 @@ This will also make adhoc development quicker/easier with components that can re
 
 == Development Quickstart
 
-The quickest way to start using the charts is to fire up a http server and start playing with the code. Make sure
-that https://nodejs.org[Node.js version 6.x] is installed. Then, to run the examples, from the
-_hawkular-charts_ root directory:
+The quickest way to start using the charts is to use https://github.com/angular/angular-cli[angular-cli]. Make sure
+that https://nodejs.org[Node.js version 6.x] is installed.
 
-`npm install && bower install`
+To provide a components library, this project follows https://github.com/robisim74/angular-library-starter[angular-library-starter] pattern.
 
-`gulp` for a dev build that live loads or `gulp build` to build a production build.
+Then, from the _hawkular-charts_ root directory:
 
+`npm install && npm run build`
 
-This command will startup a web server and launch the default browser to that page -- listening for any
-changes in your code and automatically refreshing the browser with changes. Additionally, it will sync the
-changes to all of the browsers with localhost:3001/* open -- making it easy to check across multiple browsers and
-even mobile browsers for responsive layout changes!
+To test locally the npm package:
 
-IMPORTANT: Gulp version 3.9.0+ is required (since we use an ES6 gulpfile)
+`npm run pack-lib`
 
-These controls are currently being used in the Hawkular Console to view various metrics charts displayed there.
-Please see https://github.com/hawkular/hawkular/tree/master/console for more real examples.
+That will pack a tgz file that you can then use from a downstream app with `npm install [path]/hawkular-charts-[version].tgz`
 
 == Charts
 
@@ -50,11 +42,13 @@ Chart types are set via the *chart-type* attribute of the *hk-metric-chart* dire
 The following chart types are available:
 
 * *line:* this is the default chart type if not specified and is recommended for most metrics display
-* _hawkularmetric:_ specifically tailored toward Single Metrics Display (default if you don't specify) __DEPRECATION WARNING: this will be replaced with *line* in the future__
+* *multiline:* specifically made for display multiple metrics in a singe graph
+
+Note: the following other types are not yet implemented as Angular 2+ components (they were in previous AngularJS directives)
+
 * *histogram:* histogram bar chart (used in Hawkular GC chart)
 * *area:* standard area chart with hawkular extensions
 * *scatter:* regular scatter plot supporting avg/high/low
-* *multiline:* specifically made for display multiple metrics in a singe graph
 * *rhqbar:* http://rhq-project.github.io/rhq/[RHQ/JON] style graphs https://docs.jboss.org/author/display/RHQ/d3+Charts
 
 All of the chart types are either in the process of being approved by Red Hat UxD, or have been approved.
@@ -65,10 +59,10 @@ image::img/hawkular-metric-charts.png[Hawkular Metrics Chart Type]
 
 _Sample code for this chart:_
 
-[source,javascript]
+[source,html]
 ----
 <hk-metric-chart
-    data="dataPoints"
+    raw-data="dataPoints"
     chart-type="line"
     alert-value="{{threshold}}"
     y-axis-units="Response Time (ms)">
@@ -180,11 +174,9 @@ Don't like the charts we have? Take one of the existing charts and modify (there
 
 == How to Get
 
-        bower install hawkular-charts --save
+This version is currently not published. May be published on npm n the future.
 
-Or
-
-*Download:* http://rawgit.com/hawkular/hawkular-charts/master/hawkular-charts.js[hawkular-charts.js]
+For the time being you need to clone this repository and build as described above.
 
 == Using the Charting Directives
 Bind to a javascript array of metrics:
@@ -192,8 +184,8 @@ Bind to a javascript array of metrics:
 [source,javascript]
 ----
  <hk-metric-chart
-     data="vm.getChartDataFor(selectedMetric)"
-     chart-type="{{selectedChart.chartType}}">
+     [raw-data]="vm.getChartDataFor(selectedMetric)"
+     [chart-type]="selectedChart.chartType">
  </hk-metric-chart>
 ----
 
@@ -201,11 +193,11 @@ The nice part of about using angular in the charting framework is that whenever 
 This results in less code and more productivity.
 
 .Prerequisite setup:
-. Add the hawkular-charts.css to the main index.html page
-. Add the hawkular-charts.js to the main index.html page
-. Add the charting module to the application module: `app.module('myApp', ['hawkular.charts']);`
+. Install the built tgz with npm (`npm install [path]/hawkular-charts-[version].tgz`)
+. In your downstream _.angular-cli.json_, add link to CSS _"../node_modules/hawkular-charts/styles.css"_
+. Use `ng build` or `ng serve` to build with angular-cli.
 
-All that's left to do now is select the chart type and bind the _data_ attribute on the __<hk-metric-chart>__ directive.
+All that's left to do now is select the chart type and bind the _raw-data_ (or _stats-data_) attribute on the __<hk-metric-chart>__ directive.
 
 === Stand Alone Live Updating Tag Example
 __Quickly and easily add some dynamically updating charts to your own pages__
@@ -281,6 +273,8 @@ _Example:_
 === Metrics Data
 
 ==== Single Chart Data Format
+
+TODO: differentiate _raw-data_ and _stats-data_, now they must be explicitly mentioned.
 
 .Table Aggregated Metrics Data Format
 |===
@@ -369,23 +363,6 @@ class with a name and drawChart method. And then adding it to the https://github
 .ts[registered chart types]
 
 
-== Building the Project
-
-.You have to install required software before you're able to use grunt to build:
-* Install _Node.js_ - Find more information on http://nodejs.org/[Node.js]
-** Install _npm_ - If npm is not already installed with Node.js, you have to install it manually. Find more information on https://www.npmjs.org/[npm]
-* Install _Gulp_ and _Bower_ globally:   `npm install -g bower gulp`
-* Install _npm_ dependencies with:  `npm install`
-* Install _bower_ dependencies with:  `bower install`
-
-The environment is now ready to be built.
-
-The *Hawkular Charts*  directives can be built with: `gulp build`. Or, for dev build that updates with every
-change: `gulp`
-
-The resulting javascript file is placed in the root directory as _hawkular-charts.js_
-
-
 == Consuming Hawkular Charts from Hawkular Project
 
 Easily setup bower linking so that changes to the charts are instantly reflected in Hawkular console...
@@ -456,7 +433,7 @@ determined by the container surrounding the chart directive (a div for example).
 
 == Version 1.0
 
-.Verion 1.0 introduces some breaking changes to be aware of from previous releases:
+.Version 1.0 introduces some breaking changes to be aware of from previous releases:
 * Breaking Change: Rename ‘hawkular-chart’ directive to ‘hk-metric-chart’ to be more meaningful, now that there are
 multiple charting tags
 * Breaking Change: Renamed all chart types with a ‘hk-*’ prefix to be more consistent with standard directive library
