@@ -6,6 +6,8 @@ const globals = {
     '@angular/common': 'ng.common',
     'moment': 'moment',
     'rxjs/Observable': 'Rx',
+    'rxjs/Subscription': 'Rx',
+    'rxjs/observable/IntervalObservable': 'Rx',
     'rxjs/Observer': 'Rx',
     'rxjs/add/operator/map': 'Rx'
 };

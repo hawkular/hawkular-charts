@@ -1,11 +1,14 @@
-import { Component, OnChanges, SimpleChanges, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Http, RequestOptions, Headers, Response } from '@angular/http';
 
 import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
+import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import 'rxjs/add/operator/map';
 import 'moment/moment';
 
-import { INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, IPredictiveMetric, TimeInMillis, MetricId, UrlType } from '../model/types'
+import { INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, IPredictiveMetric,
+  TimeInMillis, MetricId, UrlType, TimeRange, FixedTimeRange, TimeRangeFromNow, isFixedTimeRange } from '../model/types'
 import { ChartOptions } from '../model/chart-options'
 import { EventNames } from '../model/event-names'
 import { IChartType } from '../model/chart-type'
@@ -37,7 +40,7 @@ const MARGIN = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room f
   selector: 'hk-metric-chart',
   template: `<div #target class='hawkular-charts'></div>`
 })
-export class MetricChartComponent implements OnChanges {
+export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
 
   @ViewChild('target') target: any;
   // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
@@ -45,7 +48,6 @@ export class MetricChartComponent implements OnChanges {
   @Input() metricId = '';
   @Input() metricTenantId = '';
   @Input() metricType = 'gauge';
-  @Input() timeRangeInSeconds = 43200;
   @Input() refreshIntervalInSeconds = 3600;
   @Input() alertValue: number;
   @Input() interpolation = 'monotone';
@@ -59,14 +61,25 @@ export class MetricChartComponent implements OnChanges {
   @Input() timestampLabel = 'Timestamp';
   @Input() rawData?: NumericDataPoint[];
   @Input() statsData?: NumericBucketPoint[];
+  @Input() multiData: IMultiDataPoint[];
   @Input() forecastDataPoints: IPredictiveMetric[];
   @Input() showDataPoints = false;
   @Input() previousRangeData = [];
   @Input() annotationData = [];
   @Input() yAxisUnits: string;
-  @Input() multiData: IMultiDataPoint[];
   @Input() raw: false;
   @Input() buckets = 60;
+  @Output() timeRangeChange = new EventEmitter();
+  timeRangeValue: TimeRange = 43200;
+  @Input()
+  get timeRange(): TimeRange {
+    return this.timeRangeValue;
+  }
+  set timeRange(val: TimeRange) {
+    this.timeRangeValue = val;
+    this.timeRangeChange.emit(this.timeRangeValue);
+  }
+
   showAvgLine = true;
   hideHighLowValues = false;
   useZeroMinValue = false;
@@ -90,9 +103,7 @@ export class MetricChartComponent implements OnChanges {
   visuallyAdjustedMax: number;
   peak: number;
   min: number;
-//  processedNewData;
-//  processedPreviousRangeData;
-//  startIntervalPromise;
+  refreshObservable?: Subscription;
 
   readonly registeredChartTypes: IChartType[] = [
     new LineChart(),
@@ -105,6 +116,16 @@ export class MetricChartComponent implements OnChanges {
   ];
 
   constructor (private http: Http) {
+  }
+
+  ngOnInit(): void {
+    this.resetRefreshLoop();
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshObservable) {
+      this.refreshObservable.unsubscribe();
+    }
   }
 
   resize(): void {
@@ -307,20 +328,22 @@ export class MetricChartComponent implements OnChanges {
 
   /**
    * Load metrics data directly from a running Hawkular-Metrics server
-   * @param startTimestamp
-   * @param endTimestamp
    */
-  loadStandAloneMetrics(startTimestamp?: TimeInMillis, endTimestamp?: TimeInMillis) {
+  loadStandAloneMetrics() {
     console.log('loadStandAloneMetrics');
 
-    startTimestamp = startTimestamp || Date.now() - 1000 * this.timeRangeInSeconds;
     const params: any = {
-      start: startTimestamp,
       order: 'ASC'
     };
-    if (endTimestamp) {
-      params.end = endTimestamp;
-    }
+    isFixedTimeRange(this.timeRangeValue,
+      (fixed) => {
+        params.start = fixed.start;
+        if (fixed.end) {
+          params.end = fixed.end;
+        }
+      },
+      (fromNow) => params.start = Date.now() - 1000 * fromNow);
+
     let endpoint: string;
     if (this.raw) {
       endpoint = '/raw';
@@ -536,8 +559,7 @@ export class MetricChartComponent implements OnChanges {
           this.modifiedInnerChartHeight, this.height, this.tip, this.visuallyAdjustedMax,
           this.hideHighLowValues, this.interpolation);
 
-        // FIXME (restore)
-        // $rootScope.$broadcast(EventNames.CHART_TIMERANGE_CHANGED.toString(), extent);
+        this.setTimeRange(startTime, endTime);
       }
       // clear the brush selection
       this.brushGroup.call(this.brush.clear());
@@ -569,7 +591,7 @@ export class MetricChartComponent implements OnChanges {
 
   }
 
-  annotateChart(annotationData: any/*FIXME: typing?*/) {
+  annotateChart() {
     console.log('annotateChart');
 
     d3.scale.linear()
@@ -577,9 +599,9 @@ export class MetricChartComponent implements OnChanges {
       .rangeRound([this.modifiedInnerChartHeight, 0])
       .domain([this.visuallyAdjustedMin, this.visuallyAdjustedMax]);
 
-    if (annotationData) {
+    if (this.annotationData) {
       this.svg.selectAll('.annotationDot')
-        .data(annotationData)
+        .data(this.annotationData)
         .enter().append('circle')
         .attr('class', 'annotationDot')
         .attr('r', 5)
@@ -652,7 +674,7 @@ export class MetricChartComponent implements OnChanges {
     }
 
     if (this.annotationData) {
-      this.annotateChart(this.annotationData);
+      this.annotateChart();
     }
     if (this.forecastDataPoints && this.forecastDataPoints.length > 0) {
       showForecastData(this.forecastDataPoints, chartOptions);
@@ -674,93 +696,77 @@ export class MetricChartComponent implements OnChanges {
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
-    if (changes['multiData']) {
-      if (changes['multiData'].currentValue || changes['multiData'].previousValue) {
-        // this.multiData = angular.fromJson(newMultiData || []);
-        this.render();
-      }
+  resetRefreshLoop(): void {
+    if (this.refreshObservable) {
+      this.refreshObservable.unsubscribe();
+      this.refreshObservable = undefined;
     }
+    let needRefresh = false;
+    isFixedTimeRange(this.timeRangeValue,
+      (fixed) => needRefresh = (fixed.end == undefined),
+      (fromNow) => needRefresh = true);
 
-    if (changes['metricUrl'] || changes['metricId'] || changes['metricType'] || changes['metricTenantId'] || changes['timeRangeInSeconds']) {
-      this.loadStandAloneMetrics();
+    if (this.refreshIntervalInSeconds && needRefresh) {
+      this.refreshObservable = IntervalObservable.create(this.refreshIntervalInSeconds * 1000)
+        .subscribe(() => this.loadStandAloneMetrics());
     }
-
-    // FIXME: restore?
-          // scope.$watchCollection('data', (newData, oldData) => {
-          //   if (newData || oldData) {
-          //     processedNewData = angular.fromJson(newData || []);
-          //     scope.render(processedNewData);
-          //   }
-          // });
-
-          // scope.$watch('previousRangeData', (newPreviousRangeValues) => {
-          //   if (newPreviousRangeValues) {
-          //     processedPreviousRangeData = angular.fromJson(newPreviousRangeValues);
-          //     scope.render(processedNewData);
-          //   }
-          // }, true);
-
-          // scope.$watch('annotationData', (newAnnotationData) => {
-          //   if (newAnnotationData) {
-          //     annotationData = angular.fromJson(newAnnotationData);
-          //     scope.render(processedNewData);
-          //   }
-          // }, true);
-
-          // scope.$watch('forecastData', (newForecastData) => {
-          //   if (newForecastData) {
-          //     forecastDataPoints = angular.fromJson(newForecastData);
-          //     scope.render(processedNewData);
-          //   }
-          // }, true);
-
-          // scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'],
-          //   (chartAttrs) => {
-          //     alertValue = chartAttrs[0] || alertValue;
-          //     chartType = chartAttrs[1] || chartType;
-          //     hideHighLowValues = (typeof chartAttrs[2] !== 'undefined') ? chartAttrs[2] : hideHighLowValues;
-          //     useZeroMinValue = (typeof chartAttrs[3] !== 'undefined') ? chartAttrs[3] : useZeroMinValue;
-          //     showAvgLine = (typeof chartAttrs[4] !== 'undefined') ? chartAttrs[4] : showAvgLine;
-          //     scope.render(processedNewData);
-          //   });
-
-          // /// standalone charts attributes
-          // scope.$watchGroup(['metricUrl', 'metricId', 'metricType', 'metricTenantId', 'timeRangeInSeconds'],
-          //   (standAloneParams) => {
-          //     dataUrl = standAloneParams[0] || dataUrl;
-          //     metricId = standAloneParams[1] || metricId;
-          //     metricType = standAloneParams[2] || metricId;
-          //     metricTenantId = standAloneParams[3] || metricTenantId;
-          //     timeRangeInSeconds = standAloneParams[4] || timeRangeInSeconds;
-          //     loadStandAloneMetricsTimeRangeFromNow();
-          //   });
-
-          // scope.$watch('refreshIntervalInSeconds', (newRefreshInterval) => {
-          //   if (newRefreshInterval) {
-          //     refreshIntervalInSeconds = +newRefreshInterval;
-          //     $interval.cancel(startIntervalPromise);
-          //     startIntervalPromise = $interval(() => {
-          //       loadStandAloneMetricsTimeRangeFromNow();
-          //     }, refreshIntervalInSeconds * 1000);
-          //   }
-          // });
   }
 
-  // FIXME: restore
-          // scope.$on('$destroy', () => {
-          //   $interval.cancel(startIntervalPromise);
-          // });
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log(changes);
 
-          // scope.$on(EventNames.DATE_RANGE_DRAG_CHANGED, (event, extent) => {
-          //   scope.$emit(EventNames.CHART_TIMERANGE_CHANGED, extent);
-          // });
+    if (changes['metricUrl'] || changes['metricId'] || changes['metricType'] || changes['metricTenantId'] || changes['timeRange']) {
+      this.loadStandAloneMetrics();
+      // Note: rendering will be done on HTTP response
+    } else if (changes['multiData'] || changes['rawData'] || changes['statsData'] || changes['previousRangeData']
+         || changes['forecastDataPoints'] || changes['alertValue'] || changes['chartType'] || changes['hideHighLowValues']
+         || changes['useZeroMinValue'] || changes['showAvgLine']) {
+      this.render();
+    } else if (changes['annotationData']) {
+      this.annotateChart();
+    }
 
-          // scope.$on(EventNames.CHART_TIMERANGE_CHANGED, (event, extent) => {
-          //   // forecast data not relevant to past data
-          //   attrs.forecastData = [];
-          //   forecastDataPoints = [];
-          //   scope.$digest();
-          // });
+    if (changes['refreshIntervalInSeconds']) {
+      this.resetRefreshLoop();
+    }
+  }
+
+  setTimeRange(startTime: TimeInMillis, endTime: TimeInMillis) {
+    console.log('onChartTimerangeChanged');
+    let fixedEnd = false;
+    // We will set this.end only if it's not "now". Else, we don't set it so that it will keep refreshing with latest values
+    if (this.rawData) {
+      if (this.rawData.length > 0) {
+        const lastTimestamp = this.rawData[this.rawData.length - 1].timestamp;
+        this.rawData = this.rawData.filter((d) => d.timestamp >= startTime && d.timestamp <= endTime);
+        if (this.rawData[this.rawData.length - 1].timestamp !== lastTimestamp) {
+          fixedEnd = true;
+        }
+      }
+    } else if (this.statsData) {
+      if (this.statsData.length > 0) {
+        const lastTimestamp = this.statsData[this.statsData.length - 1].end;
+        this.statsData = this.statsData.filter((d) => d.end >= startTime && d.start <= endTime);
+        if (this.statsData[this.statsData.length - 1].end !== lastTimestamp) {
+          fixedEnd = true;
+        }
+      }
+    } else {
+      // multiDataPoints
+      this.multiData.forEach(series => {
+        if (series.values.length > 0) {
+          const lastTimestamp = series.values[series.values.length - 1].timestampSupplier();
+          series.values = series.values.filter((d) => d.timestampSupplier() >= startTime && d.timestampSupplier() <= endTime);
+          if (series.values[series.values.length - 1].timestampSupplier() !== lastTimestamp) {
+            fixedEnd = true;
+          }
+        }
+      });
+    }
+    this.timeRange = {
+      start: startTime,
+      end: fixedEnd ? endTime : undefined
+    }
+    this.render();
+  }
 }

@@ -34,7 +34,7 @@ shell.echo(chalk.green(`AoT compilation completed`));
 /* Creates bundles: ESM/ES5 and UMD bundles */
 shell.echo(`Start bundling`);
 shell.echo(`Rollup package`);
-shell.exec(`rollup -i ${NPM_DIR}/index.js -o ${MODULES_DIR}/${PACKAGE}.js --sourcemap`, { silent: false });
+shell.exec(`rollup -i ${NPM_DIR}/index.js -o ${MODULES_DIR}/${PACKAGE}.js --sourcemap`, { silent: true });
 shell.exec(`node scripts/map-sources -f ${MODULES_DIR}/${PACKAGE}.js`);
 
 shell.echo(`Downleveling ES2015 to ESM/ES5`);
@@ -64,6 +64,6 @@ shell.rm(`-Rf`, `${NPM_DIR}/*.js.map`);
 shell.rm(`-Rf`, `${NPM_DIR}/src/**/*.js`);
 shell.rm(`-Rf`, `${NPM_DIR}/src/**/*.js.map`);
 
-shell.cp(`-Rf`, [`package.json`, `LICENSE`, `README.md`, `styles.css`], `${NPM_DIR}`);
+shell.cp(`-Rf`, [`package.json`, `LICENSE`, `README.adoc`, `styles.css`], `${NPM_DIR}`);
 
 shell.echo(chalk.green(`End building`));
