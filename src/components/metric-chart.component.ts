@@ -37,7 +37,7 @@ const debug = false;
 const DEFAULT_Y_SCALE = 10;
 const X_AXIS_HEIGHT = 25; // with room for label
 const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm:ss a';
-const MARGIN = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room for label
+const MARGIN = { top: 0, right: 0, bottom: 0, left: 0 }; // left margin room for label
 
 @Component({
   selector: 'hk-metric-chart',
