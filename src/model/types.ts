@@ -12,7 +12,7 @@ export interface FixedTimeRange {
 }
 
 export type TimeRange = TimeRangeFromNow | FixedTimeRange;
-export function isFixedTimeRange(timerange: TimeRange, ifTrue: (fixed: FixedTimeRange) => void, ifFalse: (fixed: TimeRangeFromNow) => void) {
+export function isFixedTimeRange(timerange: TimeRange, ifTrue?: (fixed: FixedTimeRange) => void, ifFalse?: (fixed: TimeRangeFromNow) => void) {
   if (timerange.hasOwnProperty('start')) {
     if (ifTrue) {
       ifTrue(<FixedTimeRange>timerange);
