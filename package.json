@@ -35,7 +35,6 @@
     "@angular/http": "^4.1.0"
   },
   "dependencies": {
-    "moment": "^2.9.0"
   },
   "devDependencies": {
     "@angular/animations": "4.1.0",

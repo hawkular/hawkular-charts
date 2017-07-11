@@ -9,7 +9,7 @@ import { INumericDataPoint } from '../model/types'
  * @param dataPoints
  */
 export function createDataPoints(svg: any, timeScale: any, yScale: any, tip: any, dataPoints: INumericDataPoint[]) {
-  const radius = 1;
+  const radius = 3;
   const dotDatapoint = svg.selectAll('.dataPointDot').data(dataPoints);
 
   // update existing

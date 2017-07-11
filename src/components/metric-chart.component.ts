@@ -5,7 +5,6 @@ import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import 'rxjs/add/operator/map';
-import 'moment/moment';
 
 import {
   INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, IPredictiveMetric,
@@ -29,15 +28,15 @@ import { createAlertBoundsArea, createAlertLine } from '../util/alerts'
 import { createDataPoints } from '../util/features'
 import { showForecastData } from '../util/forecast'
 
-declare let d3: any;
 declare let moment: any;
+declare let d3: any;
 declare let console: any;
 
 const debug = false;
 
 const DEFAULT_Y_SCALE = 10;
 const X_AXIS_HEIGHT = 25; // with room for label
-const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
+const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm:ss a';
 const MARGIN = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room for label
 
 @Component({
@@ -157,12 +156,14 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     this.svg = this.chart.append('g')
       .attr('transform', 'translate(' + MARGIN.left + ',' + (MARGIN.top) + ')');
 
+    if (this.tip) {
+      this.tip.hide();
+    }
     this.tip = d3.tip()
       .attr('class', 'd3-tip')
       .offset([-10, 0])
       .html((d: INumericDataPoint, i: number) => this.buildHover(d, i));
-
-    this.tip.bind(this.svg);
+    this.svg.call(this.tip);
 
     // a placeholder for the alerts
     this.svg.append('g').attr('class', 'alertHolder');
@@ -371,7 +372,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   buildHover(dataPoint: INumericDataPoint, i: number) {
-    console.log('buildHover');
     const currentTimestamp = dataPoint.timestampSupplier();
     let hover,
       prevTimestamp,
@@ -387,48 +387,46 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     if (dataPoint.isEmpty()) {
       // nodata
       hover = `<div class='chartHover'>
-        <small class='chartHoverLabel'>{{noDataLabel}}</small>
-        <div><small><span class='chartHoverLabel'>{{durationLabel}}</span><span>:
-        </span><span class='chartHoverValue'>{{barDuration}}</span></small> </div>
+        <small class='chartHoverLabel'>${this.noDataLabel}</small>
+        <div><small><span class='chartHoverLabel'>${this.durationLabel}</span><span>:
+        </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
         <hr/>
-        <div><small><span class='chartHoverLabel'>{{timestampLabel}}</span><span>:
-        </span><span class='chartHoverValue'>{{formattedDateTime}}</span></small></div>
+        <div><small><span class='chartHoverLabel'>${this.timestampLabel}</span><span>:
+        </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
         </div>`;
     } else {
       if (dataPoint.isRaw()) {
         // raw single value from raw table
         hover = `<div class='chartHover'>
-        <div><small><span class='chartHoverLabel'>{{timestampLabel}}</span><span>: </span>
-        <span class='chartHoverValue'>{{formattedDateTime}}</span></small></div>
-          <div><small><span class='chartHoverLabel'>{{durationLabel}}</span><span>: </span>
-          <span class='chartHoverValue'>{{barDuration}}</span></small></div>
-          <hr/>
-          <div><small><span class='chartHoverLabel'>{{singleValueLabel}}</span><span>: </span>
-          <span class='chartHoverValue'>{{d3.round(dataPoint.valueSupplier(), 2)}}</span></small> </div>
-          </div> `;
+        <div><small><span class='chartHoverLabel'>${this.timestampLabel}</span><span>: </span>
+        <span class='chartHoverValue'>${formattedDateTime}</span></small></div>
+        <hr/>
+        <div><small><span class='chartHoverLabel'>${this.singleValueLabel}</span><span>: </span>
+        <span class='chartHoverValue'>${d3.round(dataPoint.valueSupplier(), 2)}</span></small> </div>
+        </div> `;
       } else {
         // aggregate with min/avg/max
         const bucketDP: NumericBucketPoint = <NumericBucketPoint>dataPoint;
         hover = `<div class='chartHover'>
             <div class='info-item'>
-              <span class='chartHoverLabel'>{{timestampLabel}}:</span>
-              <span class='chartHoverValue'>{{formattedDateTime}}</span>
+              <span class='chartHoverLabel'>${this.timestampLabel}:</span>
+              <span class='chartHoverValue'>${formattedDateTime}</span>
             </div>
             <div class='info-item before-separator'>
-              <span class='chartHoverLabel'>{{durationLabel}}:</span>
-              <span class='chartHoverValue'>{{barDuration}}</span>
+              <span class='chartHoverLabel'>${this.durationLabel}:</span>
+              <span class='chartHoverValue'>${barDuration}</span>
             </div>
             <div class='info-item separator'>
-              <span class='chartHoverLabel'>{{maxLabel}}:</span>
-              <span class='chartHoverValue'>{{d3.round(bucketDP.max, 2)}}</span>
+              <span class='chartHoverLabel'>${this.maxLabel}:</span>
+              <span class='chartHoverValue'>${d3.round(bucketDP.max, 2)}</span>
             </div>
             <div class='info-item'>
-              <span class='chartHoverLabel'>{{avgLabel}}:</span>
-              <span class='chartHoverValue'>{{d3.round(bucketDP.avg, 2)}}</span>
+              <span class='chartHoverLabel'>${this.avgLabel}:</span>
+              <span class='chartHoverValue'>${d3.round(bucketDP.avg, 2)}</span>
             </div>
             <div class='info-item'>
-              <span class='chartHoverLabel'>{{minLabel}}:</span>
-              <span class='chartHoverValue'>{{d3.round(bucketDP.min, 2)}}</span>
+              <span class='chartHoverLabel'>${this.minLabel}:</span>
+              <span class='chartHoverValue'>${d3.round(bucketDP.min, 2)}</span>
             </div>
           </div> `;
       }
@@ -611,7 +609,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   render() {
-    console.log('render');
     // if we don't have data, don't bother..
     if (!this.rawData && !this.statsData && !this.multiData) {
       return;
@@ -684,7 +681,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   resetRefreshLoop(): void {
-    console.log('resetRefreshLoop');
     if (this.refreshObservable) {
       this.refreshObservable.unsubscribe();
       this.refreshObservable = undefined;
@@ -694,10 +690,9 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       (fixed) => needRefresh = (fixed.end == undefined),
       (fromNow) => needRefresh = true);
 
-    if (this.refreshIntervalInSeconds && needRefresh && this.isServerConfigured()) {
-      console.log('create refresh observable, interval=' + this.refreshIntervalInSeconds);
+    if (this.refreshIntervalInSeconds && this.refreshIntervalInSeconds > 0 && needRefresh && this.isServerConfigured()) {
       this.refreshObservable = IntervalObservable.create(this.refreshIntervalInSeconds * 1000)
-        .subscribe(() => { console.log('in refresh'); this.loadStandAloneMetrics(); });
+        .subscribe(() => this.loadStandAloneMetrics());
     }
   }
 

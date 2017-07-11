@@ -192,8 +192,6 @@
 
 .hawkular-charts .dataPointDot {
   fill: #1884c7;
-  stroke-width: 1;
-  stroke: black;
 }
 
 .hawkular-charts .avgLine {
@@ -269,8 +267,7 @@
 }
 
 /* Tooltip */
-
-.hawkular-charts .d3-tip {
+.d3-tip {
   background-color: rgba(67,67,67,0.95);
   border-radius: 1px;
   line-height: 1.2;
@@ -279,7 +276,7 @@
 }
 
 /* Creates a small triangle extender for the tooltip */
-.hawkular-charts .d3-tip:after {
+.d3-tip:after {
   bottom: 0;
   border-color: transparent;
   border-style: solid;
@@ -292,45 +289,45 @@
 }
 
 /* Style northward tooltips differently */
-.hawkular-charts .d3-tip.n:after {
+.d3-tip.n:after {
   margin: 0 0 0 -8px;
   top: 100%;
   left: 50%;
 }
 
 /* Eastward tooltips */
-.hawkular-charts .d3-tip.e:after {
+.d3-tip.e:after {
   content: "\25C0";
   margin: -4px 0 0 0;
   top: 50%;
   left: -8px;
 }
 
-.hawkular-charts .chartHover {
+.d3-tip .chartHover {
   color: #ffffff;
   display: table;
   font-family: "Open Sans", Helvetica, Arial, sans-serif;
   font-size: 12px;
 }
 
-.hawkular-charts .chartHover .info-item {
+.d3-tip .chartHover .info-item {
     display: table-row;
 }
-.hawkular-charts .chartHover .info-item span {
+.d3-tip .chartHover .info-item span {
     display: table-cell;
     padding: 3px 5px;
 }
 
-.hawkular-charts .chartHover .separator span {
+.d3-tip .chartHover .separator span {
     border-top: 1px solid #777777;
     padding-top: 10px;
 }
 
-.hawkular-charts .chartHover .before-separator span {
+.d3-tip .chartHover .before-separator span {
     padding-bottom: 10px;
 }
 
-.hawkular-charts .chartHoverLabel {
+.d3-tip .chartHoverLabel {
   color: #d3d3d3;
 }
 
