@@ -1,11 +1,15 @@
-import { Component, OnChanges, SimpleChanges, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Http, RequestOptions, Headers, Response } from '@angular/http';
 
 import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
+import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import 'rxjs/add/operator/map';
-import 'moment/moment';
 
-import { INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, IPredictiveMetric, TimeInMillis, MetricId, UrlType } from '../model/types'
+import {
+  INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, IPredictiveMetric,
+  TimeInMillis, MetricId, UrlType, TimeRange, FixedTimeRange, TimeRangeFromNow, isFixedTimeRange
+} from '../model/types'
 import { ChartOptions } from '../model/chart-options'
 import { EventNames } from '../model/event-names'
 import { IChartType } from '../model/chart-type'
@@ -16,28 +20,30 @@ import { ScatterLineChart } from '../model/scatterLine'
 import { HistogramChart } from '../model/histogram'
 import { RhqBarChart } from '../model/rhq-bar'
 import { MultiLineChart } from '../model/multi-line'
-import { determineXAxisTicksFromScreenWidth, determineYAxisTicksFromScreenHeight,
-   xAxisTimeFormats, determineYAxisGridLineTicksFromScreenHeight } from '../util/utility'
+import {
+  determineXAxisTicksFromScreenWidth, determineYAxisTicksFromScreenHeight,
+  xAxisTimeFormats, determineYAxisGridLineTicksFromScreenHeight
+} from '../util/utility'
 import { createAlertBoundsArea, createAlertLine } from '../util/alerts'
 import { createDataPoints } from '../util/features'
 import { showForecastData } from '../util/forecast'
 
-declare let d3: any;
 declare let moment: any;
+declare let d3: any;
 declare let console: any;
 
-const debug = true;
+const debug = false;
 
 const DEFAULT_Y_SCALE = 10;
 const X_AXIS_HEIGHT = 25; // with room for label
-const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm a';
-const MARGIN = { top: 10, right: 5, bottom: 5, left: 90 }; // left margin room for label
+const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm:ss a';
+const MARGIN = { top: 0, right: 0, bottom: 0, left: 0 }; // left margin room for label
 
 @Component({
   selector: 'hk-metric-chart',
   template: `<div #target class='hawkular-charts'></div>`
 })
-export class MetricChartComponent implements OnChanges {
+export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
 
   @ViewChild('target') target: any;
   // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
@@ -45,8 +51,7 @@ export class MetricChartComponent implements OnChanges {
   @Input() metricId = '';
   @Input() metricTenantId = '';
   @Input() metricType = 'gauge';
-  @Input() timeRangeInSeconds = 43200;
-  @Input() refreshIntervalInSeconds = 3600;
+  @Input() refreshIntervalInSeconds = 5;
   @Input() alertValue: number;
   @Input() interpolation = 'monotone';
   @Input() chartType = 'line';
@@ -59,14 +64,25 @@ export class MetricChartComponent implements OnChanges {
   @Input() timestampLabel = 'Timestamp';
   @Input() rawData?: NumericDataPoint[];
   @Input() statsData?: NumericBucketPoint[];
+  @Input() multiData: IMultiDataPoint[];
   @Input() forecastDataPoints: IPredictiveMetric[];
-  @Input() showDataPoints = false;
+  @Input() showDataPoints = true;
   @Input() previousRangeData = [];
   @Input() annotationData = [];
   @Input() yAxisUnits: string;
-  @Input() multiData: IMultiDataPoint[];
   @Input() raw: false;
   @Input() buckets = 60;
+  @Output() timeRangeChange = new EventEmitter();
+  timeRangeValue: TimeRange = 43200;
+  @Input()
+  get timeRange(): TimeRange {
+    return this.timeRangeValue;
+  }
+  set timeRange(val: TimeRange) {
+    this.timeRangeValue = val;
+    this.timeRangeChange.emit(this.timeRangeValue);
+  }
+
   showAvgLine = true;
   hideHighLowValues = false;
   useZeroMinValue = false;
@@ -90,9 +106,7 @@ export class MetricChartComponent implements OnChanges {
   visuallyAdjustedMax: number;
   peak: number;
   min: number;
-//  processedNewData;
-//  processedPreviousRangeData;
-//  startIntervalPromise;
+  refreshObservable?: Subscription;
 
   readonly registeredChartTypes: IChartType[] = [
     new LineChart(),
@@ -104,11 +118,20 @@ export class MetricChartComponent implements OnChanges {
     new MultiLineChart(),
   ];
 
-  constructor (private http: Http) {
+  constructor(private http: Http) {
+  }
+
+  ngOnInit(): void {
+    this.resetRefreshLoop();
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshObservable) {
+      this.refreshObservable.unsubscribe();
+    }
   }
 
   resize(): void {
-    console.log('resize');
     // destroy any previous charts
     if (this.chart) {
       this.chartParent.selectAll('*').remove();
@@ -122,9 +145,6 @@ export class MetricChartComponent implements OnChanges {
 
     this.modifiedInnerChartHeight = this.height - MARGIN.top - MARGIN.bottom - X_AXIS_HEIGHT;
 
-    // console.log('Metric Width: %i', width);
-    // console.log('Metric Height: %i', height);
-
     this.innerChartHeight = this.height + MARGIN.top;
 
     this.chart = this.chartParent.append('svg')
@@ -136,27 +156,24 @@ export class MetricChartComponent implements OnChanges {
     this.svg = this.chart.append('g')
       .attr('transform', 'translate(' + MARGIN.left + ',' + (MARGIN.top) + ')');
 
+    if (this.tip) {
+      this.tip.hide();
+    }
     this.tip = d3.tip()
       .attr('class', 'd3-tip')
       .offset([-10, 0])
       .html((d: INumericDataPoint, i: number) => this.buildHover(d, i));
-
-    this.tip.bind(this.svg);
+    this.svg.call(this.tip);
 
     // a placeholder for the alerts
     this.svg.append('g').attr('class', 'alertHolder');
   }
 
-  setupFilteredData(dataPoints: INumericDataPoint[]): void {
-    console.log('setupFilteredData');
-    console.log(dataPoints);
-    console.log('-- non empty:');
-    const values = dataPoints.filter((d) => !d.isEmpty()).map((d) => d.valueSupplier());
-    console.log(values);
+  setupFilteredData(): void {
+    const values = this.chartData.filter((d) => !d.isEmpty()).map((d) => d.valueSupplier());
 
     this.peak = d3.max(values) || 1;
     this.min = d3.min(values) || 0;
-    console.log('New peak: ' + this.peak + ' ; new min: ' + this.min);
 
     // lets adjust the min and max to add some visual spacing between it and the axes
     this.visuallyAdjustedMin = this.useZeroMinValue ? 0 : this.min * .95;
@@ -171,62 +188,52 @@ export class MetricChartComponent implements OnChanges {
     // use default Y scale in case high and low bound are 0 (ie, no values or all 0)
     this.visuallyAdjustedMax = !!!this.visuallyAdjustedMax && !!!this.visuallyAdjustedMin ? DEFAULT_Y_SCALE :
       this.visuallyAdjustedMax;
-
-    console.log('New visually adjusted min/max: ' + this.visuallyAdjustedMin + ', ' + this.visuallyAdjustedMax);
   }
 
   getYScale(): any {
-    console.log('getYScale');
     return d3.scale.linear()
       .clamp(true)
       .rangeRound([this.modifiedInnerChartHeight, 0])
       .domain([this.visuallyAdjustedMin, this.visuallyAdjustedMax]);
   }
 
-  determineScale(dataPoints: INumericDataPoint[]) {
-    console.log('determineScale');
+  determineScale() {
     const xTicks = determineXAxisTicksFromScreenWidth(this.width - MARGIN.left - MARGIN.right),
       yTicks = determineYAxisTicksFromScreenHeight(this.modifiedInnerChartHeight);
-    if (dataPoints.length > 0) {
 
-      this.chartData = dataPoints;
+    this.setupFilteredData();
+    this.yScale = this.getYScale();
 
-      this.setupFilteredData(dataPoints);
+    this.yAxis = d3.svg.axis()
+      .scale(this.yScale)
+      .ticks(yTicks)
+      .tickSize(4, 4, 0)
+      .orient('left');
 
-      this.yScale = this.getYScale();
+    const timeRange = this.getFixedTimeRange();
 
-      this.yAxis = d3.svg.axis()
-        .scale(this.yScale)
-        .ticks(yTicks)
-        .tickSize(4, 4, 0)
-        .orient('left');
-
-      const timeScaleMin = d3.min(dataPoints.map((d) => d.timestampSupplier()));
-
-      let timeScaleMax;
-      if (this.forecastDataPoints && this.forecastDataPoints.length > 0) {
-        timeScaleMax = this.forecastDataPoints[this.forecastDataPoints.length - 1].timestamp;
-      } else {
-        timeScaleMax = d3.max(dataPoints.map((d) => d.timestampSupplier()));
-      }
-
-      this.timeScale = d3.time.scale()
-        .range([0, this.width - MARGIN.left - MARGIN.right])
-        .nice()
-        .domain([timeScaleMin, timeScaleMax]);
-
-      this.xAxis = d3.svg.axis()
-        .scale(this.timeScale)
-        .ticks(xTicks)
-        .tickFormat(xAxisTimeFormats())
-        .tickSize(4, 4, 0)
-        .orient('bottom');
-
+    let timeScaleMax;
+    if (this.forecastDataPoints && this.forecastDataPoints.length > 0) {
+      timeScaleMax = this.forecastDataPoints[this.forecastDataPoints.length - 1].timestamp;
+    } else {
+      timeScaleMax = timeRange.end || Date.now();
     }
+
+    this.timeScale = d3.time.scale()
+      .range([0, this.width - MARGIN.left - MARGIN.right])
+      .nice()
+      .domain([timeRange.start, timeScaleMax]);
+
+    this.xAxis = d3.svg.axis()
+      .scale(this.timeScale)
+      .ticks(xTicks)
+      .tickFormat(xAxisTimeFormats())
+      .tickSize(4, 4, 0)
+      .orient('bottom');
+
   }
 
   setupFilteredMultiData(multiDataPoints: IMultiDataPoint[]): any {
-    console.log('setupFilteredMultiData');
     let alertPeak: number,
       highPeak: number;
 
@@ -269,7 +276,6 @@ export class MetricChartComponent implements OnChanges {
   }
 
   determineMultiScale(multiDataPoints: IMultiDataPoint[]) {
-    console.log('determineMultiScale');
     const xTicks = determineXAxisTicksFromScreenWidth(this.width - MARGIN.left - MARGIN.right),
       yTicks = determineXAxisTicksFromScreenWidth(this.modifiedInnerChartHeight);
 
@@ -293,7 +299,7 @@ export class MetricChartComponent implements OnChanges {
       this.timeScale = d3.time.scale()
         .range([0, this.width - MARGIN.left - MARGIN.right])
         .domain([d3.min(multiDataPoints, (d: IMultiDataPoint) => d3.min(d.values, (p: INumericDataPoint) => p.timestampSupplier())),
-          d3.max(multiDataPoints, (d: IMultiDataPoint) => d3.max(d.values, (p: INumericDataPoint) => p.timestampSupplier()))]);
+        d3.max(multiDataPoints, (d: IMultiDataPoint) => d3.max(d.values, (p: INumericDataPoint) => p.timestampSupplier()))]);
 
       this.xAxis = d3.svg.axis()
         .scale(this.timeScale)
@@ -305,22 +311,35 @@ export class MetricChartComponent implements OnChanges {
     }
   }
 
+  isServerConfigured(): boolean {
+    return this.metricUrl !== undefined
+      && this.metricType !== undefined
+      && this.metricId !== undefined
+      && this.metricTenantId !== undefined;
+  }
+
+  getFixedTimeRange(): FixedTimeRange {
+    if (isFixedTimeRange(this.timeRangeValue)) {
+      return <FixedTimeRange>this.timeRangeValue;
+    } else {
+      return {
+        start: Date.now() - 1000 * <TimeRangeFromNow>this.timeRangeValue
+      }
+    }
+  }
+
   /**
    * Load metrics data directly from a running Hawkular-Metrics server
-   * @param startTimestamp
-   * @param endTimestamp
+   * This function assumes the server is configured
    */
-  loadStandAloneMetrics(startTimestamp?: TimeInMillis, endTimestamp?: TimeInMillis) {
-    console.log('loadStandAloneMetrics');
-
-    startTimestamp = startTimestamp || Date.now() - 1000 * this.timeRangeInSeconds;
+  loadStandAloneMetrics() {
+    const timeRange = this.getFixedTimeRange();
     const params: any = {
-      start: startTimestamp,
+      start: timeRange.start,
+      end: timeRange.end,
       order: 'ASC'
     };
-    if (endTimestamp) {
-      params.end = endTimestamp;
-    }
+
     let endpoint: string;
     if (this.raw) {
       endpoint = '/raw';
@@ -329,34 +348,30 @@ export class MetricChartComponent implements OnChanges {
       params.buckets = this.buckets;
     }
     const options = new RequestOptions({
-      headers: new Headers({'Hawkular-Tenant': this.metricTenantId}),
+      headers: new Headers({ 'Hawkular-Tenant': this.metricTenantId }),
       params: params
     });
 
-    if (this.metricUrl && this.metricType && this.metricId) {
-
-      // sample url:
-      // http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/stats?
-      // buckets=120&end=1436831797533&start=1436828197533'
-      this.http.get(this.metricUrl + '/' + this.metricType + 's/' + this.metricId + endpoint, options)
-        .map((response) => response.json())
-        .subscribe((json) => {
-          if (this.raw) {
-            this.statsData = undefined;
-            this.rawData = json.map((datapoint: any) => new NumericDataPoint(datapoint));
-          } else {
-            this.statsData = json.map((datapoint: any) => new NumericBucketPoint(datapoint));
-            this.rawData = undefined;
-          }
-          this.render();
-        }, (err) => {
-          console.error('Error Loading Chart Data:' + status + ', ' + err);
-        });
-    }
+    // sample url:
+    // http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/stats?
+    // buckets=120&end=1436831797533&start=1436828197533'
+    this.http.get(this.metricUrl + '/' + this.metricType + 's/' + this.metricId + endpoint, options)
+      .map((response) => response.json() || [])
+      .subscribe((json) => {
+        if (this.raw) {
+          this.statsData = undefined;
+          this.rawData = json.map((datapoint: any) => new NumericDataPoint(datapoint));
+        } else {
+          this.statsData = json.map((datapoint: any) => new NumericBucketPoint(datapoint));
+          this.rawData = undefined;
+        }
+        this.render();
+      }, (err) => {
+        console.error('Error Loading Chart Data:' + status + ', ' + err);
+      });
   }
 
   buildHover(dataPoint: INumericDataPoint, i: number) {
-    console.log('buildHover');
     const currentTimestamp = dataPoint.timestampSupplier();
     let hover,
       prevTimestamp,
@@ -372,48 +387,46 @@ export class MetricChartComponent implements OnChanges {
     if (dataPoint.isEmpty()) {
       // nodata
       hover = `<div class='chartHover'>
-        <small class='chartHoverLabel'>{{noDataLabel}}</small>
-        <div><small><span class='chartHoverLabel'>{{durationLabel}}</span><span>:
-        </span><span class='chartHoverValue'>{{barDuration}}</span></small> </div>
+        <small class='chartHoverLabel'>${this.noDataLabel}</small>
+        <div><small><span class='chartHoverLabel'>${this.durationLabel}</span><span>:
+        </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
         <hr/>
-        <div><small><span class='chartHoverLabel'>{{timestampLabel}}</span><span>:
-        </span><span class='chartHoverValue'>{{formattedDateTime}}</span></small></div>
+        <div><small><span class='chartHoverLabel'>${this.timestampLabel}</span><span>:
+        </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
         </div>`;
     } else {
       if (dataPoint.isRaw()) {
         // raw single value from raw table
         hover = `<div class='chartHover'>
-        <div><small><span class='chartHoverLabel'>{{timestampLabel}}</span><span>: </span>
-        <span class='chartHoverValue'>{{formattedDateTime}}</span></small></div>
-          <div><small><span class='chartHoverLabel'>{{durationLabel}}</span><span>: </span>
-          <span class='chartHoverValue'>{{barDuration}}</span></small></div>
-          <hr/>
-          <div><small><span class='chartHoverLabel'>{{singleValueLabel}}</span><span>: </span>
-          <span class='chartHoverValue'>{{d3.round(dataPoint.valueSupplier(), 2)}}</span></small> </div>
-          </div> `;
+        <div><small><span class='chartHoverLabel'>${this.timestampLabel}</span><span>: </span>
+        <span class='chartHoverValue'>${formattedDateTime}</span></small></div>
+        <hr/>
+        <div><small><span class='chartHoverLabel'>${this.singleValueLabel}</span><span>: </span>
+        <span class='chartHoverValue'>${d3.round(dataPoint.valueSupplier(), 2)}</span></small> </div>
+        </div> `;
       } else {
         // aggregate with min/avg/max
         const bucketDP: NumericBucketPoint = <NumericBucketPoint>dataPoint;
         hover = `<div class='chartHover'>
             <div class='info-item'>
-              <span class='chartHoverLabel'>{{timestampLabel}}:</span>
-              <span class='chartHoverValue'>{{formattedDateTime}}</span>
+              <span class='chartHoverLabel'>${this.timestampLabel}:</span>
+              <span class='chartHoverValue'>${formattedDateTime}</span>
             </div>
             <div class='info-item before-separator'>
-              <span class='chartHoverLabel'>{{durationLabel}}:</span>
-              <span class='chartHoverValue'>{{barDuration}}</span>
+              <span class='chartHoverLabel'>${this.durationLabel}:</span>
+              <span class='chartHoverValue'>${barDuration}</span>
             </div>
             <div class='info-item separator'>
-              <span class='chartHoverLabel'>{{maxLabel}}:</span>
-              <span class='chartHoverValue'>{{d3.round(bucketDP.max, 2)}}</span>
+              <span class='chartHoverLabel'>${this.maxLabel}:</span>
+              <span class='chartHoverValue'>${d3.round(bucketDP.max, 2)}</span>
             </div>
             <div class='info-item'>
-              <span class='chartHoverLabel'>{{avgLabel}}:</span>
-              <span class='chartHoverValue'>{{d3.round(bucketDP.avg, 2)}}</span>
+              <span class='chartHoverLabel'>${this.avgLabel}:</span>
+              <span class='chartHoverValue'>${d3.round(bucketDP.avg, 2)}</span>
             </div>
             <div class='info-item'>
-              <span class='chartHoverLabel'>{{minLabel}}:</span>
-              <span class='chartHoverValue'>{{d3.round(bucketDP.min, 2)}}</span>
+              <span class='chartHoverLabel'>${this.minLabel}:</span>
+              <span class='chartHoverValue'>${d3.round(bucketDP.min, 2)}</span>
             </div>
           </div> `;
       }
@@ -422,7 +435,6 @@ export class MetricChartComponent implements OnChanges {
   }
 
   createYAxisGridLines() {
-    console.log('createYAxisGridLines');
     // create the y axis grid lines
     const numberOfYAxisGridLines = determineYAxisGridLineTicksFromScreenHeight(this.modifiedInnerChartHeight);
 
@@ -445,8 +457,6 @@ export class MetricChartComponent implements OnChanges {
   }
 
   createXandYAxes() {
-    console.log('createXandYAxes');
-
     function axisTransition(selection: any) {
       selection
         .transition()
@@ -489,16 +499,14 @@ export class MetricChartComponent implements OnChanges {
   }
 
   createCenteredLine(interpolate: string) {
-    console.log('createCenteredLine');
     return d3.svg.line()
-        .interpolate(interpolate)
-        .defined((d: INumericDataPoint) => !d.isEmpty())
-        .x((d: INumericDataPoint) => this.timeScale(d.timestampSupplier()))
-        .y((d: INumericDataPoint) => this.yScale(d.valueSupplier()));
+      .interpolate(interpolate)
+      .defined((d: INumericDataPoint) => !d.isEmpty())
+      .x((d: INumericDataPoint) => this.timeScale(d.timestampSupplier()))
+      .y((d: INumericDataPoint) => this.yScale(d.valueSupplier()));
   }
 
   createAvgLines() {
-    console.log('createAvgLines');
     if (this.chartType === 'bar' || this.chartType === 'scatterline') {
       const pathAvgLine = this.svg.selectAll('.barAvgLine').data([this.chartData]);
       // update existing
@@ -514,7 +522,6 @@ export class MetricChartComponent implements OnChanges {
   }
 
   createXAxisBrush() {
-    console.log('createXAxisBrush');
     this.brushGroup = this.svg.selectAll('g.brush');
     if (this.brushGroup.empty()) {
       this.brushGroup = this.svg.append('g').attr('class', 'brush');
@@ -536,8 +543,13 @@ export class MetricChartComponent implements OnChanges {
           this.modifiedInnerChartHeight, this.height, this.tip, this.visuallyAdjustedMax,
           this.hideHighLowValues, this.interpolation);
 
-        // FIXME (restore)
-        // $rootScope.$broadcast(EventNames.CHART_TIMERANGE_CHANGED.toString(), extent);
+        // If timerange is "xx from now" and the end bound hasn't changed, then continue in "xx from now" mode and ignore end time.
+        const previousEnd = this.timeScale.domain()[1].getTime();
+        if (!isFixedTimeRange(this.timeRange) && Math.abs(previousEnd - endTime) < 60000) {
+          this.setTimeRange(startTime);
+        } else {
+          this.setTimeRange(startTime, endTime);
+        }
       }
       // clear the brush selection
       this.brushGroup.call(this.brush.clear());
@@ -549,16 +561,13 @@ export class MetricChartComponent implements OnChanges {
       .on('brushend', brushEnd);
 
     this.brushGroup.call(this.brush);
-
-    this.brushGroup.selectAll('.resize').append('path');
-
+    this.brushGroup.selectAll('.resize')
+      .append('path');
     this.brushGroup.selectAll('rect')
       .attr('height', this.modifiedInnerChartHeight);
-
   }
 
   createPreviousRangeOverlay(prevRangeData: INumericDataPoint[]) {
-    console.log('createPreviousRangeOverlay');
     if (prevRangeData) {
       this.svg.append('path')
         .datum(prevRangeData)
@@ -569,17 +578,15 @@ export class MetricChartComponent implements OnChanges {
 
   }
 
-  annotateChart(annotationData: any/*FIXME: typing?*/) {
-    console.log('annotateChart');
-
+  annotateChart() {
     d3.scale.linear()
       .clamp(true)
       .rangeRound([this.modifiedInnerChartHeight, 0])
       .domain([this.visuallyAdjustedMin, this.visuallyAdjustedMax]);
 
-    if (annotationData) {
+    if (this.annotationData) {
       this.svg.selectAll('.annotationDot')
-        .data(annotationData)
+        .data(this.annotationData)
         .enter().append('circle')
         .attr('class', 'annotationDot')
         .attr('r', 5)
@@ -602,10 +609,8 @@ export class MetricChartComponent implements OnChanges {
   }
 
   render() {
-    console.log('render');
     // if we don't have data, don't bother..
     if (!this.rawData && !this.statsData && !this.multiData) {
-      console.log('no data');
       return;
     }
 
@@ -617,9 +622,11 @@ export class MetricChartComponent implements OnChanges {
     this.resize();
 
     if (this.rawData) {
-      this.determineScale(this.rawData);
+      this.chartData = this.rawData;
+      this.determineScale();
     } else if (this.statsData) {
-      this.determineScale(this.statsData);
+      this.chartData = this.statsData;
+      this.determineScale();
     } else {
       // multiDataPoints exist
       this.determineMultiScale(this.multiData);
@@ -652,7 +659,7 @@ export class MetricChartComponent implements OnChanges {
     }
 
     if (this.annotationData) {
-      this.annotateChart(this.annotationData);
+      this.annotateChart();
     }
     if (this.forecastDataPoints && this.forecastDataPoints.length > 0) {
       showForecastData(this.forecastDataPoints, chartOptions);
@@ -664,7 +671,6 @@ export class MetricChartComponent implements OnChanges {
   }
 
   determineChartTypeAndDraw(chartType: string, chartOptions: ChartOptions) {
-    console.log('determineChartTypeAndDraw');
     // @todo: add in multiline and rhqbar chart types
     // @todo: add validation if not in valid chart types
     this.registeredChartTypes.forEach((aChartType) => {
@@ -674,93 +680,55 @@ export class MetricChartComponent implements OnChanges {
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
-    if (changes['multiData']) {
-      if (changes['multiData'].currentValue || changes['multiData'].previousValue) {
-        // this.multiData = angular.fromJson(newMultiData || []);
-        this.render();
-      }
+  resetRefreshLoop(): void {
+    if (this.refreshObservable) {
+      this.refreshObservable.unsubscribe();
+      this.refreshObservable = undefined;
     }
+    let needRefresh = false;
+    isFixedTimeRange(this.timeRangeValue,
+      (fixed) => needRefresh = (fixed.end == undefined),
+      (fromNow) => needRefresh = true);
 
-    if (changes['metricUrl'] || changes['metricId'] || changes['metricType'] || changes['metricTenantId'] || changes['timeRangeInSeconds']) {
-      this.loadStandAloneMetrics();
+    if (this.refreshIntervalInSeconds && this.refreshIntervalInSeconds > 0 && needRefresh && this.isServerConfigured()) {
+      this.refreshObservable = IntervalObservable.create(this.refreshIntervalInSeconds * 1000)
+        .subscribe(() => this.loadStandAloneMetrics());
     }
-
-    // FIXME: restore?
-          // scope.$watchCollection('data', (newData, oldData) => {
-          //   if (newData || oldData) {
-          //     processedNewData = angular.fromJson(newData || []);
-          //     scope.render(processedNewData);
-          //   }
-          // });
-
-          // scope.$watch('previousRangeData', (newPreviousRangeValues) => {
-          //   if (newPreviousRangeValues) {
-          //     processedPreviousRangeData = angular.fromJson(newPreviousRangeValues);
-          //     scope.render(processedNewData);
-          //   }
-          // }, true);
-
-          // scope.$watch('annotationData', (newAnnotationData) => {
-          //   if (newAnnotationData) {
-          //     annotationData = angular.fromJson(newAnnotationData);
-          //     scope.render(processedNewData);
-          //   }
-          // }, true);
-
-          // scope.$watch('forecastData', (newForecastData) => {
-          //   if (newForecastData) {
-          //     forecastDataPoints = angular.fromJson(newForecastData);
-          //     scope.render(processedNewData);
-          //   }
-          // }, true);
-
-          // scope.$watchGroup(['alertValue', 'chartType', 'hideHighLowValues', 'useZeroMinValue', 'showAvgLine'],
-          //   (chartAttrs) => {
-          //     alertValue = chartAttrs[0] || alertValue;
-          //     chartType = chartAttrs[1] || chartType;
-          //     hideHighLowValues = (typeof chartAttrs[2] !== 'undefined') ? chartAttrs[2] : hideHighLowValues;
-          //     useZeroMinValue = (typeof chartAttrs[3] !== 'undefined') ? chartAttrs[3] : useZeroMinValue;
-          //     showAvgLine = (typeof chartAttrs[4] !== 'undefined') ? chartAttrs[4] : showAvgLine;
-          //     scope.render(processedNewData);
-          //   });
-
-          // /// standalone charts attributes
-          // scope.$watchGroup(['metricUrl', 'metricId', 'metricType', 'metricTenantId', 'timeRangeInSeconds'],
-          //   (standAloneParams) => {
-          //     dataUrl = standAloneParams[0] || dataUrl;
-          //     metricId = standAloneParams[1] || metricId;
-          //     metricType = standAloneParams[2] || metricId;
-          //     metricTenantId = standAloneParams[3] || metricTenantId;
-          //     timeRangeInSeconds = standAloneParams[4] || timeRangeInSeconds;
-          //     loadStandAloneMetricsTimeRangeFromNow();
-          //   });
-
-          // scope.$watch('refreshIntervalInSeconds', (newRefreshInterval) => {
-          //   if (newRefreshInterval) {
-          //     refreshIntervalInSeconds = +newRefreshInterval;
-          //     $interval.cancel(startIntervalPromise);
-          //     startIntervalPromise = $interval(() => {
-          //       loadStandAloneMetricsTimeRangeFromNow();
-          //     }, refreshIntervalInSeconds * 1000);
-          //   }
-          // });
   }
 
-  // FIXME: restore
-          // scope.$on('$destroy', () => {
-          //   $interval.cancel(startIntervalPromise);
-          // });
+  ngOnChanges(changes: SimpleChanges): void {
+    this.refresh();
+  }
 
-          // scope.$on(EventNames.DATE_RANGE_DRAG_CHANGED, (event, extent) => {
-          //   scope.$emit(EventNames.CHART_TIMERANGE_CHANGED, extent);
-          // });
+  refresh(): void {
+    this.resetRefreshLoop();
+    if (this.isServerConfigured()) {
+      this.loadStandAloneMetrics();
+    } else {
+      this.render();
+    }
+  }
 
-          // scope.$on(EventNames.CHART_TIMERANGE_CHANGED, (event, extent) => {
-          //   // forecast data not relevant to past data
-          //   attrs.forecastData = [];
-          //   forecastDataPoints = [];
-          //   scope.$digest();
-          // });
+  setTimeRange(startTime: TimeInMillis, endTime?: TimeInMillis) {
+    const filter = (d: INumericDataPoint) => {
+      const timestamp = d.timestampSupplier();
+      return timestamp >= startTime && (endTime === undefined || timestamp <= endTime);
+    };
+    // We will set this.end only if it's not "now". Else, we don't set it so that it will keep refreshing with latest values
+    if (this.rawData) {
+      this.rawData = this.rawData.filter(filter);
+    } else if (this.statsData) {
+      this.statsData = this.statsData.filter(filter);
+    } else {
+      // multiDataPoints
+      this.multiData.forEach(series => {
+        series.values = series.values.filter(filter);
+      });
+    }
+    this.timeRange = {
+      start: startTime,
+      end: endTime
+    }
+    this.refresh();
+  }
 }

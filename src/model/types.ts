@@ -4,6 +4,27 @@ export type TimeInMillis = number;
 export type UrlType = number;
 export type MetricId = string;
 export type MetricValue = number;
+export type TimeRangeFromNow = number;
+
+export interface FixedTimeRange {
+  start: TimeInMillis;
+  end?: TimeInMillis;
+}
+
+export type TimeRange = TimeRangeFromNow | FixedTimeRange;
+export function isFixedTimeRange(timerange: TimeRange, ifTrue?: (fixed: FixedTimeRange) => void, ifFalse?: (fixed: TimeRangeFromNow) => void) {
+  if (timerange.hasOwnProperty('start')) {
+    if (ifTrue) {
+      ifTrue(<FixedTimeRange>timerange);
+    }
+    return true;
+  } else {
+    if (ifFalse) {
+      ifFalse(<TimeRangeFromNow>timerange);
+    }
+    return false;
+  }
+}
 
 export interface INumericDataPoint {
   timestampSupplier: () => TimeInMillis;
