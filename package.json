@@ -1,6 +1,6 @@
 {
   "author": "Red Hat",
-  "name": "hawkular-charts",
+  "name": "@hawkular/hawkular-charts",
   "version": "2.0.0-alpha",
   "description": "Hawkular Charts components for Angular 4",
   "homepage": "https://github.com/hawkular/hawkular-charts",
