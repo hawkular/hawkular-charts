@@ -3,6 +3,8 @@ import { IChartType } from './chart-type'
 import { NumericBucketPoint } from './types'
 import { calcBarXPos, calcBarWidthAdjusted } from '../util/utility'
 
+declare let d3: any;
+
 export abstract class AbstractHistogramChart implements IChartType {
 
   public name = 'histogram';
