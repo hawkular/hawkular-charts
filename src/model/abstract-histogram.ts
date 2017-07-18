@@ -11,7 +11,7 @@ export abstract class AbstractHistogramChart implements IChartType {
 
     const barClass = stacked ? 'leaderBar' : 'histogram';
 
-    const rectHistogram = chartOptions.svg.selectAll('rect.' + barClass).data(chartOptions.chartData);
+    const rectHistogram = chartOptions.svg.selectAll('rect.' + barClass).data(chartOptions.data);
 
     function buildBars(selection: d3.Selection<any>) {
       selection
@@ -22,11 +22,11 @@ export abstract class AbstractHistogramChart implements IChartType {
           chartOptions.tip.hide();
         })
         .transition()
-        .attr('x', (d: NumericBucketPoint, i) => calcBarXPos(d, i, 100/*FIXME*/, chartOptions.timeScale, chartOptions.chartData.length))
-        .attr('width', (d: NumericBucketPoint, i) => calcBarWidthAdjusted(i, 100/*FIXME*/, chartOptions.chartData.length))
-        .attr('y', (d: NumericBucketPoint) => d.isEmpty() ? 0 : chartOptions.yScale(d.avg))
-        .attr('height', (d: NumericBucketPoint) => chartOptions.modifiedInnerChartHeight - chartOptions.yScale(d.isEmpty() ?
-            chartOptions.yScale(chartOptions.visuallyAdjustedMax) : d.avg))
+        .attr('x', (d: NumericBucketPoint, i) => calcBarXPos(d, i, 100/*FIXME*/, chartOptions.axis.timeScale, chartOptions.data.length))
+        .attr('width', (d: NumericBucketPoint, i) => calcBarWidthAdjusted(i, 100/*FIXME*/, chartOptions.data.length))
+        .attr('y', (d: NumericBucketPoint) => d.isEmpty() ? 0 : chartOptions.axis.yScale(d.avg!))
+        .attr('height', (d: NumericBucketPoint) => chartOptions.layout.modifiedInnerChartHeight - chartOptions.axis.yScale(d.isEmpty() ?
+            chartOptions.axis.yScale(chartOptions.axis.chartRange.high) : d.avg!))
         .attr('opacity', stacked ? '.6' : '1')
         .attr('fill', (d: NumericBucketPoint) => d.isEmpty() ? 'url(#noDataStripes)' : (stacked ? '#D3D3D6' : '#C0C0C0'))
         .attr('stroke', '#777')
@@ -37,11 +37,12 @@ export abstract class AbstractHistogramChart implements IChartType {
     function buildHighBar(selection: d3.Selection<any>) {
       selection
         .attr('class', (d: NumericBucketPoint) => d.min === d.max ? 'singleValue' : 'high')
-        .attr('x', (d: NumericBucketPoint, i) => calcBarXPos(d, i, 100/*FIXME*/, chartOptions.timeScale, chartOptions.chartData.length))
-        .attr('y', (d: NumericBucketPoint) => isNaN(d.max || NaN) ? chartOptions.yScale(chartOptions.visuallyAdjustedMax)
-          : chartOptions.yScale(d.max))
-        .attr('height', (d: NumericBucketPoint) => d.isEmpty() ? 0 : (chartOptions.yScale(d.avg) - chartOptions.yScale(d.max) || 2))
-        .attr('width', (d: NumericBucketPoint, i) => calcBarWidthAdjusted(i, 100/*FIXME*/, chartOptions.chartData.length))
+        .attr('x', (d: NumericBucketPoint, i) => calcBarXPos(d, i, 100/*FIXME*/, chartOptions.axis.timeScale, chartOptions.data.length))
+        .attr('y', (d: NumericBucketPoint) => isNaN(d.max || NaN) ? chartOptions.axis.yScale(chartOptions.axis.chartRange.high)
+          : chartOptions.axis.yScale(d.max!))
+        .attr('height', (d: NumericBucketPoint) => d.isEmpty() ? 0 : (chartOptions.axis.yScale(d.avg!)
+          - chartOptions.axis.yScale(d.max!) || 2))
+        .attr('width', (d: NumericBucketPoint, i) => calcBarWidthAdjusted(i, 100/*FIXME*/, chartOptions.data.length))
         .attr('opacity', 0.9)
         .on('mouseover', (d: NumericBucketPoint, i) => chartOptions.tip.show(d, i))
         .on('mouseout', () => chartOptions.tip.hide());
@@ -50,10 +51,10 @@ export abstract class AbstractHistogramChart implements IChartType {
     function buildLowerBar(selection: d3.Selection<any>) {
       selection
         .attr('class', 'low')
-        .attr('x', (d: NumericBucketPoint, i) => calcBarXPos(d, i, 100/*FIXME*/, chartOptions.timeScale, chartOptions.chartData.length))
-        .attr('y', (d: NumericBucketPoint) => isNaN(d.avg || NaN) ? chartOptions.height : chartOptions.yScale(d.avg))
-        .attr('height', (d: NumericBucketPoint) => d.isEmpty() ? 0 : (chartOptions.yScale(d.min) - chartOptions.yScale(d.avg)))
-        .attr('width', (d: NumericBucketPoint, i) => calcBarWidthAdjusted(i, 100/*FIXME*/, chartOptions.chartData.length))
+        .attr('x', (d: NumericBucketPoint, i) => calcBarXPos(d, i, 100/*FIXME*/, chartOptions.axis.timeScale, chartOptions.data.length))
+        .attr('y', (d: NumericBucketPoint) => isNaN(d.avg || NaN) ? chartOptions.layout.height : chartOptions.axis.yScale(d.avg!))
+        .attr('height', (d: NumericBucketPoint) => d.isEmpty() ? 0 : (chartOptions.axis.yScale(d.min!) - chartOptions.axis.yScale(d.avg!)))
+        .attr('width', (d: NumericBucketPoint, i) => calcBarWidthAdjusted(i, 100/*FIXME*/, chartOptions.data.length))
         .attr('opacity', 0.9)
         .on('mouseover', (d: NumericBucketPoint, i) => chartOptions.tip.show(d, i))
         .on('mouseout', () => chartOptions.tip.hide());
@@ -63,10 +64,10 @@ export abstract class AbstractHistogramChart implements IChartType {
       selection
         .attr('class', 'histogramTopStem')
         .filter((d: NumericBucketPoint) => !d.isEmpty())
-        .attr('x1', (d: NumericBucketPoint) => chartOptions.timeScale(d.timestampSupplier()))
-        .attr('x2', (d: NumericBucketPoint) => chartOptions.timeScale(d.timestampSupplier()))
-        .attr('y1', (d: NumericBucketPoint) => chartOptions.yScale(d.max))
-        .attr('y2', (d: NumericBucketPoint) => chartOptions.yScale(d.avg))
+        .attr('x1', (d: NumericBucketPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .attr('x2', (d: NumericBucketPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .attr('y1', (d: NumericBucketPoint) => chartOptions.axis.yScale(d.max!))
+        .attr('y2', (d: NumericBucketPoint) => chartOptions.axis.yScale(d.avg!))
         .attr('stroke', 'red')
         .attr('stroke-opacity', 0.6);
     }
@@ -75,10 +76,10 @@ export abstract class AbstractHistogramChart implements IChartType {
       selection
         .filter((d: NumericBucketPoint) => !d.isEmpty())
         .attr('class', 'histogramBottomStem')
-        .attr('x1', (d: NumericBucketPoint) => chartOptions.timeScale(d.timestampSupplier()))
-        .attr('x2', (d: NumericBucketPoint) => chartOptions.timeScale(d.timestampSupplier()))
-        .attr('y1', (d: NumericBucketPoint) => chartOptions.yScale(d.avg))
-        .attr('y2', (d: NumericBucketPoint) => chartOptions.yScale(d.min))
+        .attr('x1', (d: NumericBucketPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .attr('x2', (d: NumericBucketPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .attr('y1', (d: NumericBucketPoint) => chartOptions.axis.yScale(d.avg!))
+        .attr('y2', (d: NumericBucketPoint) => chartOptions.axis.yScale(d.min!))
         .attr('stroke', 'red')
         .attr('stroke-opacity', 0.6);
     }
@@ -87,10 +88,10 @@ export abstract class AbstractHistogramChart implements IChartType {
       selection
         .filter((d: NumericBucketPoint) => !d.isEmpty())
         .attr('class', 'histogramTopCross')
-        .attr('x1', (d: NumericBucketPoint) => chartOptions.timeScale(d.timestampSupplier()) - 3)
-        .attr('x2', (d: NumericBucketPoint) => chartOptions.timeScale(d.timestampSupplier()) + 3)
-        .attr('y1', (d: NumericBucketPoint) => chartOptions.yScale(d.max))
-        .attr('y2', (d: NumericBucketPoint) => chartOptions.yScale(d.max))
+        .attr('x1', (d: NumericBucketPoint) => chartOptions.axis.timeScale(d.timestampSupplier()) - 3)
+        .attr('x2', (d: NumericBucketPoint) => chartOptions.axis.timeScale(d.timestampSupplier()) + 3)
+        .attr('y1', (d: NumericBucketPoint) => chartOptions.axis.yScale(d.max!))
+        .attr('y2', (d: NumericBucketPoint) => chartOptions.axis.yScale(d.max!))
         .attr('stroke', 'red')
         .attr('stroke-width', '0.5')
         .attr('stroke-opacity', 0.6);
@@ -100,18 +101,18 @@ export abstract class AbstractHistogramChart implements IChartType {
       selection
         .filter((d: NumericBucketPoint) => !d.isEmpty())
         .attr('class', 'histogramBottomCross')
-        .attr('x1', (d: NumericBucketPoint) => chartOptions.timeScale(d.timestampSupplier()) - 3)
-        .attr('x2', (d: NumericBucketPoint) => chartOptions.timeScale(d.timestampSupplier()) + 3)
-        .attr('y1', (d: NumericBucketPoint) => chartOptions.yScale(d.min))
-        .attr('y2', (d: NumericBucketPoint) => chartOptions.yScale(d.min))
+        .attr('x1', (d: NumericBucketPoint) => chartOptions.axis.timeScale(d.timestampSupplier()) - 3)
+        .attr('x2', (d: NumericBucketPoint) => chartOptions.axis.timeScale(d.timestampSupplier()) + 3)
+        .attr('y1', (d: NumericBucketPoint) => chartOptions.axis.yScale(d.min!))
+        .attr('y2', (d: NumericBucketPoint) => chartOptions.axis.yScale(d.min!))
         .attr('stroke', 'red')
         .attr('stroke-width', '0.5')
         .attr('stroke-opacity', 0.6);
     }
 
-    function createStackedHistogramHighLowValues(svg: any, chartData: NumericBucketPoint[]) {
+    function createStackedHistogramHighLowValues(svg: any) {
       // upper portion representing avg to high
-      const rectHigh = svg.selectAll('rect.high, rect.singleValue').data(chartData);
+      const rectHigh = svg.selectAll('rect.high, rect.singleValue').data(chartOptions.data);
 
       // update existing
       rectHigh.call(buildHighBar);
@@ -126,7 +127,7 @@ export abstract class AbstractHistogramChart implements IChartType {
       rectHigh.exit().remove();
 
       // lower portion representing avg to low
-      const rectLow = svg.selectAll('rect.low').data(chartOptions.chartData);
+      const rectLow = svg.selectAll('rect.low').data(chartOptions.data);
 
       // update existing
       rectLow.call(buildLowerBar);
@@ -141,8 +142,8 @@ export abstract class AbstractHistogramChart implements IChartType {
       rectLow.exit().remove();
     }
 
-    function createUnstackedHistogramHighLowValues(svg: any, chartData: NumericBucketPoint[]) {
-      const lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartOptions.chartData);
+    function createUnstackedHistogramHighLowValues(svg: any) {
+      const lineHistoHighStem = svg.selectAll('.histogramTopStem').data(chartOptions.data);
 
       // update existing
       lineHistoHighStem.call(buildTopStem);
@@ -156,7 +157,7 @@ export abstract class AbstractHistogramChart implements IChartType {
       // remove old ones
       lineHistoHighStem.exit().remove();
 
-      const lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartOptions.chartData);
+      const lineHistoLowStem = svg.selectAll('.histogramBottomStem').data(chartOptions.data);
 
       // update existing
       lineHistoLowStem.call(buildLowStem);
@@ -170,7 +171,7 @@ export abstract class AbstractHistogramChart implements IChartType {
       // remove old ones
       lineHistoLowStem.exit().remove();
 
-      const lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartOptions.chartData);
+      const lineHistoTopCross = svg.selectAll('.histogramTopCross').data(chartOptions.data);
 
       // update existing
       lineHistoTopCross.call(buildTopCross);
@@ -184,7 +185,7 @@ export abstract class AbstractHistogramChart implements IChartType {
       // remove old ones
       lineHistoTopCross.exit().remove();
 
-      const lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartOptions.chartData);
+      const lineHistoBottomCross = svg.selectAll('.histogramBottomCross').data(chartOptions.data);
       // update existing
       lineHistoBottomCross.call(buildBottomCross);
 
@@ -211,9 +212,9 @@ export abstract class AbstractHistogramChart implements IChartType {
 
     if (!chartOptions.hideHighLowValues) {
       if (stacked) {
-        createStackedHistogramHighLowValues(chartOptions.svg, <NumericBucketPoint[]>chartOptions.chartData);
+        createStackedHistogramHighLowValues(chartOptions.svg);
       } else {
-        createUnstackedHistogramHighLowValues(chartOptions.svg, <NumericBucketPoint[]>chartOptions.chartData);
+        createUnstackedHistogramHighLowValues(chartOptions.svg);
       }
     } else {
       // we should hide high-low values.. or remove if existing

@@ -9,16 +9,16 @@ export class MultiLineChart implements IChartType {
 
   public name = 'multiline';
 
-  public drawChart(chartOptions: ChartOptions) {
+  public drawChart(chart: ChartOptions) {
 
     const colorScale = d3.scale.category10();
-    let g: number = 0;
+    let g = 0;
 
-    if (chartOptions.multiChartData) {
+    if (chart.multiData) {
       // before updating, let's remove those missing from datapoints (if any)
-      chartOptions.svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath: any) => {
+      chart.svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath: any) => {
         let stillExists = false;
-        chartOptions.multiChartData.forEach((singleChartData) => {
+        chart.multiData.forEach((singleChartData) => {
           singleChartData.keyHash = singleChartData.keyHash
             || ('multiLine' + hashString(singleChartData.key));
           if (existingPath.getAttribute('id') === singleChartData.keyHash) {
@@ -30,11 +30,11 @@ export class MultiLineChart implements IChartType {
         }
       });
 
-      chartOptions.multiChartData.forEach((singleChartData) => {
+      chart.multiData.forEach((singleChartData) => {
         if (singleChartData && singleChartData.values) {
           singleChartData.keyHash = singleChartData.keyHash
             || ('multiLine' + hashString(singleChartData.key));
-          const pathMultiLine = chartOptions.svg.selectAll('path#' + singleChartData.keyHash)
+          const pathMultiLine = chart.svg.selectAll('path#' + singleChartData.keyHash)
             .data([singleChartData.values]);
           // update existing
           pathMultiLine.attr('id', singleChartData.keyHash)
@@ -44,7 +44,7 @@ export class MultiLineChart implements IChartType {
               return singleChartData.color || colorScale(g++);
             })
             .transition()
-            .attr('d', this.createLine('linear', chartOptions.timeScale, chartOptions.yScale));
+            .attr('d', this.createLine('linear', chart.axis.timeScale, chart.axis.yScale));
           // add new ones
           pathMultiLine.enter().append('path')
             .attr('id', singleChartData.keyHash)
@@ -58,7 +58,7 @@ export class MultiLineChart implements IChartType {
               }
             })
             .transition()
-            .attr('d', this.createLine('linear', chartOptions.timeScale, chartOptions.yScale));
+            .attr('d', this.createLine('linear', chart.axis.timeScale, chart.axis.yScale));
           // remove old ones
           pathMultiLine.exit().remove();
         }

@@ -8,15 +8,15 @@ export class LineChart implements IChartType {
 
   public name = 'line';
 
-  public drawChart(chartOptions: ChartOptions) {
+  public drawChart(chart: ChartOptions) {
 
     const metricChartLine = d3.svg.line()
-      .interpolate(chartOptions.interpolation || 'monotone')
+      .interpolate(chart.interpolation || 'monotone')
       .defined((d: INumericDataPoint) => !d.isEmpty())
-      .x((d: INumericDataPoint) => chartOptions.timeScale(d.timestampSupplier()))
-      .y((d: INumericDataPoint) => chartOptions.yScale(d.valueSupplier()));
+      .x((d: INumericDataPoint) => chart.axis.timeScale(d.timestampSupplier()))
+      .y((d: INumericDataPoint) => chart.axis.yScale(d.valueSupplier()!));
 
-    const pathMetric = chartOptions.svg.selectAll('path.metricLine').data([chartOptions.chartData]);
+    const pathMetric = chart.svg.selectAll('path.metricLine').data([chart.data]);
     // update existing
     pathMetric.attr('class', 'metricLine')
       .transition()
