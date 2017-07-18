@@ -10,13 +10,14 @@ export class ScatterChart implements IChartType {
 
     if (!chartOptions.hideHighLowValues) {
 
-      const highDotCircle = chartOptions.svg.selectAll('.highDot').data(chartOptions.chartData);
+      const highDotCircle = chartOptions.svg.selectAll('.highDot').data(chartOptions.data);
       // update existing
       highDotCircle.attr('class', 'highDot')
         .filter((d: INumericDataPoint) => !d.isEmpty())
         .attr('r', 3)
-        .attr('cx', (d: INumericDataPoint) => chartOptions.timeScale(d.timestampSupplier()))
-        .attr('cy', (d: INumericDataPoint) => chartOptions.yScale(d.isRaw() ? (<NumericDataPoint>d).value : (<NumericBucketPoint>d).max))
+        .attr('cx', (d: INumericDataPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .attr('cy', (d: INumericDataPoint) => chartOptions.axis.yScale(d.isRaw() ? (<NumericDataPoint>d).value
+          : (<NumericBucketPoint>d).max!))
         .style('fill', '#ff1a13')
         .on('mouseover', (d: INumericDataPoint, i: number) => {
           // tip.show(d, i);
@@ -28,8 +29,9 @@ export class ScatterChart implements IChartType {
         .filter((d: INumericDataPoint) => !d.isEmpty())
         .attr('class', 'highDot')
         .attr('r', 3)
-        .attr('cx', (d: INumericDataPoint) => chartOptions.timeScale(d.timestampSupplier()))
-        .attr('cy', (d: INumericDataPoint) => chartOptions.yScale(d.isRaw() ? (<NumericDataPoint>d).value : (<NumericBucketPoint>d).max))
+        .attr('cx', (d: INumericDataPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .attr('cy', (d: INumericDataPoint) => chartOptions.axis.yScale(d.isRaw() ? (<NumericDataPoint>d).value
+          : (<NumericBucketPoint>d).max!))
         .style('fill', '#ff1a13')
         .on('mouseover', (d: INumericDataPoint, i: number) => {
           // tip.show(d, i);
@@ -39,13 +41,14 @@ export class ScatterChart implements IChartType {
       // remove old ones
       highDotCircle.exit().remove();
 
-      const lowDotCircle = chartOptions.svg.selectAll('.lowDot').data(chartOptions.chartData);
+      const lowDotCircle = chartOptions.svg.selectAll('.lowDot').data(chartOptions.data);
       // update existing
       lowDotCircle.attr('class', 'lowDot')
         .filter((d: INumericDataPoint) => !d.isEmpty())
         .attr('r', 3)
-        .attr('cx', (d: INumericDataPoint) => chartOptions.timeScale(d.timestampSupplier()))
-        .attr('cy', (d: INumericDataPoint) => chartOptions.yScale(d.isRaw() ? (<NumericDataPoint>d).value : (<NumericBucketPoint>d).min))
+        .attr('cx', (d: INumericDataPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .attr('cy', (d: INumericDataPoint) => chartOptions.axis.yScale(d.isRaw() ? (<NumericDataPoint>d).value
+          : (<NumericBucketPoint>d).min!))
         .style('fill', '#70c4e2')
         .on('mouseover', (d: INumericDataPoint, i: number) => {
           // tip.show(d, i);
@@ -57,8 +60,9 @@ export class ScatterChart implements IChartType {
         .filter((d: INumericDataPoint) => !d.isEmpty())
         .attr('class', 'lowDot')
         .attr('r', 3)
-        .attr('cx', (d: INumericDataPoint) => chartOptions.timeScale(d.timestampSupplier()))
-        .attr('cy', (d: INumericDataPoint) => chartOptions.yScale(d.isRaw() ? (<NumericDataPoint>d).value : (<NumericBucketPoint>d).min))
+        .attr('cx', (d: INumericDataPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .attr('cy', (d: INumericDataPoint) => chartOptions.axis.yScale(d.isRaw() ? (<NumericDataPoint>d).value
+          : (<NumericBucketPoint>d).min!))
         .style('fill', '#70c4e2')
         .on('mouseover', (d: INumericDataPoint, i: number) => {
           // tip.show(d, i);
@@ -73,13 +77,13 @@ export class ScatterChart implements IChartType {
       chartOptions.svg.selectAll('.highDot, .lowDot').remove();
     }
 
-    const avgDotCircle = chartOptions.svg.selectAll('.avgDot').data(chartOptions.chartData);
+    const avgDotCircle = chartOptions.svg.selectAll('.avgDot').data(chartOptions.data);
     // update existing
     avgDotCircle.attr('class', 'avgDot')
       .filter((d: INumericDataPoint) => !d.isEmpty())
       .attr('r', 3)
-      .attr('cx', (d: INumericDataPoint) => chartOptions.timeScale(d.timestampSupplier()))
-      .attr('cy', (d: INumericDataPoint) => chartOptions.yScale(d.valueSupplier()))
+      .attr('cx', (d: INumericDataPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+      .attr('cy', (d: INumericDataPoint) => chartOptions.axis.yScale(d.valueSupplier()!))
       .style('fill', '#FFF')
       .on('mouseover', (d: INumericDataPoint, i: number) => {
         // tip.show(d, i);
@@ -91,8 +95,8 @@ export class ScatterChart implements IChartType {
       .filter((d: INumericDataPoint) => !d.isEmpty())
       .attr('class', 'avgDot')
       .attr('r', 3)
-      .attr('cx', (d: INumericDataPoint) => chartOptions.timeScale(d.timestampSupplier()))
-      .attr('cy', (d: INumericDataPoint) => chartOptions.yScale(d.valueSupplier()))
+      .attr('cx', (d: INumericDataPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
+      .attr('cy', (d: INumericDataPoint) => chartOptions.axis.yScale(d.valueSupplier()!))
       .style('fill', () => {
         return '#FFF';
       }).on('mouseover', (d: INumericDataPoint, i: number) => {

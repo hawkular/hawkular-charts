@@ -29,15 +29,15 @@ function createAlertLineDef(timeScale: any, yScale: any, alertValue: number) {
 export function createAlertLine(chartOptions: ChartOptions,
   alertValue: number,
   cssClassName: string): void {
-  const pathAlertLine = chartOptions.svg.selectAll('path.alertLine').data([chartOptions.chartData]);
+  const pathAlertLine = chartOptions.svg.selectAll('path.alertLine').data([chartOptions.data]);
   // update existing
   pathAlertLine.attr('class', cssClassName)
-    .attr('d', createAlertLineDef(chartOptions.timeScale, chartOptions.yScale, alertValue));
+    .attr('d', createAlertLineDef(chartOptions.axis.timeScale, chartOptions.axis.yScale, alertValue));
 
   // add new ones
   pathAlertLine.enter().append('path')
     .attr('class', cssClassName)
-    .attr('d', createAlertLineDef(chartOptions.timeScale, chartOptions.yScale, alertValue));
+    .attr('d', createAlertLineDef(chartOptions.axis.timeScale, chartOptions.axis.yScale, alertValue));
 
   // remove old ones
   pathAlertLine.exit().remove();
@@ -52,7 +52,7 @@ function extractAlertRanges(chartData: INumericDataPoint[], threshold: AlertThre
 
   chartData.forEach((chartItem: INumericDataPoint) => {
     const value = chartItem.valueSupplier();
-    inAlert = value == undefined ? prevInAlert : value > threshold;
+    inAlert = value === undefined ? prevInAlert : value > threshold;
     if (inAlert && !prevInAlert) {
       startTime = chartItem.timestampSupplier();
     } else if (!inAlert && prevInAlert) {
@@ -71,23 +71,23 @@ export function createAlertBoundsArea(chartOptions: ChartOptions,
   alertValue: number,
   highBound: number
 ) {
-  const alertBounds: AlertBound[] = extractAlertRanges(chartOptions.chartData, alertValue);
+  const alertBounds: AlertBound[] = extractAlertRanges(chartOptions.data, alertValue);
   const rectAlert = chartOptions.svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
 
   function alertBoundingRect(selection: any) {
     selection
       .attr('class', 'alertBounds')
       .attr('x', (d: AlertBound) => {
-        return chartOptions.timeScale(d.startTimestamp);
+        return chartOptions.axis.timeScale(d.startTimestamp);
       })
       .attr('y', () => {
-        return chartOptions.yScale(highBound);
+        return chartOptions.axis.yScale(highBound);
       })
       .attr('height', (d: AlertBound) => {
-        return chartOptions.height - 40;
+        return chartOptions.layout.height - 40;
       })
       .attr('width', (d: AlertBound) => {
-        return chartOptions.timeScale(d.endTimestamp) - chartOptions.timeScale(d.startTimestamp);
+        return chartOptions.axis.timeScale(d.endTimestamp) - chartOptions.axis.timeScale(d.startTimestamp);
       });
   }
 

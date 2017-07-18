@@ -12,18 +12,8 @@ export interface FixedTimeRange {
 }
 
 export type TimeRange = TimeRangeFromNow | FixedTimeRange;
-export function isFixedTimeRange(timerange: TimeRange, ifTrue?: (fixed: FixedTimeRange) => void, ifFalse?: (fixed: TimeRangeFromNow) => void) {
-  if (timerange.hasOwnProperty('start')) {
-    if (ifTrue) {
-      ifTrue(<FixedTimeRange>timerange);
-    }
-    return true;
-  } else {
-    if (ifFalse) {
-      ifFalse(<TimeRangeFromNow>timerange);
-    }
-    return false;
-  }
+export function isFixedTimeRange(timerange: TimeRange) {
+  return (timerange.hasOwnProperty('start'));
 }
 
 export interface INumericDataPoint {
@@ -91,4 +81,39 @@ export interface IMultiDataPoint {
   keyHash?: string; // for using as valid html id
   color?: string; /// #fffeee
   values: INumericDataPoint[];
+}
+
+export interface IAnnotation {
+  timestamp: number;
+  severity: string;
+}
+
+export class Range {
+  constructor(public low: number, public high: number) {
+  }
+
+  amplitude(): number {
+    return this.high - this.low;
+  }
+
+  asD3Range() {
+    return [this.low, this.high];
+  }
+
+  contains(value: number): boolean {
+    return value >= this.low && value <= this.high;
+  }
+}
+
+export interface Ranges {
+  dataRange: Range;
+  chartRange: Range;
+}
+
+/**
+ * Temporary type def due to lack of d3 typing in project
+ */
+export interface D3ScaleFunc<Output> {
+  (value: number | { valueOf(): number }): Output;
+  domain(): Array<Date>;
 }

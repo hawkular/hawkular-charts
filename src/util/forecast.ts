@@ -3,7 +3,7 @@ import { ChartOptions } from '../model/chart-options'
 
 declare const d3: any;
 
-function createForecastLine(interpolate: string, timeScale: (x: number) => any, yScale: (y?: number) => any) {
+function createForecastLine(interpolate: string, timeScale: (x: number) => any, yScale: (y: number) => any) {
   return d3.svg.line()
       .interpolate(interpolate)
       .x((d: IPredictiveMetric) => timeScale(d.timestampSupplier()))
@@ -18,9 +18,9 @@ export function showForecastData(forecastData: IPredictiveMetric[], chartOptions
     const maxArea = d3.svg.area()
         .interpolate(chartOptions.interpolation || 'monotone')
         .defined((d: IPredictiveMetric) => !d.isEmpty())
-        .x((d: IPredictiveMetric) => chartOptions.timeScale(d.timestampSupplier()))
-        .y((d: IPredictiveMetric) => chartOptions.yScale(d.max))
-        .y0((d: IPredictiveMetric) => chartOptions.yScale(d.min));
+        .x((d: IPredictiveMetric) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .y((d: IPredictiveMetric) => chartOptions.axis.yScale(d.max))
+        .y0((d: IPredictiveMetric) => chartOptions.axis.yScale(d.min));
 
     const predictiveConeAreaPath = chartOptions.svg.selectAll('path.ConeArea').data([forecastData]);
     // update existing
@@ -38,11 +38,11 @@ export function showForecastData(forecastData: IPredictiveMetric[], chartOptions
   const forecastPathLine = chartOptions.svg.selectAll('.forecastLine').data([forecastData]);
   // update existing
   forecastPathLine.attr('class', 'forecastLine')
-    .attr('d', createForecastLine('monotone', chartOptions.timeScale, chartOptions.yScale));
+    .attr('d', createForecastLine('monotone', chartOptions.axis.timeScale, chartOptions.axis.yScale));
   // add new ones
   forecastPathLine.enter().append('path')
     .attr('class', 'forecastLine')
-    .attr('d', createForecastLine('monotone', chartOptions.timeScale, chartOptions.yScale));
+    .attr('d', createForecastLine('monotone', chartOptions.axis.timeScale, chartOptions.axis.yScale));
   // remove old ones
   forecastPathLine.exit().remove();
 

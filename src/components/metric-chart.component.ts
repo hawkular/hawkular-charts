@@ -8,9 +8,12 @@ import 'rxjs/add/operator/map';
 
 import {
   INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, IPredictiveMetric,
-  TimeInMillis, MetricId, UrlType, TimeRange, FixedTimeRange, TimeRangeFromNow, isFixedTimeRange
+  TimeInMillis, MetricId, UrlType, TimeRange, FixedTimeRange, TimeRangeFromNow, isFixedTimeRange,
+  Range, Ranges, IAnnotation
 } from '../model/types'
+import { ChartLayout } from '../model/chart-layout'
 import { ChartOptions } from '../model/chart-options'
+import { ComputedChartAxis } from '../model/computed-chart-axis'
 import { EventNames } from '../model/event-names'
 import { IChartType } from '../model/chart-type'
 import { LineChart } from '../model/line'
@@ -20,6 +23,9 @@ import { ScatterLineChart } from '../model/scatterLine'
 import { HistogramChart } from '../model/histogram'
 import { RhqBarChart } from '../model/rhq-bar'
 import { MultiLineChart } from '../model/multi-line'
+import { determineScale } from '../util/singleline-scaler'
+import { determineMultiScale } from '../util/multilines-scaler'
+import { annotateChart } from '../util/annotations'
 import {
   determineXAxisTicksFromScreenWidth, determineYAxisTicksFromScreenHeight,
   xAxisTimeFormats, determineYAxisGridLineTicksFromScreenHeight
@@ -34,10 +40,9 @@ declare let console: any;
 
 const debug = false;
 
-const DEFAULT_Y_SCALE = 10;
 const X_AXIS_HEIGHT = 25; // with room for label
 const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm:ss a';
-const MARGIN = { top: 0, right: 0, bottom: 0, left: 0 }; // left margin room for label
+const MARGIN = { top: 20, right: 0, bottom: 20, left: 35 };
 
 @Component({
   selector: 'hk-metric-chart',
@@ -46,7 +51,7 @@ const MARGIN = { top: 0, right: 0, bottom: 0, left: 0 }; // left margin room for
 export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
 
   @ViewChild('target') target: any;
-  // the scale to use for y-axis when all values are 0, [0, DEFAULT_Y_SCALE]
+
   @Input() metricUrl: UrlType;
   @Input() metricId = '';
   @Input() metricTenantId = '';
@@ -68,7 +73,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() forecastDataPoints: IPredictiveMetric[];
   @Input() showDataPoints = true;
   @Input() previousRangeData = [];
-  @Input() annotationData = [];
+  @Input() annotationData: IAnnotation[] = [];
   @Input() yAxisUnits: string;
   @Input() raw: false;
   @Input() buckets = 60;
@@ -87,25 +92,16 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   hideHighLowValues = false;
   useZeroMinValue = false;
 
-  width: number;
-  height: number;
-  modifiedInnerChartHeight: number;
-  innerChartHeight: number;
+  chartLayout: ChartLayout;
   chartData: INumericDataPoint[];
-  yScale: any;
-  timeScale: any;
-  yAxis: any;
-  xAxis: any;
+  computedChartAxis: ComputedChartAxis;
   tip: any;
   brush: any;
   brushGroup: any;
   chart: any;
   chartParent: any;
   svg: any;
-  visuallyAdjustedMin: number;
-  visuallyAdjustedMax: number;
-  peak: number;
-  min: number;
+  ranges: Ranges;
   refreshObservable?: Subscription;
 
   readonly registeredChartTypes: IChartType[] = [
@@ -140,18 +136,19 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     this.chartParent = d3.select(this.target.nativeElement);
     const parentNode = this.target.nativeElement.parentNode.parentNode;
 
-    this.width = parentNode.clientWidth || 800;
-    this.height = parentNode.clientHeight || 600;
-
-    this.modifiedInnerChartHeight = this.height - MARGIN.top - MARGIN.bottom - X_AXIS_HEIGHT;
-
-    this.innerChartHeight = this.height + MARGIN.top;
+    const width = parentNode.clientWidth || 800;
+    const height = parentNode.clientHeight || 600;
+    this.chartLayout = {
+      width: width,
+      height: height,
+      modifiedInnerChartHeight: height - MARGIN.top - MARGIN.bottom - X_AXIS_HEIGHT,
+      innerChartHeight: height + MARGIN.top,
+      innerChartWidth: width - MARGIN.left - MARGIN.right
+    }
 
     this.chart = this.chartParent.append('svg')
-      .attr('width', this.width + MARGIN.left + MARGIN.right)
-      .attr('height', this.innerChartHeight);
-
-    // createSvgDefs(chart);
+      .attr('width', width)
+      .attr('height', this.chartLayout.innerChartHeight);
 
     this.svg = this.chart.append('g')
       .attr('transform', 'translate(' + MARGIN.left + ',' + (MARGIN.top) + ')');
@@ -169,148 +166,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     this.svg.append('g').attr('class', 'alertHolder');
   }
 
-  setupFilteredData(): void {
-    const values = this.chartData.filter((d) => !d.isEmpty()).map((d) => d.valueSupplier());
-
-    this.peak = d3.max(values) || 1;
-    this.min = d3.min(values) || 0;
-
-    // lets adjust the min and max to add some visual spacing between it and the axes
-    this.visuallyAdjustedMin = this.useZeroMinValue ? 0 : this.min * .95;
-    this.visuallyAdjustedMax = this.peak + ((this.peak - this.min) * 0.2);
-
-    // check if we need to adjust high/low bound to fit alert value
-    if (this.alertValue) {
-      this.visuallyAdjustedMax = Math.max(this.visuallyAdjustedMax, this.alertValue * 1.2);
-      this.visuallyAdjustedMin = Math.min(this.visuallyAdjustedMin, this.alertValue * .95);
-    }
-
-    // use default Y scale in case high and low bound are 0 (ie, no values or all 0)
-    this.visuallyAdjustedMax = !!!this.visuallyAdjustedMax && !!!this.visuallyAdjustedMin ? DEFAULT_Y_SCALE :
-      this.visuallyAdjustedMax;
-  }
-
-  getYScale(): any {
-    return d3.scale.linear()
-      .clamp(true)
-      .rangeRound([this.modifiedInnerChartHeight, 0])
-      .domain([this.visuallyAdjustedMin, this.visuallyAdjustedMax]);
-  }
-
-  determineScale() {
-    const xTicks = determineXAxisTicksFromScreenWidth(this.width - MARGIN.left - MARGIN.right),
-      yTicks = determineYAxisTicksFromScreenHeight(this.modifiedInnerChartHeight);
-
-    this.setupFilteredData();
-    this.yScale = this.getYScale();
-
-    this.yAxis = d3.svg.axis()
-      .scale(this.yScale)
-      .ticks(yTicks)
-      .tickSize(4, 4, 0)
-      .orient('left');
-
-    const timeRange = this.getFixedTimeRange();
-
-    let timeScaleMax;
-    if (this.forecastDataPoints && this.forecastDataPoints.length > 0) {
-      timeScaleMax = this.forecastDataPoints[this.forecastDataPoints.length - 1].timestamp;
-    } else {
-      timeScaleMax = timeRange.end || Date.now();
-    }
-
-    this.timeScale = d3.time.scale()
-      .range([0, this.width - MARGIN.left - MARGIN.right])
-      .nice()
-      .domain([timeRange.start, timeScaleMax]);
-
-    this.xAxis = d3.svg.axis()
-      .scale(this.timeScale)
-      .ticks(xTicks)
-      .tickFormat(xAxisTimeFormats())
-      .tickSize(4, 4, 0)
-      .orient('bottom');
-
-  }
-
-  setupFilteredMultiData(multiDataPoints: IMultiDataPoint[]): any {
-    let alertPeak: number,
-      highPeak: number;
-
-    function determineMultiDataMinMax() {
-      let currentMax: number,
-        currentMin: number,
-        seriesMax: number,
-        seriesMin: number;
-
-      const maxList: number[] = [],
-        minList: number[] = [];
-
-      multiDataPoints.forEach((series) => {
-        currentMax = d3.max(series.values.map((d) => d.isEmpty() ? 0 : d.valueSupplier()));
-        maxList.push(currentMax);
-        currentMin = d3.min(series.values.map((d) => d.isEmpty() ? Number.MAX_VALUE : d.valueSupplier()));
-        minList.push(currentMin);
-
-      });
-      seriesMax = d3.max(maxList);
-      seriesMin = d3.min(minList);
-      return [seriesMin, seriesMax];
-    }
-
-    const minMax = determineMultiDataMinMax();
-    this.peak = minMax[1];
-    this.min = minMax[0];
-
-    this.visuallyAdjustedMin = this.useZeroMinValue ? 0 : this.min - (this.min * 0.05);
-    if (this.alertValue) {
-      alertPeak = (this.alertValue * 1.2);
-      highPeak = this.peak + ((this.peak - this.min) * 0.2);
-      this.visuallyAdjustedMax = alertPeak > highPeak ? alertPeak : highPeak;
-    } else {
-      this.visuallyAdjustedMax = this.peak + ((this.peak - this.min) * 0.2);
-    }
-
-    return [this.visuallyAdjustedMin, !!!this.visuallyAdjustedMax && !!!this.visuallyAdjustedMin ? DEFAULT_Y_SCALE :
-      this.visuallyAdjustedMax];
-  }
-
-  determineMultiScale(multiDataPoints: IMultiDataPoint[]) {
-    const xTicks = determineXAxisTicksFromScreenWidth(this.width - MARGIN.left - MARGIN.right),
-      yTicks = determineXAxisTicksFromScreenWidth(this.modifiedInnerChartHeight);
-
-    if (multiDataPoints && multiDataPoints[0] && multiDataPoints[0].values) {
-
-      const lowHigh = this.setupFilteredMultiData(multiDataPoints);
-      this.visuallyAdjustedMin = lowHigh[0];
-      this.visuallyAdjustedMax = lowHigh[1];
-
-      this.yScale = d3.scale.linear()
-        .clamp(true)
-        .rangeRound([this.modifiedInnerChartHeight, 0])
-        .domain([this.visuallyAdjustedMin, this.visuallyAdjustedMax]);
-
-      this.yAxis = d3.svg.axis()
-        .scale(this.yScale)
-        .ticks(yTicks)
-        .tickSize(4, 4, 0)
-        .orient('left');
-
-      this.timeScale = d3.time.scale()
-        .range([0, this.width - MARGIN.left - MARGIN.right])
-        .domain([d3.min(multiDataPoints, (d: IMultiDataPoint) => d3.min(d.values, (p: INumericDataPoint) => p.timestampSupplier())),
-        d3.max(multiDataPoints, (d: IMultiDataPoint) => d3.max(d.values, (p: INumericDataPoint) => p.timestampSupplier()))]);
-
-      this.xAxis = d3.svg.axis()
-        .scale(this.timeScale)
-        .ticks(xTicks)
-        .tickFormat(xAxisTimeFormats())
-        .tickSize(4, 4, 0)
-        .orient('bottom');
-
-    }
-  }
-
   isServerConfigured(): boolean {
     return this.metricUrl !== undefined
       && this.metricType !== undefined
@@ -319,6 +174,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   getFixedTimeRange(): FixedTimeRange {
+
     if (isFixedTimeRange(this.timeRangeValue)) {
       return <FixedTimeRange>this.timeRangeValue;
     } else {
@@ -436,24 +292,19 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
 
   createYAxisGridLines() {
     // create the y axis grid lines
-    const numberOfYAxisGridLines = determineYAxisGridLineTicksFromScreenHeight(this.modifiedInnerChartHeight);
-
-    this.yScale = this.getYScale();
-
-    if (this.yScale) {
-      let yAxis = this.svg.selectAll('g.grid.y_grid');
-      if (!yAxis[0].length) {
-        yAxis = this.svg.append('g').classed('grid y_grid', true);
-      }
-      yAxis
-        .call(d3.svg.axis()
-          .scale(this.yScale)
-          .orient('left')
-          .ticks(numberOfYAxisGridLines)
-          .tickSize(-this.width, 0)
-          .tickFormat('')
-        );
+    const numberOfYAxisGridLines = determineYAxisGridLineTicksFromScreenHeight(this.chartLayout.modifiedInnerChartHeight);
+    let yAxis = this.svg.selectAll('g.grid.y_grid');
+    if (!yAxis[0].length) {
+      yAxis = this.svg.append('g').classed('grid y_grid', true);
     }
+    yAxis
+      .call(d3.svg.axis()
+        .scale(this.computedChartAxis.yScale)
+        .orient('left')
+        .ticks(numberOfYAxisGridLines)
+        .tickSize(-this.chartLayout.width, 0)
+        .tickFormat('')
+      );
   }
 
   createXandYAxes() {
@@ -465,36 +316,33 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
         .attr('opacity', 1.0);
     }
 
-    if (this.yAxis) {
+    this.svg.selectAll('g.axis').remove();
 
-      this.svg.selectAll('g.axis').remove();
+    /* tslint:disable:no-unused-variable */
 
-      /* tslint:disable:no-unused-variable */
+    // create x-axis
+    const xAxisGroup = this.svg.append('g')
+      .attr('class', 'x axis')
+      .attr('transform', 'translate(0,' + this.chartLayout.modifiedInnerChartHeight + ')')
+      .attr('opacity', 0.3)
+      .call(this.computedChartAxis.xAxis)
+      .call(axisTransition);
 
-      // create x-axis
-      const xAxisGroup = this.svg.append('g')
-        .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + this.modifiedInnerChartHeight + ')')
+    // create y-axis
+    const yAxisGroup = this.svg.append('g')
+      .attr('class', 'y axis')
+      .attr('opacity', 0.3)
+      .call(this.computedChartAxis.yAxis)
+      .call(axisTransition);
+
+    if (this.chartLayout.modifiedInnerChartHeight >= 150 && this.yAxisUnits) {
+      this.svg.append('text').attr('class', 'yAxisUnitsLabel')
+        .attr('transform', 'rotate(-90),translate(-20,-50)')
+        .attr('x', -this.chartLayout.modifiedInnerChartHeight / 2)
+        .style('text-anchor', 'center')
+        .text(this.yAxisUnits === 'NONE' ? '' : this.yAxisUnits)
         .attr('opacity', 0.3)
-        .call(this.xAxis)
         .call(axisTransition);
-
-      // create y-axis
-      const yAxisGroup = this.svg.append('g')
-        .attr('class', 'y axis')
-        .attr('opacity', 0.3)
-        .call(this.yAxis)
-        .call(axisTransition);
-
-      if (this.modifiedInnerChartHeight >= 150 && this.yAxisUnits) {
-        this.svg.append('text').attr('class', 'yAxisUnitsLabel')
-          .attr('transform', 'rotate(-90),translate(-20,-50)')
-          .attr('x', -this.modifiedInnerChartHeight / 2)
-          .style('text-anchor', 'center')
-          .text(this.yAxisUnits === 'NONE' ? '' : this.yAxisUnits)
-          .attr('opacity', 0.3)
-          .call(axisTransition);
-      }
     }
   }
 
@@ -502,8 +350,8 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     return d3.svg.line()
       .interpolate(interpolate)
       .defined((d: INumericDataPoint) => !d.isEmpty())
-      .x((d: INumericDataPoint) => this.timeScale(d.timestampSupplier()))
-      .y((d: INumericDataPoint) => this.yScale(d.valueSupplier()));
+      .x((d: INumericDataPoint) => this.computedChartAxis.timeScale(d.timestampSupplier()))
+      .y((d: INumericDataPoint) => this.computedChartAxis.yScale(d.valueSupplier()!));
   }
 
   createAvgLines() {
@@ -539,12 +387,11 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       if (dragSelectionDelta >= 60000) {
         this.forecastDataPoints = [];
 
-        const chartOptions: ChartOptions = new ChartOptions(this.svg, this.timeScale, this.yScale, this.chartData, this.multiData,
-          this.modifiedInnerChartHeight, this.height, this.tip, this.visuallyAdjustedMax,
-          this.hideHighLowValues, this.interpolation);
+        const chartOptions: ChartOptions = new ChartOptions(this.svg, this.chartLayout, this.computedChartAxis, this.chartData,
+          this.multiData, this.tip, this.hideHighLowValues, this.interpolation);
 
         // If timerange is "xx from now" and the end bound hasn't changed, then continue in "xx from now" mode and ignore end time.
-        const previousEnd = this.timeScale.domain()[1].getTime();
+        const previousEnd = this.computedChartAxis.timeScale.domain()[1].getTime();
         if (!isFixedTimeRange(this.timeRange) && Math.abs(previousEnd - endTime) < 60000) {
           this.setTimeRange(startTime);
         } else {
@@ -556,7 +403,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     this.brush = d3.svg.brush()
-      .x(this.timeScale)
+      .x(this.computedChartAxis.timeScale)
       .on('brushstart', brushStart)
       .on('brushend', brushEnd);
 
@@ -564,7 +411,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     this.brushGroup.selectAll('.resize')
       .append('path');
     this.brushGroup.selectAll('rect')
-      .attr('height', this.modifiedInnerChartHeight);
+      .attr('height', this.chartLayout.modifiedInnerChartHeight);
   }
 
   createPreviousRangeOverlay(prevRangeData: INumericDataPoint[]) {
@@ -576,36 +423,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
         .attr('d', this.createCenteredLine('linear'));
     }
 
-  }
-
-  annotateChart() {
-    d3.scale.linear()
-      .clamp(true)
-      .rangeRound([this.modifiedInnerChartHeight, 0])
-      .domain([this.visuallyAdjustedMin, this.visuallyAdjustedMax]);
-
-    if (this.annotationData) {
-      this.svg.selectAll('.annotationDot')
-        .data(this.annotationData)
-        .enter().append('circle')
-        .attr('class', 'annotationDot')
-        .attr('r', 5)
-        .attr('cx', (d: any/*FIXME: typing?*/) => {
-          return this.timeScale(d.timestamp);
-        })
-        .attr('cy', () => {
-          return this.height - this.yScale(this.visuallyAdjustedMax);
-        })
-        .style('fill', (d: any/*FIXME: typing?*/) => {
-          if (d.severity === '1') {
-            return 'red';
-          } else if (d.severity === '2') {
-            return 'yellow';
-          } else {
-            return 'white';
-          }
-        });
-    }
   }
 
   render() {
@@ -621,23 +438,25 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     // NOTE: layering order is important!
     this.resize();
 
-    if (this.rawData) {
-      this.chartData = this.rawData;
-      this.determineScale();
-    } else if (this.statsData) {
-      this.chartData = this.statsData;
-      this.determineScale();
+    const xTicks = determineXAxisTicksFromScreenWidth(this.chartLayout.innerChartWidth),
+      yTicks = determineYAxisTicksFromScreenHeight(this.chartLayout.modifiedInnerChartHeight);
+
+    if (this.rawData || this.statsData) {
+      this.chartData = this.rawData || this.statsData!;
+      const timeRange = this.getFixedTimeRange();
+      this.computedChartAxis = determineScale(this.chartData, timeRange, xTicks, yTicks, this.useZeroMinValue,
+          this.chartLayout, this.forecastDataPoints, this.alertValue);
     } else {
       // multiDataPoints exist
-      this.determineMultiScale(this.multiData);
+      this.computedChartAxis = determineMultiScale(this.multiData, xTicks, yTicks, this.useZeroMinValue, this.chartLayout);
     }
 
-    const chartOptions: ChartOptions = new ChartOptions(this.svg, this.timeScale, this.yScale, this.chartData, this.multiData,
-      this.modifiedInnerChartHeight, this.height, this.tip, this.visuallyAdjustedMax,
-      this.hideHighLowValues, this.interpolation);
+    const chartOptions: ChartOptions = new ChartOptions(this.svg, this.chartLayout, this.computedChartAxis, this.chartData,
+      this.multiData, this.tip, this.hideHighLowValues, this.interpolation);
 
-    if (this.alertValue && (this.alertValue > this.visuallyAdjustedMin && this.alertValue < this.visuallyAdjustedMax)) {
-      createAlertBoundsArea(chartOptions, this.alertValue, this.visuallyAdjustedMax);
+    const hasAlertInRange = this.alertValue && this.computedChartAxis.chartRange.contains(this.alertValue);
+    if (hasAlertInRange) {
+      createAlertBoundsArea(chartOptions, this.alertValue, this.computedChartAxis.chartRange.high);
     }
 
     this.createXAxisBrush();
@@ -645,7 +464,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     this.determineChartTypeAndDraw(this.chartType, chartOptions);
 
     if (this.showDataPoints) {
-      createDataPoints(this.svg, this.timeScale, this.yScale, this.tip, this.chartData);
+      createDataPoints(this.svg, this.computedChartAxis.timeScale, this.computedChartAxis.yScale, this.tip, this.chartData);
     }
     this.createPreviousRangeOverlay(this.previousRangeData);
     this.createXandYAxes();
@@ -653,13 +472,13 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       this.createAvgLines();
     }
 
-    if (this.alertValue && (this.alertValue > this.visuallyAdjustedMin && this.alertValue < this.visuallyAdjustedMax)) {
+    if (hasAlertInRange) {
       // NOTE: this alert line has higher precedence from alert area above
       createAlertLine(chartOptions, this.alertValue, 'alertLine');
     }
 
     if (this.annotationData) {
-      this.annotateChart();
+      annotateChart(this.annotationData, chartOptions);
     }
     if (this.forecastDataPoints && this.forecastDataPoints.length > 0) {
       showForecastData(this.forecastDataPoints, chartOptions);
@@ -685,10 +504,10 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       this.refreshObservable.unsubscribe();
       this.refreshObservable = undefined;
     }
-    let needRefresh = false;
-    isFixedTimeRange(this.timeRangeValue,
-      (fixed) => needRefresh = (fixed.end == undefined),
-      (fromNow) => needRefresh = true);
+    let needRefresh = true;
+    if (isFixedTimeRange(this.timeRangeValue)) {
+      needRefresh = ((<FixedTimeRange>this.timeRangeValue).end === undefined);
+    }
 
     if (this.refreshIntervalInSeconds && this.refreshIntervalInSeconds > 0 && needRefresh && this.isServerConfigured()) {
       this.refreshObservable = IntervalObservable.create(this.refreshIntervalInSeconds * 1000)
