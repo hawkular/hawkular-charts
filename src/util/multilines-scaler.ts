@@ -3,7 +3,7 @@ import { ComputedChartAxis } from '../model/computed-chart-axis'
 import { xAxisTimeFormats } from './utility'
 import { ChartLayout } from '../model/chart-layout'
 
-declare let d3: any;
+declare const d3: any;
 
 type MaybeRange = Range | undefined;
 

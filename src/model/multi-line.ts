@@ -41,7 +41,7 @@ export class MultiLineChart implements IChartType {
             .attr('class', 'multiLine')
             .attr('fill', 'none')
             .attr('stroke', () => {
-              return singleChartData.color || colorScale(g++);
+              return singleChartData.color || colorScale(String(g++));
             })
             .transition()
             .attr('d', this.createLine('linear', chart.axis.timeScale, chart.axis.yScale));
@@ -54,7 +54,7 @@ export class MultiLineChart implements IChartType {
               if (singleChartData.color) {
                 return singleChartData.color;
               } else {
-                return colorScale(g++);
+                return colorScale(String(g++));
               }
             })
             .transition()

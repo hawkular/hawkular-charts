@@ -3,7 +3,7 @@ import { IChartType } from './chart-type'
 import { NumericBucketPoint } from './types'
 import { calcBarXPos, calcBarWidthAdjusted } from '../util/utility'
 
-declare let d3: any;
+declare const d3: any;
 
 export abstract class AbstractHistogramChart implements IChartType {
 
@@ -15,17 +15,18 @@ export abstract class AbstractHistogramChart implements IChartType {
 
     const rectHistogram = chartOptions.svg.selectAll('rect.' + barClass).data(chartOptions.data);
 
-    function buildBars(selection: d3.Selection<any>) {
+    function buildBars(selection: any/*d3.Selection<any>*/) {
       selection
         .attr('class', barClass)
-        .on('mouseover', (d: NumericBucketPoint, i) => {
+        .on('mouseover', (d: NumericBucketPoint, i: number) => {
           chartOptions.tip.show(d, i);
         }).on('mouseout', () => {
           chartOptions.tip.hide();
         })
         .transition()
-        .attr('x', (d: NumericBucketPoint, i) => calcBarXPos(d, i, 100/*FIXME*/, chartOptions.axis.timeScale, chartOptions.data.length))
-        .attr('width', (d: NumericBucketPoint, i) => calcBarWidthAdjusted(i, 100/*FIXME*/, chartOptions.data.length))
+        .attr('x', (d: NumericBucketPoint, i: number) => calcBarXPos(d, i, chartOptions.layout.width,
+            chartOptions.axis.timeScale, chartOptions.data.length))
+        .attr('width', (d: NumericBucketPoint, i: number) => calcBarWidthAdjusted(i, chartOptions.layout.width, chartOptions.data.length))
         .attr('y', (d: NumericBucketPoint) => d.isEmpty() ? 0 : chartOptions.axis.yScale(d.avg!))
         .attr('height', (d: NumericBucketPoint) => chartOptions.layout.modifiedInnerChartHeight - chartOptions.axis.yScale(d.isEmpty() ?
             chartOptions.axis.yScale(chartOptions.axis.chartRange.high) : d.avg!))
@@ -36,33 +37,35 @@ export abstract class AbstractHistogramChart implements IChartType {
         .attr('data-hawkular-value', (d: NumericBucketPoint) => d.avg || 0);
     }
 
-    function buildHighBar(selection: d3.Selection<any>) {
+    function buildHighBar(selection: any/*d3.Selection<any>*/) {
       selection
         .attr('class', (d: NumericBucketPoint) => d.min === d.max ? 'singleValue' : 'high')
-        .attr('x', (d: NumericBucketPoint, i) => calcBarXPos(d, i, 100/*FIXME*/, chartOptions.axis.timeScale, chartOptions.data.length))
+        .attr('x', (d: NumericBucketPoint, i: number) => calcBarXPos(d, i, chartOptions.layout.width, chartOptions.axis.timeScale,
+            chartOptions.data.length))
         .attr('y', (d: NumericBucketPoint) => isNaN(d.max || NaN) ? chartOptions.axis.yScale(chartOptions.axis.chartRange.high)
           : chartOptions.axis.yScale(d.max!))
         .attr('height', (d: NumericBucketPoint) => d.isEmpty() ? 0 : (chartOptions.axis.yScale(d.avg!)
           - chartOptions.axis.yScale(d.max!) || 2))
-        .attr('width', (d: NumericBucketPoint, i) => calcBarWidthAdjusted(i, 100/*FIXME*/, chartOptions.data.length))
+        .attr('width', (d: NumericBucketPoint, i: number) => calcBarWidthAdjusted(i, chartOptions.layout.width, chartOptions.data.length))
         .attr('opacity', 0.9)
-        .on('mouseover', (d: NumericBucketPoint, i) => chartOptions.tip.show(d, i))
+        .on('mouseover', (d: NumericBucketPoint, i: number) => chartOptions.tip.show(d, i))
         .on('mouseout', () => chartOptions.tip.hide());
     }
 
-    function buildLowerBar(selection: d3.Selection<any>) {
+    function buildLowerBar(selection: any/*d3.Selection<any>*/) {
       selection
         .attr('class', 'low')
-        .attr('x', (d: NumericBucketPoint, i) => calcBarXPos(d, i, 100/*FIXME*/, chartOptions.axis.timeScale, chartOptions.data.length))
+        .attr('x', (d: NumericBucketPoint, i: number) => calcBarXPos(d, i, chartOptions.layout.width, chartOptions.axis.timeScale,
+            chartOptions.data.length))
         .attr('y', (d: NumericBucketPoint) => isNaN(d.avg || NaN) ? chartOptions.layout.height : chartOptions.axis.yScale(d.avg!))
         .attr('height', (d: NumericBucketPoint) => d.isEmpty() ? 0 : (chartOptions.axis.yScale(d.min!) - chartOptions.axis.yScale(d.avg!)))
-        .attr('width', (d: NumericBucketPoint, i) => calcBarWidthAdjusted(i, 100/*FIXME*/, chartOptions.data.length))
+        .attr('width', (d: NumericBucketPoint, i: number) => calcBarWidthAdjusted(i, chartOptions.layout.width, chartOptions.data.length))
         .attr('opacity', 0.9)
-        .on('mouseover', (d: NumericBucketPoint, i) => chartOptions.tip.show(d, i))
+        .on('mouseover', (d: NumericBucketPoint, i: number) => chartOptions.tip.show(d, i))
         .on('mouseout', () => chartOptions.tip.hide());
     }
 
-    function buildTopStem(selection: d3.Selection<any>) {
+    function buildTopStem(selection: any/*d3.Selection<any>*/) {
       selection
         .attr('class', 'histogramTopStem')
         .filter((d: NumericBucketPoint) => !d.isEmpty())
@@ -74,7 +77,7 @@ export abstract class AbstractHistogramChart implements IChartType {
         .attr('stroke-opacity', 0.6);
     }
 
-    function buildLowStem(selection: d3.Selection<any>) {
+    function buildLowStem(selection: any/*d3.Selection<any>*/) {
       selection
         .filter((d: NumericBucketPoint) => !d.isEmpty())
         .attr('class', 'histogramBottomStem')
@@ -86,7 +89,7 @@ export abstract class AbstractHistogramChart implements IChartType {
         .attr('stroke-opacity', 0.6);
     }
 
-    function buildTopCross(selection: d3.Selection<any>) {
+    function buildTopCross(selection: any/*d3.Selection<any>*/) {
       selection
         .filter((d: NumericBucketPoint) => !d.isEmpty())
         .attr('class', 'histogramTopCross')
@@ -99,7 +102,7 @@ export abstract class AbstractHistogramChart implements IChartType {
         .attr('stroke-opacity', 0.6);
     }
 
-    function buildBottomCross(selection: d3.Selection<any>) {
+    function buildBottomCross(selection: any/*d3.Selection<any>*/) {
       selection
         .filter((d: NumericBucketPoint) => !d.isEmpty())
         .attr('class', 'histogramBottomCross')

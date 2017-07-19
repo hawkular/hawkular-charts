@@ -3,7 +3,9 @@ import { ChartOptions } from '../model/chart-options'
 
 declare const d3: any;
 
-function createForecastLine(interpolate: string, timeScale: (x: number) => any, yScale: (y: number) => any) {
+function createForecastLine(interpolate: string,
+          timeScale: any/*d3.time.Scale<number, number>*/,
+          yScale: any/*d3.scale.Linear<number, number>*/) {
   return d3.svg.line()
       .interpolate(interpolate)
       .x((d: IPredictiveMetric) => timeScale(d.timestampSupplier()))
