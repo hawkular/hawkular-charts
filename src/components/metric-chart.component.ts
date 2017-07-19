@@ -33,15 +33,14 @@ import {
 import { createAlertBoundsArea, createAlertLine } from '../util/alerts'
 import { createDataPoints } from '../util/features'
 import { showForecastData } from '../util/forecast'
+import { initTip } from '../util/metric-tip'
 
-declare let moment: any;
-declare let d3: any;
-declare let console: any;
+declare const d3: any;
+declare const console: any;
 
 const debug = false;
 
 const X_AXIS_HEIGHT = 25; // with room for label
-const HOVER_DATE_TIME_FORMAT = 'MM/DD/YYYY h:mm:ss a';
 const MARGIN = { top: 20, right: 0, bottom: 20, left: 35 };
 
 @Component({
@@ -98,9 +97,9 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   tip: any;
   brush: any;
   brushGroup: any;
-  chart: any;
-  chartParent: any;
-  svg: any;
+  chart: any; // d3.Selection<any>
+  chartParent: any; // d3.Selection<any>
+  svg: any; // d3.Selection<any>
   ranges: Ranges;
   refreshObservable?: Subscription;
 
@@ -156,11 +155,19 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     if (this.tip) {
       this.tip.hide();
     }
-    this.tip = d3.tip()
-      .attr('class', 'd3-tip')
-      .offset([-10, 0])
-      .html((d: INumericDataPoint, i: number) => this.buildHover(d, i));
-    this.svg.call(this.tip);
+    this.tip = initTip(this.svg,
+          this.noDataLabel,
+          this.durationLabel,
+          this.timestampLabel,
+          this.singleValueLabel,
+          this.minLabel,
+          this.maxLabel,
+          this.avgLabel,
+          idx => {
+            if (idx > 0) {
+              return this.chartData[idx - 1].timestampSupplier();
+            }
+          });
 
     // a placeholder for the alerts
     this.svg.append('g').attr('class', 'alertHolder');
@@ -225,69 +232,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       }, (err) => {
         console.error('Error Loading Chart Data:' + status + ', ' + err);
       });
-  }
-
-  buildHover(dataPoint: INumericDataPoint, i: number) {
-    const currentTimestamp = dataPoint.timestampSupplier();
-    let hover,
-      prevTimestamp,
-      barDuration;
-
-    const formattedDateTime = moment(currentTimestamp).format(HOVER_DATE_TIME_FORMAT);
-
-    if (i > 0) {
-      prevTimestamp = this.chartData[i - 1].timestampSupplier();
-      barDuration = moment(currentTimestamp).from(moment(prevTimestamp), true);
-    }
-
-    if (dataPoint.isEmpty()) {
-      // nodata
-      hover = `<div class='chartHover'>
-        <small class='chartHoverLabel'>${this.noDataLabel}</small>
-        <div><small><span class='chartHoverLabel'>${this.durationLabel}</span><span>:
-        </span><span class='chartHoverValue'>${barDuration}</span></small> </div>
-        <hr/>
-        <div><small><span class='chartHoverLabel'>${this.timestampLabel}</span><span>:
-        </span><span class='chartHoverValue'>${formattedDateTime}</span></small></div>
-        </div>`;
-    } else {
-      if (dataPoint.isRaw()) {
-        // raw single value from raw table
-        hover = `<div class='chartHover'>
-        <div><small><span class='chartHoverLabel'>${this.timestampLabel}</span><span>: </span>
-        <span class='chartHoverValue'>${formattedDateTime}</span></small></div>
-        <hr/>
-        <div><small><span class='chartHoverLabel'>${this.singleValueLabel}</span><span>: </span>
-        <span class='chartHoverValue'>${d3.round(dataPoint.valueSupplier(), 2)}</span></small> </div>
-        </div> `;
-      } else {
-        // aggregate with min/avg/max
-        const bucketDP: NumericBucketPoint = <NumericBucketPoint>dataPoint;
-        hover = `<div class='chartHover'>
-            <div class='info-item'>
-              <span class='chartHoverLabel'>${this.timestampLabel}:</span>
-              <span class='chartHoverValue'>${formattedDateTime}</span>
-            </div>
-            <div class='info-item before-separator'>
-              <span class='chartHoverLabel'>${this.durationLabel}:</span>
-              <span class='chartHoverValue'>${barDuration}</span>
-            </div>
-            <div class='info-item separator'>
-              <span class='chartHoverLabel'>${this.maxLabel}:</span>
-              <span class='chartHoverValue'>${d3.round(bucketDP.max, 2)}</span>
-            </div>
-            <div class='info-item'>
-              <span class='chartHoverLabel'>${this.avgLabel}:</span>
-              <span class='chartHoverValue'>${d3.round(bucketDP.avg, 2)}</span>
-            </div>
-            <div class='info-item'>
-              <span class='chartHoverLabel'>${this.minLabel}:</span>
-              <span class='chartHoverValue'>${d3.round(bucketDP.min, 2)}</span>
-            </div>
-          </div> `;
-      }
-    }
-    return hover;
   }
 
   createYAxisGridLines() {

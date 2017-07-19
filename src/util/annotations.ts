@@ -1,7 +1,7 @@
 import { IAnnotation } from '../model/types'
 import { ChartOptions } from '../model/chart-options'
 
-declare let d3: any;
+declare const d3: any;
 
 export function annotateChart(annotationData: IAnnotation[], chartOptions: ChartOptions) {
   d3.scale.linear()
@@ -14,12 +14,8 @@ export function annotateChart(annotationData: IAnnotation[], chartOptions: Chart
     .enter().append('circle')
     .attr('class', 'annotationDot')
     .attr('r', 5)
-    .attr('cx', (d: IAnnotation) => {
-      return chartOptions.axis.timeScale(d.timestamp);
-    })
-    .attr('cy', () => {
-      return chartOptions.layout.height - chartOptions.axis.yScale(chartOptions.axis.chartRange.high);
-    })
+    .attr('cx', (d: IAnnotation) => chartOptions.axis.timeScale(d.timestamp))
+    .attr('cy', () => chartOptions.layout.height - chartOptions.axis.yScale(chartOptions.axis.chartRange.high))
     .style('fill', (d: IAnnotation) => {
       if (d.severity === '1') {
         return 'red';

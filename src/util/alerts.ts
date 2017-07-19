@@ -77,18 +77,11 @@ export function createAlertBoundsArea(chartOptions: ChartOptions,
   function alertBoundingRect(selection: any) {
     selection
       .attr('class', 'alertBounds')
-      .attr('x', (d: AlertBound) => {
-        return chartOptions.axis.timeScale(d.startTimestamp);
-      })
-      .attr('y', () => {
-        return chartOptions.axis.yScale(highBound);
-      })
-      .attr('height', (d: AlertBound) => {
-        return chartOptions.layout.height - 40;
-      })
-      .attr('width', (d: AlertBound) => {
-        return chartOptions.axis.timeScale(d.endTimestamp) - chartOptions.axis.timeScale(d.startTimestamp);
-      });
+      .attr('x', (d: AlertBound) => chartOptions.axis.timeScale(d.startTimestamp))
+      .attr('y', () => chartOptions.axis.yScale(highBound))
+      .attr('height', (d: AlertBound) => chartOptions.layout.height - 40)
+      .attr('width', (d: AlertBound) => chartOptions.axis.timeScale(d.endTimestamp)
+          - chartOptions.axis.timeScale(d.startTimestamp));
   }
 
   // update existing

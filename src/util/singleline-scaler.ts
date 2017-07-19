@@ -3,10 +3,10 @@ import { ComputedChartAxis } from '../model/computed-chart-axis'
 import { xAxisTimeFormats } from './utility'
 import { ChartLayout } from '../model/chart-layout'
 
-declare let d3: any;
+declare const d3: any;
 
 function setupFilteredData(chartData: INumericDataPoint[], useZeroMinValue: boolean, alertValue?: number): Ranges {
-  const values = chartData.filter((d) => !d.isEmpty()).map((d) => d.valueSupplier());
+  const values = chartData.filter((d) => !d.isEmpty()).map((d) => d.valueSupplier()!);
   const dataRange = new Range(d3.min(values) || 0, d3.max(values) || 1);
 
   // lets adjust the min and max to add some visual spacing between it and the axes

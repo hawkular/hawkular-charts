@@ -1,8 +1,10 @@
-import { Ranges, D3ScaleFunc } from './types'
+import { Ranges } from './types'
+
+declare const d3: any;
 
 export interface ComputedChartAxis extends Ranges {
   xAxis: any;
   yAxis: any;
-  timeScale: D3ScaleFunc<number>;
-  yScale: D3ScaleFunc<number>;
+  timeScale: any; // d3.time.Scale<number, number>
+  yScale: any; // d3.scale.Linear<number, number>
 }
