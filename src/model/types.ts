@@ -109,11 +109,3 @@ export interface Ranges {
   dataRange: Range;
   chartRange: Range;
 }
-
-/**
- * Temporary type def due to lack of d3 typing in project
- */
-export interface D3ScaleFunc<Output> {
-  (value: number | { valueOf(): number }): Output;
-  domain(): Array<Date>;
-}

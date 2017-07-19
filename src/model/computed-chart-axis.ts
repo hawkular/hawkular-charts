@@ -1,4 +1,4 @@
-import { Ranges, D3ScaleFunc } from './types'
+import { Ranges } from './types'
 
 declare const d3: any;
 
