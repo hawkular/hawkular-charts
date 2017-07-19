@@ -198,9 +198,9 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
 
     let endpoint: string;
     if (this.raw) {
-      endpoint = '/raw';
+      endpoint = 'raw';
     } else {
-      endpoint = '/stats';
+      endpoint = 'stats';
       params.buckets = this.buckets;
     }
     const options = new RequestOptions({
@@ -211,7 +211,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     // sample url:
     // http://localhost:8080/hawkular/metrics/gauges/45b2256eff19cb982542b167b3957036.status.duration/stats?
     // buckets=120&end=1436831797533&start=1436828197533'
-    this.http.get(this.metricUrl + '/' + this.metricType + 's/' + this.metricId + endpoint, options)
+    this.http.get(`${this.metricUrl}/${this.metricType}s/${encodeURIComponent(this.metricId)}/${endpoint}`, options)
       .map((response) => response.json() || [])
       .subscribe((json) => {
         if (this.raw) {
