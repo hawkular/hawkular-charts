@@ -66,6 +66,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() maxLabel = 'Max';
   @Input() avgLabel = 'Avg';
   @Input() timestampLabel = 'Timestamp';
+  @Input() yAxisTickFormat: string;
   @Input() rawData?: NumericDataPoint[];
   @Input() statsData?: NumericBucketPoint[];
   @Input() multiData: IMultiDataPoint[];
@@ -389,10 +390,11 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       this.chartData = this.rawData || this.statsData!;
       const timeRange = this.getFixedTimeRange();
       this.computedChartAxis = determineScale(this.chartData, timeRange, xTicks, yTicks, this.useZeroMinValue,
-          this.chartLayout, this.forecastDataPoints, this.alertValue);
+          this.yAxisTickFormat, this.chartLayout, this.forecastDataPoints, this.alertValue);
     } else {
       // multiDataPoints exist
-      this.computedChartAxis = determineMultiScale(this.multiData, xTicks, yTicks, this.useZeroMinValue, this.chartLayout);
+      this.computedChartAxis = determineMultiScale(this.multiData, xTicks, yTicks, this.useZeroMinValue,
+          this.yAxisTickFormat, this.chartLayout);
     }
 
     const chartOptions: ChartOptions = new ChartOptions(this.svg, this.chartLayout, this.computedChartAxis, this.chartData,

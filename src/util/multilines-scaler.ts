@@ -54,6 +54,7 @@ export function determineMultiScale(
           xTicks: number,
           yTicks: number,
           useZeroMinValue: boolean,
+          yAxisTickFormat: string,
           chartLayout: ChartLayout,
           alertValue?: number): ComputedChartAxis {
 
@@ -68,6 +69,7 @@ export function determineMultiScale(
     .scale(yScale)
     .ticks(yTicks)
     .tickSize(4, 4, 0)
+    .tickFormat(yAxisTickFormat ? d3.format(yAxisTickFormat) : null)
     .orient('left');
 
   const timeScale = d3.time.scale()
