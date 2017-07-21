@@ -31,6 +31,7 @@ export function determineScale(
           xTicks: number,
           yTicks: number,
           useZeroMinValue: boolean,
+          yAxisTickFormat: string,
           chartLayout: ChartLayout,
           forecastDataPoints: IPredictiveMetric[],
           alertValue?: number): ComputedChartAxis {
@@ -46,6 +47,7 @@ export function determineScale(
     .scale(yScale)
     .ticks(yTicks)
     .tickSize(4, 4, 0)
+    .tickFormat(yAxisTickFormat ? d3.format(yAxisTickFormat) : null)
     .orient('left');
 
   let timeScaleMax;
