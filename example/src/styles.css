@@ -1,0 +1,56 @@
+/* You can add global styles to this file, and also import other style files */
+.contextChartSection {
+  background-color: #fafafa;
+  border: 1px solid lightgrey;
+}
+
+#alertValue {
+  width: 50px;
+}
+
+.metricIdLabel {
+  color: #1008a9;
+}
+
+.contextIdLabel {
+  color: #1794BC;
+}
+
+.metricIdHeader {
+  margin: 20px 0 0 90px;
+}
+
+.metricIdHeader > li {
+  margin-left: 50px;
+}
+
+.optionsWrapper {
+  border: 1px solid lightgrey;
+}
+
+.narrative {
+  margin: 20px;
+  font-style: italic;
+}
+
+.chartWrapper {
+  height: 300px;
+}
+
+.chartWrapperSmall {
+  height: 100px;
+}
+
+.chartWrapperSparkline {
+  height: 80px;
+  width: 250px;
+}
+
+.contextChartWrapper {
+  height: 85px;
+}
+
+.sparklineChartWrapper {
+  height: 70px;
+  width: 175px;
+}

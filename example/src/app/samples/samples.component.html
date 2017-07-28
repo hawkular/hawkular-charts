@@ -1,0 +1,335 @@
+<div class="container-fluid container-cards-pf">
+  <div class="row cards-pf">
+    <div class="col-sm-8 col-md-9">
+
+      <div class="page-header page-header-bleed-right">
+        <div class="actions pull-right">
+          <a href="#"><span class="pficon pficon-refresh"></span> Refresh Results</a>
+        </div>
+        <h1>Multi-Chart Examples</h1>
+      </div>
+
+      <div class="row row-cards-pf">
+        <div class="col-sm-12">
+
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <h2 class="card-pf-title">
+                  Context Chart
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="contextChartWrapper">
+                  <!--<hk-context-chart
+                    data="originalData"
+                    show-y-axis-values="true">
+                  </hk-context-chart>-->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Large (with Forecast Data)
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <hk-metric-chart
+                    [rawData]="rawData"
+                    [forecastData]="myForecastData"
+                    chart-type="line"
+                    [alertValue]="alertThreshold"
+                    show-data-points="true"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Small
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapperSmall">
+                  <!--<hk-metric-chart
+                    data="myData"
+                    chart-type="line"
+                    alert-value="{{alertThreshold}}"
+                    show-data-points="true"
+                    y-axis-units="Response Time (ms)"
+                  >
+                  </hk-metric-chart>-->
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Sparkline
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapperSparkline">
+                  <!--<hk-metric-chart
+                    data="myData"
+                    alert-value="{{alertThreshold}}"
+                    y-axis-units="Response Time (ms)"
+                  >
+                  </hk-metric-chart>-->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Area
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <!--<hk-metric-chart
+                    data="myData"
+                    chart-type="area"
+                    alert-value="{{alertThreshold}}"
+                    show-data-points="true"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>-->
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Histogram
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <!--<hk-metric-chart
+                    data="myData"
+                    chart-type="histogram"
+                    alert-value="{{alertThreshold}}"
+                    hide-high-low-values="hideHighLowValues"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>-->
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - RhqBar
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <!--<hk-metric-chart
+                    data="myData"
+                    chart-type="rhqbar"
+                    alert-value="{{alertThreshold}}"
+                    hide-high-low-values="hideHighLowValues"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>-->
+                </div>
+
+
+
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xs-12 col-sm-12">
+          <div class="card-pf">
+            <div class="card-pf-heading">
+
+              <div class="dropdown card-pf-time-frame-filter">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                  Last 30 Days <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                  <li><a href="#">Last 60 Days</a></li>
+                  <li><a href="#">Last 90 Days</a></li>
+                </ul>
+              </div>
+
+              <h2 class="card-pf-title">
+                Metric Chart - Scatter
+              </h2>
+            </div>
+            <div class="card-pf-body">
+              <div class="chartWrapper">
+                <!--<hk-metric-chart
+                  data="myData"
+                  chart-type="scatter"
+                  alert-value="{{alertThreshold}}"
+                  hide-high-low-values="hideHighLowValues"
+                  y-axis-units="Response Time (ms)">
+                </hk-metric-chart>-->
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+          <div class="col-xs-12 col-sm-12">
+            <div class="card-pf">
+              <div class="card-pf-heading">
+
+                <div class="dropdown card-pf-time-frame-filter">
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    Last 30 Days <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                    <li><a href="#">Last 60 Days</a></li>
+                    <li><a href="#">Last 90 Days</a></li>
+                  </ul>
+                </div>
+
+                <h2 class="card-pf-title">
+                  Metric Chart - Scatter Line
+                </h2>
+              </div>
+              <div class="card-pf-body">
+                <div class="chartWrapper">
+                  <!--<hk-metric-chart
+                    data="myData"
+                    chart-type="scatterline"
+                    alert-value="{{alertThreshold}}"
+                    hide-high-low-values="hideHighLowValues"
+                    y-axis-units="Response Time (ms)">
+                  </hk-metric-chart>-->
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+
+    </div><!-- /col -->
+
+    <div class="col-sm-4 col-md-3 sidebar-pf sidebar-pf-right">
+      <div class="sidebar-header sidebar-header-bleed-left sidebar-header-bleed-right">
+        <div class="actions pull-right">
+          <a href="#">Reset Settings</a>
+        </div>
+        <h2 class="h5">Chart Settings</h2>
+      </div>
+      <ul class="list-group">
+
+        <li class="list-group-item">
+          <label for="alertValue">Alert Threshold: </label>
+          <input class="pull-right" id="alertValue" type="number" step="500" [(ngModel)]="alertThreshold"/>
+        </li>
+
+        <li class="list-group-item">
+          <label for="dataPoints">Data Points: </label>
+          <input class="pull-right" id="dataPoints" type="number" step="10" max="120" min="10" [(ngModel)]="dataPoints"/>
+        </li>
+
+        <!--<li class="list-group-item">-->
+          <!--<label for="highLowValues">Hide High/Low Values: </label>-->
+          <!--<input class="pull-right" id="highLowValues" type="checkbox" ng-model="hideHighLowValues"/>-->
+        <!--</li>-->
+
+      </ul>
+    </div><!-- /col -->
+  </div><!-- /row -->
+</div><!-- /container -->

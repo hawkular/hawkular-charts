@@ -70,7 +70,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() rawData?: NumericDataPoint[];
   @Input() statsData?: NumericBucketPoint[];
   @Input() multiData: IMultiDataPoint[];
-  @Input() forecastDataPoints: IPredictiveMetric[];
+  @Input() forecastData: IPredictiveMetric[];
   @Input() showDataPoints = true;
   @Input() previousRangeData = [];
   @Input() annotationData: IAnnotation[] = [];
@@ -330,7 +330,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       this.svg.classed('selecting', !d3.event.target.empty());
       // ignore range selections less than 1 minute
       if (dragSelectionDelta >= 60000) {
-        this.forecastDataPoints = [];
+        this.forecastData = [];
 
         const chartOptions: ChartOptions = new ChartOptions(this.svg, this.chartLayout, this.computedChartAxis, this.chartData,
           this.multiData, this.tip, this.hideHighLowValues, this.interpolation);
@@ -390,7 +390,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       this.chartData = this.rawData || this.statsData!;
       const timeRange = this.getFixedTimeRange();
       this.computedChartAxis = determineScale(this.chartData, timeRange, xTicks, yTicks, this.useZeroMinValue,
-          this.yAxisTickFormat, this.chartLayout, this.forecastDataPoints, this.alertValue);
+          this.yAxisTickFormat, this.chartLayout, this.forecastData, this.alertValue);
     } else {
       // multiDataPoints exist
       this.computedChartAxis = determineMultiScale(this.multiData, xTicks, yTicks, this.useZeroMinValue,
@@ -426,8 +426,8 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     if (this.annotationData) {
       annotateChart(this.annotationData, chartOptions);
     }
-    if (this.forecastDataPoints && this.forecastDataPoints.length > 0) {
-      showForecastData(this.forecastDataPoints, chartOptions);
+    if (this.forecastData && this.forecastData.length > 0) {
+      showForecastData(this.forecastData, chartOptions);
     }
     if (debug) {
       console.timeEnd('chartRender');
