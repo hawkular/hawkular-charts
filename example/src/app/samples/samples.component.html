@@ -188,14 +188,14 @@
               </div>
               <div class="card-pf-body">
                 <div class="chartWrapper">
-                  <!--<hk-metric-chart
-                    data="myData"
-                    chart-type="histogram"
+                  <hk-metric-chart
+                    [statsData]="statsData"
+                    chartType="histogram"
                     [alertValue]="alertThreshold"
-                    hide-high-low-values="hideHighLowValues"
+                    [hideHighLowValues]="hideHighLowValues"
                     y-axis-units="Response Time (ms)"
                     [timeRange]="timeRange">
-                  </hk-metric-chart>-->
+                  </hk-metric-chart>
                 </div>
 
 
@@ -223,14 +223,14 @@
               </div>
               <div class="card-pf-body">
                 <div class="chartWrapper">
-                  <!--<hk-metric-chart
-                    data="myData"
-                    chart-type="rhqbar"
+                  <hk-metric-chart
+                    [statsData]="statsData"
+                    chartType="rhqbar"
                     [alertValue]="alertThreshold"
-                    hide-high-low-values="hideHighLowValues"
+                    [hideHighLowValues]="hideHighLowValues"
                     y-axis-units="Response Time (ms)"
                     [timeRange]="timeRange">
-                  </hk-metric-chart>-->
+                  </hk-metric-chart>
                 </div>
 
 
@@ -259,14 +259,14 @@
             </div>
             <div class="card-pf-body">
               <div class="chartWrapper">
-                <!--<hk-metric-chart
-                  data="myData"
-                  chart-type="scatter"
+                <hk-metric-chart
+                  [statsData]="statsData"
+                  chartType="scatter"
                   [alertValue]="alertThreshold"
-                  hide-high-low-values="hideHighLowValues"
+                  [hideHighLowValues]="hideHighLowValues"
                   y-axis-units="Response Time (ms)"
                   [timeRange]="timeRange">
-                </hk-metric-chart>-->
+                </hk-metric-chart>
               </div>
 
             </div>
@@ -293,14 +293,14 @@
               </div>
               <div class="card-pf-body">
                 <div class="chartWrapper">
-                  <!--<hk-metric-chart
-                    data="myData"
-                    chart-type="scatterline"
+                  <hk-metric-chart
+                    [statsData]="statsData"
+                    chartType="scatterline"
                     [alertValue]="alertThreshold"
-                    hide-high-low-values="hideHighLowValues"
+                    [hideHighLowValues]="hideHighLowValues"
                     y-axis-units="Response Time (ms)"
                     [timeRange]="timeRange">
-                  </hk-metric-chart>-->
+                  </hk-metric-chart>
                 </div>
               </div>
             </div>
@@ -331,10 +331,10 @@
           <input class="pull-right" id="dataPoints" type="number" step="10" max="120" min="10" [(ngModel)]="dataPoints"/>
         </li>
 
-        <!--<li class="list-group-item">-->
-          <!--<label for="highLowValues">Hide High/Low Values: </label>-->
-          <!--<input class="pull-right" id="highLowValues" type="checkbox" ng-model="hideHighLowValues"/>-->
-        <!--</li>-->
+        <li class="list-group-item">
+          <label for="highLowValues">Hide High/Low Values: </label>
+          <input class="pull-right" id="highLowValues" type="checkbox" [(ngModel)]="hideHighLowValues"/>
+        </li>
 
       </ul>
     </div><!-- /col -->

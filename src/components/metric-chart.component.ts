@@ -77,6 +77,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() yAxisUnits: string;
   @Input() raw: false;
   @Input() buckets = 60;
+  @Input() hideHighLowValues = false;
   @Output() timeRangeChange = new EventEmitter();
   timeRangeValue: TimeRange = 43200;
   @Input()
@@ -89,7 +90,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   showAvgLine = true;
-  hideHighLowValues = false;
   useZeroMinValue = false;
 
   chartLayout: ChartLayout;

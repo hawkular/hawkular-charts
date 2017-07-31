@@ -18,7 +18,7 @@ export function calcBarWidthAdjusted(i: number, width: number, length: number) {
 // Calculates the bar X position. When using calcBarWidthAdjusted, it is required to push bars
 // other than the first half bar to the left, to make up for the first being just half width
 export function calcBarXPos(d: INumericDataPoint, i: number, width: number, timeScale: any, length: number) {
-  return timeScale(d.timestampSupplier) - (i === 0 ? 0 : calcBarWidth(width, length, BAR_OFFSET) / 2);
+  return timeScale(d.timestampSupplier()) - (i === 0 ? 0 : calcBarWidth(width, length, BAR_OFFSET) / 2);
 }
 
 export function xAxisTimeFormats() {
