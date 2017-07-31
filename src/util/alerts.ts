@@ -79,9 +79,8 @@ export function createAlertBoundsArea(chartOptions: ChartOptions,
       .attr('class', 'alertBounds')
       .attr('x', (d: AlertBound) => chartOptions.axis.timeScale(d.startTimestamp))
       .attr('y', () => chartOptions.axis.yScale(highBound))
-      .attr('height', (d: AlertBound) => chartOptions.layout.height - 40)
-      .attr('width', (d: AlertBound) => chartOptions.axis.timeScale(d.endTimestamp)
-          - chartOptions.axis.timeScale(d.startTimestamp));
+      .attr('height', (d: AlertBound) => chartOptions.layout.modifiedInnerChartHeight)
+      .attr('width', (d: AlertBound) => chartOptions.axis.timeScale(d.endTimestamp) - chartOptions.axis.timeScale(d.startTimestamp));
   }
 
   // update existing

@@ -68,9 +68,15 @@ export class NumericBucketPoint implements INumericDataPoint {
 /**
  * Data for predictive 'cone'
  */
-export class IPredictiveMetric extends NumericDataPoint {
+export class PredictiveMetric extends NumericDataPoint {
   min: MetricValue;
   max: MetricValue;
+
+  constructor(from: PredictiveMetric) {
+    super(from);
+    this.min = from.min;
+    this.max = from.max;
+  }
 }
 
 /**

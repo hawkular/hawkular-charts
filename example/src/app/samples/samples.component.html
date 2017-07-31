@@ -57,8 +57,9 @@
                     [forecastData]="myForecastData"
                     chart-type="line"
                     [alertValue]="alertThreshold"
-                    show-data-points="true"
-                    y-axis-units="Response Time (ms)">
+                    [showDataPoints]="true"
+                    y-axis-units="Response Time (ms)"
+                    [timeRange]="timeRange">
                   </hk-metric-chart>
                 </div>
 
@@ -86,14 +87,14 @@
               </div>
               <div class="card-pf-body">
                 <div class="chartWrapperSmall">
-                  <!--<hk-metric-chart
-                    data="myData"
+                  <hk-metric-chart
+                    [statsData]="statsData"
                     chart-type="line"
-                    alert-value="{{alertThreshold}}"
-                    show-data-points="true"
+                    [alertValue]="alertThreshold"
+                    [showDataPoints]="true"
                     y-axis-units="Response Time (ms)"
-                  >
-                  </hk-metric-chart>-->
+                    [timeRange]="timeRange">
+                  </hk-metric-chart>
                 </div>
               </div>
             </div>
@@ -120,12 +121,13 @@
               </div>
               <div class="card-pf-body">
                 <div class="chartWrapperSparkline">
-                  <!--<hk-metric-chart
-                    data="myData"
-                    alert-value="{{alertThreshold}}"
+                  <hk-metric-chart
+                    [rawData]="rawData"
+                    [alertValue]="alertThreshold"
+                    [showDataPoints]="false"
                     y-axis-units="Response Time (ms)"
-                  >
-                  </hk-metric-chart>-->
+                    [timeRange]="timeRange">
+                  </hk-metric-chart>
                 </div>
               </div>
             </div>
@@ -151,13 +153,14 @@
               </div>
               <div class="card-pf-body">
                 <div class="chartWrapper">
-                  <!--<hk-metric-chart
-                    data="myData"
-                    chart-type="area"
-                    alert-value="{{alertThreshold}}"
-                    show-data-points="true"
-                    y-axis-units="Response Time (ms)">
-                  </hk-metric-chart>-->
+                  <hk-metric-chart
+                    [statsData]="statsData"
+                    chartType="area"
+                    [alertValue]="alertThreshold"
+                    [showDataPoints]="false"
+                    y-axis-units="Response Time (ms)"
+                    [timeRange]="timeRange">
+                  </hk-metric-chart>
                 </div>
 
               </div>
@@ -188,9 +191,10 @@
                   <!--<hk-metric-chart
                     data="myData"
                     chart-type="histogram"
-                    alert-value="{{alertThreshold}}"
+                    [alertValue]="alertThreshold"
                     hide-high-low-values="hideHighLowValues"
-                    y-axis-units="Response Time (ms)">
+                    y-axis-units="Response Time (ms)"
+                    [timeRange]="timeRange">
                   </hk-metric-chart>-->
                 </div>
 
@@ -222,9 +226,10 @@
                   <!--<hk-metric-chart
                     data="myData"
                     chart-type="rhqbar"
-                    alert-value="{{alertThreshold}}"
+                    [alertValue]="alertThreshold"
                     hide-high-low-values="hideHighLowValues"
-                    y-axis-units="Response Time (ms)">
+                    y-axis-units="Response Time (ms)"
+                    [timeRange]="timeRange">
                   </hk-metric-chart>-->
                 </div>
 
@@ -257,9 +262,10 @@
                 <!--<hk-metric-chart
                   data="myData"
                   chart-type="scatter"
-                  alert-value="{{alertThreshold}}"
+                  [alertValue]="alertThreshold"
                   hide-high-low-values="hideHighLowValues"
-                  y-axis-units="Response Time (ms)">
+                  y-axis-units="Response Time (ms)"
+                  [timeRange]="timeRange">
                 </hk-metric-chart>-->
               </div>
 
@@ -290,9 +296,10 @@
                   <!--<hk-metric-chart
                     data="myData"
                     chart-type="scatterline"
-                    alert-value="{{alertThreshold}}"
+                    [alertValue]="alertThreshold"
                     hide-high-low-values="hideHighLowValues"
-                    y-axis-units="Response Time (ms)">
+                    y-axis-units="Response Time (ms)"
+                    [timeRange]="timeRange">
                   </hk-metric-chart>-->
                 </div>
               </div>
