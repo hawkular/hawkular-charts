@@ -7,7 +7,7 @@ import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import 'rxjs/add/operator/map';
 
 import {
-  INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, IPredictiveMetric,
+  INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, PredictiveMetric,
   TimeInMillis, MetricId, UrlType, TimeRange, FixedTimeRange, TimeRangeFromNow, isFixedTimeRange,
   Range, Ranges, IAnnotation
 } from '../model/types'
@@ -41,7 +41,7 @@ declare const console: any;
 const debug = false;
 
 const X_AXIS_HEIGHT = 25; // with room for label
-const MARGIN = { top: 20, right: 0, bottom: 20, left: 35 };
+const MARGIN = { top: 10, right: 0, bottom: 10, left: 35 };
 
 @Component({
   selector: 'hk-metric-chart',
@@ -70,13 +70,14 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() rawData?: NumericDataPoint[];
   @Input() statsData?: NumericBucketPoint[];
   @Input() multiData: IMultiDataPoint[];
-  @Input() forecastDataPoints: IPredictiveMetric[];
+  @Input() forecastData: PredictiveMetric[];
   @Input() showDataPoints = true;
   @Input() previousRangeData = [];
   @Input() annotationData: IAnnotation[] = [];
   @Input() yAxisUnits: string;
   @Input() raw: false;
   @Input() buckets = 60;
+  @Input() hideHighLowValues = false;
   @Output() timeRangeChange = new EventEmitter();
   timeRangeValue: TimeRange = 43200;
   @Input()
@@ -89,7 +90,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   showAvgLine = true;
-  hideHighLowValues = false;
   useZeroMinValue = false;
 
   chartLayout: ChartLayout;
@@ -104,17 +104,21 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   ranges: Ranges;
   refreshObservable?: Subscription;
 
-  readonly registeredChartTypes: IChartType[] = [
-    new LineChart(),
-    new AreaChart(),
-    new ScatterChart(),
-    new ScatterLineChart(),
-    new HistogramChart(),
-    new RhqBarChart(),
-    new MultiLineChart(),
-  ];
+  readonly registeredChartTypes: { [name: string]: IChartType } = {};
 
   constructor(private http: Http) {
+    [
+      new LineChart(),
+      new AreaChart(),
+      new ScatterChart(),
+      new ScatterLineChart(),
+      new HistogramChart(),
+      new RhqBarChart(),
+      new MultiLineChart(),
+    ].forEach(chart => {
+      this.registeredChartTypes[chart.name] = chart;
+    });
+    this.normalizeInputDataPoints();
   }
 
   ngOnInit(): void {
@@ -330,7 +334,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       this.svg.classed('selecting', !d3.event.target.empty());
       // ignore range selections less than 1 minute
       if (dragSelectionDelta >= 60000) {
-        this.forecastDataPoints = [];
+        this.forecastData = [];
 
         const chartOptions: ChartOptions = new ChartOptions(this.svg, this.chartLayout, this.computedChartAxis, this.chartData,
           this.multiData, this.tip, this.hideHighLowValues, this.interpolation);
@@ -390,7 +394,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       this.chartData = this.rawData || this.statsData!;
       const timeRange = this.getFixedTimeRange();
       this.computedChartAxis = determineScale(this.chartData, timeRange, xTicks, yTicks, this.useZeroMinValue,
-          this.yAxisTickFormat, this.chartLayout, this.forecastDataPoints, this.alertValue);
+          this.yAxisTickFormat, this.chartLayout, this.forecastData, this.alertValue);
     } else {
       // multiDataPoints exist
       this.computedChartAxis = determineMultiScale(this.multiData, xTicks, yTicks, this.useZeroMinValue,
@@ -426,8 +430,8 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     if (this.annotationData) {
       annotateChart(this.annotationData, chartOptions);
     }
-    if (this.forecastDataPoints && this.forecastDataPoints.length > 0) {
-      showForecastData(this.forecastDataPoints, chartOptions);
+    if (this.forecastData && this.forecastData.length > 0) {
+      showForecastData(this.forecastData, chartOptions);
     }
     if (debug) {
       console.timeEnd('chartRender');
@@ -436,13 +440,11 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   determineChartTypeAndDraw(chartType: string, chartOptions: ChartOptions) {
-    // @todo: add in multiline and rhqbar chart types
-    // @todo: add validation if not in valid chart types
-    this.registeredChartTypes.forEach((aChartType) => {
-      if (aChartType.name === chartType) {
-        aChartType.drawChart(chartOptions);
-      }
-    });
+    if (this.registeredChartTypes.hasOwnProperty(chartType)) {
+      this.registeredChartTypes[chartType].drawChart(chartOptions);
+    } else {
+      console.error(`Unknown chart type '${chartType}'`);
+    }
   }
 
   resetRefreshLoop(): void {
@@ -462,6 +464,9 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['rawData'] || changes['statsData'] || changes['forecastData']) {
+      this.normalizeInputDataPoints();
+    }
     this.refresh();
   }
 
@@ -495,5 +500,18 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       end: endTime
     }
     this.refresh();
+  }
+
+  normalizeInputDataPoints() {
+    // Input got from static JSON may not satisfy class definition in regards to class methods; so normalize that
+    if (this.rawData) {
+      this.rawData = this.rawData.map(dp => new NumericDataPoint(dp));
+    }
+    if (this.statsData) {
+      this.statsData = this.statsData.map(dp => new NumericBucketPoint(dp));
+    }
+    if (this.forecastData) {
+      this.forecastData = this.forecastData.map(dp => new PredictiveMetric(dp));
+    }
   }
 }

@@ -9,41 +9,32 @@ export class AreaChart implements IChartType {
   public name = 'area';
 
   public drawChart(chartOptions: ChartOptions): void {
-
-    const
-      highArea = d3.svg.area()
+    const highArea = d3.svg.area()
         .interpolate(chartOptions.interpolation || 'monotone')
-        .defined((d: INumericDataPoint) => !d.isEmpty())
+        .defined((d: INumericDataPoint) => !d.isEmpty() && !d.isRaw())
         .x((d: INumericDataPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
-        .y((d: INumericDataPoint) => {
-          return d.isRaw ? chartOptions.axis.yScale((<NumericDataPoint>d).value) : chartOptions.axis.yScale((<NumericBucketPoint>d).max!);
-        })
-        .y0((d: INumericDataPoint) => chartOptions.axis.yScale(d.valueSupplier()!))
-      ,
+        .y((d: INumericDataPoint) => chartOptions.axis.yScale((<NumericBucketPoint>d).max!))
+        .y0((d: INumericDataPoint) => chartOptions.axis.yScale(d.valueSupplier()!));
 
-      avgArea = d3.svg.area()
+    const avgArea = d3.svg.area()
         .interpolate(chartOptions.interpolation || 'monotone')
         .defined((d: INumericDataPoint) => !d.isEmpty())
         .x((d: INumericDataPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
         .y((d: INumericDataPoint) => chartOptions.axis.yScale(d.valueSupplier()!))
         .y0((d: INumericDataPoint) => {
           return chartOptions.hideHighLowValues ? chartOptions.layout.height
-           : (d.isRaw ? chartOptions.axis.yScale((<NumericDataPoint>d).value) : chartOptions.axis.yScale((<NumericBucketPoint>d).min!))
-        })
-      ,
+           : (d.isRaw() ? chartOptions.axis.yScale((<NumericDataPoint>d).value) : chartOptions.axis.yScale((<NumericBucketPoint>d).min!))
+        });
 
-      lowArea = d3.svg.area()
+    const lowArea = d3.svg.area()
         .interpolate(chartOptions.interpolation || 'monotone')
-        .defined((d: INumericDataPoint) => !d.isEmpty())
+        .defined((d: INumericDataPoint) => !d.isEmpty() && !d.isRaw())
         .x((d: INumericDataPoint) => chartOptions.axis.timeScale(d.timestampSupplier()))
-        .y((d: INumericDataPoint) => {
-          return d.isRaw ? chartOptions.axis.yScale((<NumericDataPoint>d).value) : chartOptions.axis.yScale((<NumericBucketPoint>d).min!);
-        })
+        .y((d: INumericDataPoint) => chartOptions.axis.yScale((<NumericBucketPoint>d).min!))
         .y0(() => chartOptions.layout.modifiedInnerChartHeight);
 
     if (!chartOptions.hideHighLowValues) {
-      const
-        highAreaPath = chartOptions.svg.selectAll('path.highArea').data([chartOptions.data]);
+      const highAreaPath = chartOptions.svg.selectAll('path.highArea').data([chartOptions.data]);
       // update existing
       highAreaPath
         .attr('class', 'highArea')
@@ -59,8 +50,7 @@ export class AreaChart implements IChartType {
         .exit()
         .remove();
 
-      const
-        lowAreaPath = chartOptions.svg.selectAll('path.lowArea').data([chartOptions.data]);
+      const lowAreaPath = chartOptions.svg.selectAll('path.lowArea').data([chartOptions.data]);
       // update existing
       lowAreaPath
         .attr('class', 'lowArea')
@@ -77,8 +67,7 @@ export class AreaChart implements IChartType {
         .remove();
     }
 
-    const
-      avgAreaPath = chartOptions.svg.selectAll('path.avgArea').data([chartOptions.data]);
+    const avgAreaPath = chartOptions.svg.selectAll('path.avgArea').data([chartOptions.data]);
     // update existing
     avgAreaPath.attr('class', 'avgArea')
       .attr('d', avgArea);
@@ -89,5 +78,4 @@ export class AreaChart implements IChartType {
     // remove old ones
     avgAreaPath.exit().remove();
   }
-
 }

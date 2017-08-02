@@ -1,4 +1,4 @@
-import { IPredictiveMetric } from '../model/types'
+import { PredictiveMetric } from '../model/types'
 import { ChartOptions } from '../model/chart-options'
 
 declare const d3: any;
@@ -8,21 +8,21 @@ function createForecastLine(interpolate: string,
           yScale: any/*d3.scale.Linear<number, number>*/) {
   return d3.svg.line()
       .interpolate(interpolate)
-      .x((d: IPredictiveMetric) => timeScale(d.timestampSupplier()))
-      .y((d: IPredictiveMetric) => yScale(d.valueSupplier()));
+      .x((d: PredictiveMetric) => timeScale(d.timestampSupplier()))
+      .y((d: PredictiveMetric) => yScale(d.valueSupplier()));
 }
 
-export function showForecastData(forecastData: IPredictiveMetric[], chartOptions: ChartOptions) {
+export function showForecastData(forecastData: PredictiveMetric[], chartOptions: ChartOptions) {
   const lastForecastPoint = forecastData[forecastData.length - 1];
   const existsMinOrMax = lastForecastPoint.min || lastForecastPoint.max;
 
   if (existsMinOrMax) {
     const maxArea = d3.svg.area()
         .interpolate(chartOptions.interpolation || 'monotone')
-        .defined((d: IPredictiveMetric) => !d.isEmpty())
-        .x((d: IPredictiveMetric) => chartOptions.axis.timeScale(d.timestampSupplier()))
-        .y((d: IPredictiveMetric) => chartOptions.axis.yScale(d.max))
-        .y0((d: IPredictiveMetric) => chartOptions.axis.yScale(d.min));
+        .defined((d: PredictiveMetric) => !d.isEmpty())
+        .x((d: PredictiveMetric) => chartOptions.axis.timeScale(d.timestampSupplier()))
+        .y((d: PredictiveMetric) => chartOptions.axis.yScale(d.max))
+        .y0((d: PredictiveMetric) => chartOptions.axis.yScale(d.min));
 
     const predictiveConeAreaPath = chartOptions.svg.selectAll('path.ConeArea').data([forecastData]);
     // update existing

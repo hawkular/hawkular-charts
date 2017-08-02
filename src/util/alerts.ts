@@ -50,19 +50,28 @@ function extractAlertRanges(chartData: INumericDataPoint[], threshold: AlertThre
   let startTime: TimeInMillis | null = null;
   let lastItem: INumericDataPoint | null = null;
 
+  const interpolateTime = (current: INumericDataPoint, previous: INumericDataPoint | null) => {
+    // Interpolate time between prev & current timestamps
+    if (previous) {
+      return (current.timestampSupplier() + previous.timestampSupplier()) / 2;
+    } else {
+      return current.timestampSupplier();
+    }
+  }
+
   chartData.forEach((chartItem: INumericDataPoint) => {
     const value = chartItem.valueSupplier();
     inAlert = value === undefined ? prevInAlert : value > threshold;
     if (inAlert && !prevInAlert) {
-      startTime = chartItem.timestampSupplier();
+      startTime = interpolateTime(chartItem, lastItem);
     } else if (!inAlert && prevInAlert) {
-      alertBoundAreaItems.push(new AlertBound(startTime!, chartItem.timestampSupplier(), threshold));
+      alertBoundAreaItems.push(new AlertBound(startTime!, interpolateTime(chartItem, lastItem), threshold));
     }
     lastItem = chartItem;
     prevInAlert = inAlert;
   });
   if (inAlert) {
-    alertBoundAreaItems.push(new AlertBound(startTime!, lastItem!.timestampSupplier(), threshold));
+    alertBoundAreaItems.push(new AlertBound(startTime!, interpolateTime(lastItem!, null), threshold));
   }
   return alertBoundAreaItems;
 }
@@ -79,9 +88,8 @@ export function createAlertBoundsArea(chartOptions: ChartOptions,
       .attr('class', 'alertBounds')
       .attr('x', (d: AlertBound) => chartOptions.axis.timeScale(d.startTimestamp))
       .attr('y', () => chartOptions.axis.yScale(highBound))
-      .attr('height', (d: AlertBound) => chartOptions.layout.height - 40)
-      .attr('width', (d: AlertBound) => chartOptions.axis.timeScale(d.endTimestamp)
-          - chartOptions.axis.timeScale(d.startTimestamp));
+      .attr('height', (d: AlertBound) => chartOptions.layout.modifiedInnerChartHeight)
+      .attr('width', (d: AlertBound) => chartOptions.axis.timeScale(d.endTimestamp) - chartOptions.axis.timeScale(d.startTimestamp));
   }
 
   // update existing
