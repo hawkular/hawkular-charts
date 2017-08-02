@@ -6,6 +6,8 @@ export type MetricId = string;
 export type MetricValue = number;
 export type TimeRangeFromNow = number;
 
+declare const moment: any;
+
 export interface FixedTimeRange {
   start: TimeInMillis;
   end?: TimeInMillis;
@@ -14,6 +16,15 @@ export interface FixedTimeRange {
 export type TimeRange = TimeRangeFromNow | FixedTimeRange;
 export function isFixedTimeRange(timerange: TimeRange) {
   return (timerange.hasOwnProperty('start'));
+}
+export function getFixedTimeRange(tr: TimeRange): FixedTimeRange {
+  if (isFixedTimeRange(tr)) {
+    return <FixedTimeRange>tr;
+  } else {
+    return {
+      start: Date.now() - 1000 * <TimeRangeFromNow>tr
+    }
+  }
 }
 
 export interface INumericDataPoint {
@@ -92,6 +103,35 @@ export interface IMultiDataPoint {
 export interface IAnnotation {
   timestamp: number;
   severity: string;
+}
+
+export interface IAvailDataPoint {
+  timestamp: TimeInMillis;
+  value: string;
+}
+
+export class TransformedAvailDataPoint {
+  duration: string;
+
+  constructor(public start: number, public end: number, public value: string) {
+    this.updateDuration();
+  }
+
+  updateDuration() {
+    this.duration = moment(this.end).from(moment(this.start), true);
+  }
+
+  isUp(): boolean {
+    return this.value === 'up';
+  }
+
+  isDown(): boolean {
+    return this.value === 'down';
+  }
+
+  isUnknown(): boolean {
+    return this.value === 'unknown';
+  }
 }
 
 export class Range {

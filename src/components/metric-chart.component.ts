@@ -9,7 +9,7 @@ import 'rxjs/add/operator/map';
 import {
   INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, PredictiveMetric,
   TimeInMillis, MetricId, UrlType, TimeRange, FixedTimeRange, TimeRangeFromNow, isFixedTimeRange,
-  Range, Ranges, IAnnotation
+  getFixedTimeRange, Range, Ranges, IAnnotation
 } from '../model/types'
 import { ChartLayout } from '../model/chart-layout'
 import { ChartOptions } from '../model/chart-options'
@@ -101,7 +101,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   chart: any; // d3.Selection<any>
   chartParent: any; // d3.Selection<any>
   svg: any; // d3.Selection<any>
-  ranges: Ranges;
   refreshObservable?: Subscription;
 
   readonly registeredChartTypes: { [name: string]: IChartType } = {};
@@ -185,23 +184,12 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       && this.metricTenantId !== undefined;
   }
 
-  getFixedTimeRange(): FixedTimeRange {
-
-    if (isFixedTimeRange(this.timeRangeValue)) {
-      return <FixedTimeRange>this.timeRangeValue;
-    } else {
-      return {
-        start: Date.now() - 1000 * <TimeRangeFromNow>this.timeRangeValue
-      }
-    }
-  }
-
   /**
    * Load metrics data directly from a running Hawkular-Metrics server
    * This function assumes the server is configured
    */
   loadStandAloneMetrics() {
-    const timeRange = this.getFixedTimeRange();
+    const timeRange = getFixedTimeRange(this.timeRangeValue);
     const params: any = {
       start: timeRange.start,
       end: timeRange.end,
@@ -371,7 +359,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
         .style('stroke-dasharray', ('9,3'))
         .attr('d', this.createCenteredLine('linear'));
     }
-
   }
 
   render() {
@@ -392,7 +379,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
 
     if (this.rawData || this.statsData) {
       this.chartData = this.rawData || this.statsData!;
-      const timeRange = this.getFixedTimeRange();
+      const timeRange = getFixedTimeRange(this.timeRangeValue);
       this.computedChartAxis = determineScale(this.chartData, timeRange, xTicks, yTicks, this.useZeroMinValue,
           this.yAxisTickFormat, this.chartLayout, this.forecastData, this.alertValue);
     } else {
