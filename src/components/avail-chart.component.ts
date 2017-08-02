@@ -30,6 +30,7 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() metricUrl: UrlType;
   @Input() metricId = '';
   @Input() metricTenantId = '';
+  @Input() authHeader: string;
   @Input() refreshIntervalInSeconds = 5;
   @Input() data?: IAvailDataPoint[];
   @Output() timeRangeChange = new EventEmitter();
@@ -127,9 +128,12 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
       end: timeRange.end,
       order: 'ASC'
     };
-
+    const headers = new Headers({ 'Hawkular-Tenant': this.metricTenantId });
+    if (this.authHeader) {
+      headers.append('Authorization', this.authHeader);
+    }
     const options = new RequestOptions({
-      headers: new Headers({ 'Hawkular-Tenant': this.metricTenantId }),
+      headers: headers,
       params: params
     });
 

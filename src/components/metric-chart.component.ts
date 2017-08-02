@@ -55,6 +55,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() metricId = '';
   @Input() metricTenantId = '';
   @Input() metricType = 'gauge';
+  @Input() authHeader: string;
   @Input() refreshIntervalInSeconds = 5;
   @Input() alertValue: number;
   @Input() interpolation = 'monotone';
@@ -203,8 +204,12 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       endpoint = 'stats';
       params.buckets = this.buckets;
     }
+    const headers = new Headers({ 'Hawkular-Tenant': this.metricTenantId });
+    if (this.authHeader) {
+      headers.append('Authorization', this.authHeader);
+    }
     const options = new RequestOptions({
-      headers: new Headers({ 'Hawkular-Tenant': this.metricTenantId }),
+      headers: headers,
       params: params
     });
 
