@@ -108,9 +108,6 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
       this.tip.hide();
     }
     this.tip = initTip(this.svg);
-
-    // a placeholder for the alerts
-    this.svg.append('g').attr('class', 'alertHolder');
   }
 
   isServerConfigured(): boolean {
@@ -226,39 +223,7 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   createAvailabilityChart(transformedAvailDataPoint: TransformedAvailDataPoint[]) {
-    // let xAxisMin = d3.min(transformedAvailDataPoint, (d: ITransformedAvailDataPoint) => {
-    //   return +d.start;
-    // }),
     const xAxisMax = d3.max(transformedAvailDataPoint, (d: TransformedAvailDataPoint) => +d.end);
-
-    // let availTimeScale = d3.time.scale()
-    //   .range([0, width])
-    //   .domain([startTimestamp, endTimestamp || xAxisMax]),
-
-    // const yScale = d3.scale.linear()
-    //   .clamp(true)
-    //   .range([this.chartLayout.modifiedInnerChartHeight, 0])
-    //   .domain([0, 4]);
-
-    // availXAxis = d3.svg.axis()
-    //   .scale(availTimeScale)
-    //   .ticks(8)
-    //   .tickSize(13, 0)
-    //   .orient('top');
-
-    // For each datapoint calculate the Y offset for the bar
-    // Up or Unknown: offset 0, Down: offset 35
-//     const calcBarY = (d: TransformedAvailDataPoint) => {
-//       return d.isDown() ? 175/2 : 0;
-// //      return this.chartLayout.modifiedInnerChartHeight - yScale(0) + (d.isDown() ? 35 : 0);
-//     }
-
-//     // For each datapoint calculate the Y removed height for the bar
-//     // Unknown: full height 15, Up or Down: half height, 50
-//     const calcBarHeight = (d: TransformedAvailDataPoint) => {
-//       return this.chartLayout.modifiedInnerChartHeight - (d.isUnknown() ? 15 : 50);
-// //      return yScale(0) - (d.isUnknown() ? 15 : 50);
-//     }
 
     function calcBarFill(d: TransformedAvailDataPoint) {
       if (d.isUp()) {
