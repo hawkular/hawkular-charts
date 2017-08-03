@@ -9,7 +9,7 @@ import 'rxjs/add/operator/map';
 import {
   INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, PredictiveMetric,
   TimeInMillis, MetricId, UrlType, TimeRange, FixedTimeRange, TimeRangeFromNow, isFixedTimeRange,
-  Range, Ranges, IAnnotation
+  getFixedTimeRange, Range, Ranges, IAnnotation
 } from '../model/types'
 import { ChartLayout } from '../model/chart-layout'
 import { ChartOptions } from '../model/chart-options'
@@ -55,6 +55,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() metricId = '';
   @Input() metricTenantId = '';
   @Input() metricType = 'gauge';
+  @Input() authHeader: string;
   @Input() refreshIntervalInSeconds = 5;
   @Input() alertValue: number;
   @Input() interpolation = 'monotone';
@@ -79,14 +80,14 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() buckets = 60;
   @Input() hideHighLowValues = false;
   @Output() timeRangeChange = new EventEmitter();
-  timeRangeValue: TimeRange = 43200;
+  private _timeRange: TimeRange = 43200;
   @Input()
   get timeRange(): TimeRange {
-    return this.timeRangeValue;
+    return this._timeRange;
   }
   set timeRange(val: TimeRange) {
-    this.timeRangeValue = val;
-    this.timeRangeChange.emit(this.timeRangeValue);
+    this._timeRange = val;
+    this.timeRangeChange.emit(this._timeRange);
   }
 
   showAvgLine = true;
@@ -101,7 +102,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   chart: any; // d3.Selection<any>
   chartParent: any; // d3.Selection<any>
   svg: any; // d3.Selection<any>
-  ranges: Ranges;
   refreshObservable?: Subscription;
 
   readonly registeredChartTypes: { [name: string]: IChartType } = {};
@@ -185,23 +185,12 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       && this.metricTenantId !== undefined;
   }
 
-  getFixedTimeRange(): FixedTimeRange {
-
-    if (isFixedTimeRange(this.timeRangeValue)) {
-      return <FixedTimeRange>this.timeRangeValue;
-    } else {
-      return {
-        start: Date.now() - 1000 * <TimeRangeFromNow>this.timeRangeValue
-      }
-    }
-  }
-
   /**
    * Load metrics data directly from a running Hawkular-Metrics server
    * This function assumes the server is configured
    */
   loadStandAloneMetrics() {
-    const timeRange = this.getFixedTimeRange();
+    const timeRange = getFixedTimeRange(this._timeRange);
     const params: any = {
       start: timeRange.start,
       end: timeRange.end,
@@ -215,8 +204,12 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       endpoint = 'stats';
       params.buckets = this.buckets;
     }
+    const headers = new Headers({ 'Hawkular-Tenant': this.metricTenantId });
+    if (this.authHeader) {
+      headers.append('Authorization', this.authHeader);
+    }
     const options = new RequestOptions({
-      headers: new Headers({ 'Hawkular-Tenant': this.metricTenantId }),
+      headers: headers,
       params: params
     });
 
@@ -371,7 +364,6 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
         .style('stroke-dasharray', ('9,3'))
         .attr('d', this.createCenteredLine('linear'));
     }
-
   }
 
   render() {
@@ -392,7 +384,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
 
     if (this.rawData || this.statsData) {
       this.chartData = this.rawData || this.statsData!;
-      const timeRange = this.getFixedTimeRange();
+      const timeRange = getFixedTimeRange(this._timeRange);
       this.computedChartAxis = determineScale(this.chartData, timeRange, xTicks, yTicks, this.useZeroMinValue,
           this.yAxisTickFormat, this.chartLayout, this.forecastData, this.alertValue);
     } else {
@@ -453,8 +445,8 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       this.refreshObservable = undefined;
     }
     let needRefresh = true;
-    if (isFixedTimeRange(this.timeRangeValue)) {
-      needRefresh = ((<FixedTimeRange>this.timeRangeValue).end === undefined);
+    if (isFixedTimeRange(this._timeRange)) {
+      needRefresh = ((<FixedTimeRange>this._timeRange).end === undefined);
     }
 
     if (this.refreshIntervalInSeconds && this.refreshIntervalInSeconds > 0 && needRefresh && this.isServerConfigured()) {

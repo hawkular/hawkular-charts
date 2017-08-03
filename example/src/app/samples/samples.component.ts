@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
 declare const d3: any;
 
@@ -7,9 +7,7 @@ declare const d3: any;
   templateUrl: './samples.component.html',
   styleUrls: ['./samples.component.css']
 })
-export class SamplesComponent implements OnInit {
-  timerange = {};
-
+export class SamplesComponent {
   // set the alert threshold to whatever
   alertThreshold = 2000;
   dataPoints = 120;
@@ -61,51 +59,4 @@ export class SamplesComponent implements OnInit {
       });
     });
   }
-
-  //   $scope.originalData = jsonData;
-  //   $scope.myData = jsonData;
-
-  // $scope.toggleHighLow = function () {
-  //   console.log('hideHighLowValues: ' + $scope.hideHighLowValues);
-  //   $scope.hideHighLowValues = !$scope.hideHighLowValues;
-  // };
-
-  // $scope.$watch('dataPoints', function (dataPoints) {
-  //   if (dataPoints && $scope.originalData) {
-  //     console.log('dataPoints changed to: ' + dataPoints);
-  //     $scope.myData = $scope.originalData.slice(0, dataPoints);
-  //   }
-  // });
-
-  // $scope.refreshChartWithDateRange = function () {
-  //   console.log('refreshChartWithDateRange');
-  //   // we already have the data, but perhaps the data is stale and you want to requery
-  //   // also, by just changing the data the charts will automatically update themselves
-  //   $scope.myData = $scope.originalData.filter(function (value) {
-  //     return value.timestamp >= $scope.timerange.startTimestamp && value.timestamp <= $scope.timerange.endTimestamp;
-  //   });
-  //   $scope.$digest();
-
-  // };
-
-  // // Drag event on a normal chart
-  // $scope.$on('ChartTimeRangeChanged', function (event, data) {
-  //   console.log('Received ChartTimeRangeChanged event: ' + data[0] + ' - ' + data[1]);
-  //   $scope.timerange.startTimestamp = data[0];
-  //   $scope.timerange.endTimestamp = data[1];
-  //   // forecast data not relevant in the past
-  //   $scope.myForecastData = [];
-  //   $scope.refreshChartWithDateRange();
-  //   $scope.$digest();
-  // });
-
-  // // Drag event on a context chart
-  // $scope.$on('ContextChartTimeRangeChanged', function (event, data) {
-  //   console.info('Received ContextChartTimeRangeChanged event: ' + data[0] + ' - ' + data[1]);
-  //   $rootScope.$broadcast('ChartTimeRangeChanged', data);
-  // });
-
-  ngOnInit() {
-  }
-
 }

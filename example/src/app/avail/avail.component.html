@@ -1,3 +1,71 @@
-<p>
-  avail works!
-</p>
+<div class="container-fluid container-cards-pf">
+  <div class="row cards-pf">
+    <div class="col-sm-12 ">
+
+      <div class="page-header page-header-bleed-right">
+        <div class="actions pull-right">
+          <a href="#"><span class="pficon pficon-refresh"></span> Refresh Results</a>
+        </div>
+        <h1>Timeline/Availability Chart Examples</h1>
+      </div>
+
+
+      <div class="row row-cards-pf">
+        <div class="col-xs-6">
+          <div class="card-pf">
+            <div class="card-pf-heading">
+
+              <div class="dropdown card-pf-time-frame-filter">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                  Last 30 Days <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                  <li><a href="#">Last 60 Days</a></li>
+                  <li><a href="#">Last 90 Days</a></li>
+                </ul>
+              </div>
+
+              <h2 class="card-pf-title">
+                Availability Chart Small
+              </h2>
+            </div>
+            <div class="card-pf-body">
+              <div class="chartWrapperSmall">
+                <hk-availability-chart [data]="availAllChartData" [timeRange]="timeRange"></hk-availability-chart>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row row-cards-pf">
+        <div class="col-xs-12">
+          <div class="card-pf">
+            <div class="card-pf-heading">
+
+              <div class="dropdown card-pf-time-frame-filter">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                  Last 30 Days <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                  <li><a href="#">Last 60 Days</a></li>
+                  <li><a href="#">Last 90 Days</a></li>
+                </ul>
+              </div>
+
+              <h2 class="card-pf-title">
+                Availability Chart Large
+              </h2>
+            </div>
+            <div class="card-pf-body">
+              <div class="chartWrapperLarge" >
+                <hk-availability-chart [data]="availAllChartData" [timeRange]="timeRange"></hk-availability-chart>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /col -->
+  </div> <!-- /row -->
+</div>
