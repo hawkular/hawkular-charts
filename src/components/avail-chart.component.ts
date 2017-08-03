@@ -34,14 +34,14 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() refreshIntervalInSeconds = 5;
   @Input() data?: IAvailDataPoint[];
   @Output() timeRangeChange = new EventEmitter();
-  timeRangeValue: TimeRange = 43200;
+  private _timeRange: TimeRange = 43200;
   @Input()
   get timeRange(): TimeRange {
-    return this.timeRangeValue;
+    return this._timeRange;
   }
   set timeRange(val: TimeRange) {
-    this.timeRangeValue = val;
-    this.timeRangeChange.emit(this.timeRangeValue);
+    this._timeRange = val;
+    this.timeRangeChange.emit(this._timeRange);
   }
 
   chartLayout: ChartLayout;
@@ -122,7 +122,7 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
    * This function assumes the server is configured
    */
   loadStandAloneAvail() {
-    const timeRange = getFixedTimeRange(this.timeRangeValue);
+    const timeRange = getFixedTimeRange(this._timeRange);
     const params: any = {
       start: timeRange.start,
       end: timeRange.end,
@@ -158,7 +158,7 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
       .tickSize(0, 0)
       .orient('left');
 
-    const timeRange = getFixedTimeRange(this.timeRangeValue);
+    const timeRange = getFixedTimeRange(this._timeRange);
     const timeScale = d3.time.scale()
       .range([0, this.chartLayout.innerChartWidth])
       .nice()
@@ -184,7 +184,7 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
     const outputData: TransformedAvailDataPoint[] = [];
 
     if (rawData) {
-      const endTime = getFixedTimeRange(this.timeRangeValue).end || new Date().getTime();
+      const endTime = getFixedTimeRange(this._timeRange).end || new Date().getTime();
       // Assume data is sorted in ascending order
       let prev: TransformedAvailDataPoint | null = null;
       rawData.forEach(raw => {
@@ -349,8 +349,8 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
       this.refreshObservable = undefined;
     }
     let needRefresh = true;
-    if (isFixedTimeRange(this.timeRangeValue)) {
-      needRefresh = ((<FixedTimeRange>this.timeRangeValue).end === undefined);
+    if (isFixedTimeRange(this._timeRange)) {
+      needRefresh = ((<FixedTimeRange>this._timeRange).end === undefined);
     }
 
     if (this.refreshIntervalInSeconds && this.refreshIntervalInSeconds > 0 && needRefresh && this.isServerConfigured()) {

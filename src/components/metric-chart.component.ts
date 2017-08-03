@@ -80,14 +80,14 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() buckets = 60;
   @Input() hideHighLowValues = false;
   @Output() timeRangeChange = new EventEmitter();
-  timeRangeValue: TimeRange = 43200;
+  private _timeRange: TimeRange = 43200;
   @Input()
   get timeRange(): TimeRange {
-    return this.timeRangeValue;
+    return this._timeRange;
   }
   set timeRange(val: TimeRange) {
-    this.timeRangeValue = val;
-    this.timeRangeChange.emit(this.timeRangeValue);
+    this._timeRange = val;
+    this.timeRangeChange.emit(this._timeRange);
   }
 
   showAvgLine = true;
@@ -190,7 +190,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
    * This function assumes the server is configured
    */
   loadStandAloneMetrics() {
-    const timeRange = getFixedTimeRange(this.timeRangeValue);
+    const timeRange = getFixedTimeRange(this._timeRange);
     const params: any = {
       start: timeRange.start,
       end: timeRange.end,
@@ -384,7 +384,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
 
     if (this.rawData || this.statsData) {
       this.chartData = this.rawData || this.statsData!;
-      const timeRange = getFixedTimeRange(this.timeRangeValue);
+      const timeRange = getFixedTimeRange(this._timeRange);
       this.computedChartAxis = determineScale(this.chartData, timeRange, xTicks, yTicks, this.useZeroMinValue,
           this.yAxisTickFormat, this.chartLayout, this.forecastData, this.alertValue);
     } else {
@@ -445,8 +445,8 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
       this.refreshObservable = undefined;
     }
     let needRefresh = true;
-    if (isFixedTimeRange(this.timeRangeValue)) {
-      needRefresh = ((<FixedTimeRange>this.timeRangeValue).end === undefined);
+    if (isFixedTimeRange(this._timeRange)) {
+      needRefresh = ((<FixedTimeRange>this._timeRange).end === undefined);
     }
 
     if (this.refreshIntervalInSeconds && this.refreshIntervalInSeconds > 0 && needRefresh && this.isServerConfigured()) {
