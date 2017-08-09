@@ -42,7 +42,7 @@ export class SamplesComponent {
         end: d3TimeRange[1] + diff
       }
       this.rawData = jsonData.map(dp => {
-        dp.timestamp = dp.timestamp + diff;
+        dp.timestamp += diff;
         return dp;
       });
       d3.json('./test-data/metrics-stats-data.json', (error: any, jsonData: any[]) => {
@@ -54,7 +54,7 @@ export class SamplesComponent {
         });
       });
       this.myForecastData = this.myForecastData.map(dp => {
-        dp.timestamp = dp.timestamp + diff;
+        dp.timestamp += diff;
         return dp;
       });
     });

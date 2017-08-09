@@ -93,7 +93,7 @@ export class PredictiveMetric extends NumericDataPoint {
 /**
  * Data structure for a Multi-Metric chart. Composed of IChartDataDataPoint[].
  */
-export interface IMultiDataPoint {
+export interface INamedMetric {
   key: string;
   keyHash?: string; // for using as valid html id
   color?: string; /// #fffeee
