@@ -7,7 +7,7 @@ import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import 'rxjs/add/operator/map';
 
 import {
-  INumericDataPoint, NumericDataPoint, NumericBucketPoint, IMultiDataPoint, PredictiveMetric,
+  INumericDataPoint, NumericDataPoint, NumericBucketPoint, INamedMetric, PredictiveMetric,
   TimeInMillis, MetricId, UrlType, TimeRange, FixedTimeRange, TimeRangeFromNow, isFixedTimeRange,
   getFixedTimeRange, Range, Ranges, IAnnotation
 } from '../model/types'
@@ -70,7 +70,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   @Input() yAxisTickFormat: string;
   @Input() rawData?: NumericDataPoint[];
   @Input() statsData?: NumericBucketPoint[];
-  @Input() multiData: IMultiDataPoint[];
+  @Input() multiData: INamedMetric[];
   @Input() forecastData: PredictiveMetric[];
   @Input() showDataPoints = true;
   @Input() previousRangeData = [];
@@ -406,7 +406,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     this.determineChartTypeAndDraw(this.chartType, chartOptions);
 
     if (this.showDataPoints) {
-      createDataPoints(this.svg, this.computedChartAxis.timeScale, this.computedChartAxis.yScale, this.tip, this.chartData);
+      createDataPoints(chartOptions);
     }
     this.createPreviousRangeOverlay(this.previousRangeData);
     this.createXandYAxes();
@@ -456,7 +456,7 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['rawData'] || changes['statsData'] || changes['forecastData']) {
+    if (changes['rawData'] || changes['statsData'] || changes['forecastData'] || changes['multiData']) {
       this.normalizeInputDataPoints();
     }
     this.refresh();
@@ -504,6 +504,16 @@ export class MetricChartComponent implements OnInit, OnDestroy, OnChanges {
     }
     if (this.forecastData) {
       this.forecastData = this.forecastData.map(dp => new PredictiveMetric(dp));
+    }
+    if (this.multiData) {
+      this.multiData.forEach((series: INamedMetric) => {
+        const raw = series.values.length > 0 && series.values[0].hasOwnProperty('value');
+        if (raw) {
+          series.values = series.values.map(dp => new NumericDataPoint(<NumericDataPoint>dp));
+        } else {
+          series.values = series.values.map(dp => new NumericBucketPoint(<NumericBucketPoint>dp));
+        }
+      });
     }
   }
 }

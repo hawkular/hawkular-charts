@@ -1,4 +1,4 @@
-import { Range, Ranges, IMultiDataPoint, INumericDataPoint } from '../model/types'
+import { Range, Ranges, INamedMetric, INumericDataPoint } from '../model/types'
 import { ComputedChartAxis } from '../model/computed-chart-axis'
 import { xAxisTimeFormats } from './utility'
 import { ChartLayout } from '../model/chart-layout'
@@ -7,7 +7,7 @@ declare const d3: any;
 
 type MaybeRange = Range | undefined;
 
-function determineMultiDataMinMax(multiDataPoints: IMultiDataPoint[]): MaybeRange {
+function determineMultiDataMinMax(multiDataPoints: INamedMetric[]): MaybeRange {
   let range: MaybeRange;
   multiDataPoints.forEach((series) => {
     series.values.forEach(datapoint => {
@@ -26,7 +26,7 @@ function determineMultiDataMinMax(multiDataPoints: IMultiDataPoint[]): MaybeRang
   return range;
 }
 
-function setupFilteredMultiData(multiDataPoints: IMultiDataPoint[], useZeroMinValue: boolean, alertValue?: number): Ranges {
+function setupFilteredMultiData(multiDataPoints: INamedMetric[], useZeroMinValue: boolean, alertValue?: number): Ranges {
   let alertPeak: number,
     highPeak: number;
 
@@ -50,7 +50,7 @@ function setupFilteredMultiData(multiDataPoints: IMultiDataPoint[], useZeroMinVa
 }
 
 export function determineMultiScale(
-          multiDataPoints: IMultiDataPoint[],
+          multiDataPoints: INamedMetric[],
           xTicks: number,
           yTicks: number,
           useZeroMinValue: boolean,
@@ -74,8 +74,8 @@ export function determineMultiScale(
 
   const timeScale = d3.time.scale()
     .range([0, chartLayout.innerChartWidth])
-    .domain([d3.min(multiDataPoints, (d: IMultiDataPoint) => d3.min(d.values, (p: INumericDataPoint) => p.timestampSupplier())),
-    d3.max(multiDataPoints, (d: IMultiDataPoint) => d3.max(d.values, (p: INumericDataPoint) => p.timestampSupplier()))]);
+    .domain([d3.min(multiDataPoints, (d: INamedMetric) => d3.min(d.values, (p: INumericDataPoint) => p.timestampSupplier())),
+    d3.max(multiDataPoints, (d: INamedMetric) => d3.max(d.values, (p: INumericDataPoint) => p.timestampSupplier()))]);
 
   const xAxis = d3.svg.axis()
     .scale(timeScale)
