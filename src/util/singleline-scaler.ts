@@ -1,4 +1,4 @@
-import { FixedTimeRange, Range, Ranges, INumericDataPoint, PredictiveMetric } from '../model/types'
+import { FixedTimeRange, Range, Ranges, INumericDataPoint, TimeInMillis } from '../model/types'
 import { ComputedChartAxis } from '../model/computed-chart-axis'
 import { xAxisTimeFormats } from './utility'
 import { ChartLayout } from '../model/chart-layout'
@@ -33,7 +33,7 @@ export function determineScale(
           useZeroMinValue: boolean,
           yAxisTickFormat: string,
           chartLayout: ChartLayout,
-          forecastDataPoints: PredictiveMetric[],
+          forceEndTime?: TimeInMillis,
           alertValue?: number): ComputedChartAxis {
 
   const ranges = setupFilteredData(chartData, useZeroMinValue, alertValue);
@@ -51,8 +51,8 @@ export function determineScale(
     .orient('left');
 
   let timeScaleMax;
-  if (forecastDataPoints && forecastDataPoints.length > 0) {
-    timeScaleMax = forecastDataPoints[forecastDataPoints.length - 1].timestamp;
+  if (forceEndTime !== undefined) {
+    timeScaleMax = forceEndTime;
   } else {
     timeScaleMax = timeRange.end || Date.now();
   }

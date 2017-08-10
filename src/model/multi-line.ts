@@ -18,7 +18,7 @@ export class MultiLineChart implements IChartType {
       // before updating, let's remove those missing from datapoints (if any)
       chart.svg.selectAll('path[id^=\'multiLine\']')[0].forEach((existingPath: any) => {
         let stillExists = false;
-        chart.multiData.forEach((singleChartData) => {
+        chart.multiData!.forEach((singleChartData) => {
           singleChartData.keyHash = singleChartData.keyHash
             || ('multiLine' + hashString(singleChartData.key));
           if (existingPath.getAttribute('id') === singleChartData.keyHash) {

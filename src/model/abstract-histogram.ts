@@ -25,8 +25,8 @@ export abstract class AbstractHistogramChart implements IChartType {
         })
         .transition()
         .attr('x', (d: NumericBucketPoint, i: number) => calcBarXPos(d, i, chartOptions.layout.width,
-            chartOptions.axis.timeScale, chartOptions.data.length))
-        .attr('width', (d: NumericBucketPoint, i: number) => calcBarWidthAdjusted(i, chartOptions.layout.width, chartOptions.data.length))
+            chartOptions.axis.timeScale, chartOptions.data!.length))
+        .attr('width', (d: NumericBucketPoint, i: number) => calcBarWidthAdjusted(i, chartOptions.layout.width, chartOptions.data!.length))
         .attr('y', (d: NumericBucketPoint) => d.isEmpty() ? 0 : chartOptions.axis.yScale(d.avg!))
         .attr('height', (d: NumericBucketPoint) => chartOptions.layout.modifiedInnerChartHeight - chartOptions.axis.yScale(d.isEmpty() ?
             chartOptions.axis.yScale(chartOptions.axis.chartRange.high) : d.avg!))
@@ -41,12 +41,12 @@ export abstract class AbstractHistogramChart implements IChartType {
       selection
         .attr('class', (d: NumericBucketPoint) => d.min === d.max ? 'singleValue' : 'high')
         .attr('x', (d: NumericBucketPoint, i: number) => calcBarXPos(d, i, chartOptions.layout.width, chartOptions.axis.timeScale,
-            chartOptions.data.length))
+            chartOptions.data!.length))
         .attr('y', (d: NumericBucketPoint) => isNaN(d.max || NaN) ? chartOptions.axis.yScale(chartOptions.axis.chartRange.high)
           : chartOptions.axis.yScale(d.max!))
         .attr('height', (d: NumericBucketPoint) => d.isEmpty() ? 0 : (chartOptions.axis.yScale(d.avg!)
           - chartOptions.axis.yScale(d.max!) || 2))
-        .attr('width', (d: NumericBucketPoint, i: number) => calcBarWidthAdjusted(i, chartOptions.layout.width, chartOptions.data.length))
+        .attr('width', (d: NumericBucketPoint, i: number) => calcBarWidthAdjusted(i, chartOptions.layout.width, chartOptions.data!.length))
         .attr('opacity', 0.9)
         .on('mouseover', (d: NumericBucketPoint, i: number) => chartOptions.tip.show(d, i))
         .on('mouseout', () => chartOptions.tip.hide());
@@ -56,10 +56,10 @@ export abstract class AbstractHistogramChart implements IChartType {
       selection
         .attr('class', 'low')
         .attr('x', (d: NumericBucketPoint, i: number) => calcBarXPos(d, i, chartOptions.layout.width, chartOptions.axis.timeScale,
-            chartOptions.data.length))
+            chartOptions.data!.length))
         .attr('y', (d: NumericBucketPoint) => isNaN(d.avg || NaN) ? chartOptions.layout.height : chartOptions.axis.yScale(d.avg!))
         .attr('height', (d: NumericBucketPoint) => d.isEmpty() ? 0 : (chartOptions.axis.yScale(d.min!) - chartOptions.axis.yScale(d.avg!)))
-        .attr('width', (d: NumericBucketPoint, i: number) => calcBarWidthAdjusted(i, chartOptions.layout.width, chartOptions.data.length))
+        .attr('width', (d: NumericBucketPoint, i: number) => calcBarWidthAdjusted(i, chartOptions.layout.width, chartOptions.data!.length))
         .attr('opacity', 0.9)
         .on('mouseover', (d: NumericBucketPoint, i: number) => chartOptions.tip.show(d, i))
         .on('mouseout', () => chartOptions.tip.hide());

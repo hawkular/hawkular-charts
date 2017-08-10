@@ -76,10 +76,10 @@ function extractAlertRanges(chartData: INumericDataPoint[], threshold: AlertThre
   return alertBoundAreaItems;
 }
 
-export function createAlertBoundsArea(chartOptions: ChartOptions,
-  alertValue: number,
-  highBound: number
-) {
+export function createAlertBoundsArea(chartOptions: ChartOptions, alertValue: number, highBound: number) {
+  if (!chartOptions.data) {
+    return;
+  }
   const alertBounds: AlertBound[] = extractAlertRanges(chartOptions.data, alertValue);
   const rectAlert = chartOptions.svg.select('g.alertHolder').selectAll('rect.alertBounds').data(alertBounds);
 
