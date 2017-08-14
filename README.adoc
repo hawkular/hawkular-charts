@@ -219,9 +219,6 @@ The stand alone version of the tag allows for linking to hawkular-metrics server
 
 This allows plain html web pages to be sprinkled with tags and a couple js libs and you can have dynamic live updating metrics. Great for NOCs or dashboards. These pages can even be emailed around and then thrown behind an http server for viewing.
 
-*Sample Stand Alone Example Page:*  https://github.com/hawkular/hawkular-charts/blob/master/stand-alone-chart-sample.html[stand-alone-chart-sample.html]
-This allows dashboard templates to be emailed around (although they need to be rendered behind a http server of your choice).
-
 == Data Formats
 
 Metric Time Series data is generally viewed as a Tuple: `{metric, time, value}`. The Hawkular charts version looks like
