@@ -430,17 +430,8 @@ https://github.com/hawkular/hawkular-ui-services
 _Answer_: Hawkular-charts is now fully responsive so height and width no longer make sense. Height and width is now
 determined by the container surrounding the chart directive (a div for example).
 
-
-== Version 1.0
-
-.Version 1.0 introduces some breaking changes to be aware of from previous releases:
-* Breaking Change: Rename ‘hawkular-chart’ directive to ‘hk-metric-chart’ to be more meaningful, now that there are
-multiple charting tags
-* Breaking Change: Renamed all chart types with a ‘hk-*’ prefix to be more consistent with standard directive library
-naming conventions
-
-Other updates for 1.0 can be found at: https://github.com/hawkular/hawkular-charts/releases/tag/v1.0.0[v1.0.0]
-
+== Releases
+Other information regarding releases can be found at: https://github.com/hawkular/hawkular-charts/releases/
 
 == Contributing
 
