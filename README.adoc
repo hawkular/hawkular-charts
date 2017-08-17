@@ -1,8 +1,8 @@
-= http://github.com/hawkular/hawkular-charts[Angular Components for Metrics Visualization]
+= http://github.com/hawkular/hawkular-charts[Angular 4+ Components for Metrics Visualization]
 
 __"Legos for Metrics Visualization"__
 
-This project provides Angular 4 components for displaying custom visual representations of time series data as charts.
+This project provides charting components (**Now with Angular 4 support**) for displaying custom visual representations of time series data as charts.
 It uses http://d3js.org[D3] as its charting toolkit and tries to simplify creating advanced metrics visualizations
 with Angular.io components
 
@@ -44,7 +44,7 @@ The following chart types are available:
 * *line:* this is the default chart type if not specified and is recommended for most metrics display
 * *multiline:* specifically made for display multiple metrics in a singe graph
 
-Note: the following other types are not yet implemented as Angular 2+ components (they were in previous AngularJS directives)
+Note: the following other types are not yet implemented as Angular 4+ components (they were in previous AngularJS directives)
 
 * *histogram:* histogram bar chart (used in Hawkular GC chart)
 * *area:* standard area chart with hawkular extensions
@@ -218,9 +218,6 @@ The stand alone version of the tag allows for linking to hawkular-metrics server
 ----
 
 This allows plain html web pages to be sprinkled with tags and a couple js libs and you can have dynamic live updating metrics. Great for NOCs or dashboards. These pages can even be emailed around and then thrown behind an http server for viewing.
-
-*Sample Stand Alone Example Page:*  https://github.com/hawkular/hawkular-charts/blob/master/stand-alone-chart-sample.html[stand-alone-chart-sample.html]
-This allows dashboard templates to be emailed around (although they need to be rendered behind a http server of your choice).
 
 == Data Formats
 
@@ -420,8 +417,6 @@ If you don't want to retrieve data directly from the REST Url, we have an API th
       }, this);
 ----
 
-https://github.com/hawkular/hawkular-ui-services
-
 
 == FAQ
 
@@ -430,17 +425,8 @@ https://github.com/hawkular/hawkular-ui-services
 _Answer_: Hawkular-charts is now fully responsive so height and width no longer make sense. Height and width is now
 determined by the container surrounding the chart directive (a div for example).
 
-
-== Version 1.0
-
-.Version 1.0 introduces some breaking changes to be aware of from previous releases:
-* Breaking Change: Rename ‘hawkular-chart’ directive to ‘hk-metric-chart’ to be more meaningful, now that there are
-multiple charting tags
-* Breaking Change: Renamed all chart types with a ‘hk-*’ prefix to be more consistent with standard directive library
-naming conventions
-
-Other updates for 1.0 can be found at: https://github.com/hawkular/hawkular-charts/releases/tag/v1.0.0[v1.0.0]
-
+== Releases
+Other information regarding releases can be found at: https://github.com/hawkular/hawkular-charts/releases/
 
 == Contributing
 
