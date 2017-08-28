@@ -4,8 +4,9 @@ import { Http, RequestOptions, Headers, Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
+import 'rxjs/add/operator/map';
 
-import { IAvailDataPoint, TransformedAvailDataPoint, UrlType, TimeRange, FixedTimeRange, getFixedTimeRange,
+import { IAvailDataPoint, TransformedAvailDataPoint, UrlType, MetricName, TimeRange, FixedTimeRange, getFixedTimeRange,
   isFixedTimeRange, Range, TimeInMillis } from '../model/types'
 import { ChartLayout } from '../model/chart-layout'
 import { ComputedChartAxis } from '../model/computed-chart-axis'
@@ -28,7 +29,7 @@ export class AvailChartComponent implements OnInit, OnDestroy, OnChanges {
   @ViewChild('target') target: any;
 
   @Input() metricUrl: UrlType;
-  @Input() metricId = '';
+  @Input() metricId: MetricName = '';
   @Input() metricTenantId = '';
   @Input() authHeader: string;
   @Input() refreshIntervalInSeconds = 5;

@@ -2,11 +2,17 @@
 export type AlertThreshold = number;
 export type TimeInMillis = number;
 export type UrlType = number;
-export type MetricId = string;
+export type MetricType = string;
+export type MetricName = string;
 export type MetricValue = number;
 export type TimeRangeFromNow = number;
 
 declare const moment: any;
+
+export interface MetricId {
+  type: MetricType;
+  name: MetricName;
+}
 
 export interface FixedTimeRange {
   start: TimeInMillis;
@@ -56,7 +62,6 @@ export class NumericBucketPoint implements INumericDataPoint {
   public avg?: MetricValue;
   public min?: MetricValue;
   public max?: MetricValue;
-  public percentile95th?: MetricValue;
   public median?: MetricValue;
 
   constructor(from: NumericBucketPoint) {
@@ -66,7 +71,6 @@ export class NumericBucketPoint implements INumericDataPoint {
     this.avg = from.avg;
     this.min = from.min;
     this.max = from.max;
-    this.percentile95th = from.percentile95th;
     this.median = from.median;
   }
 

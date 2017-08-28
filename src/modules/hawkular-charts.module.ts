@@ -1,19 +1,22 @@
 import { NgModule } from '@angular/core';
 import { HttpModule } from '@angular/http';
 
-import { MetricChartComponent } from '../components/metric-chart.component';
+import { MetricChartStaticComponent } from '../components/metric-chart-static.component';
+import { MetricChartDynComponent } from '../components/metric-chart-dyn.component';
 import { AvailChartComponent } from '../components/avail-chart.component';
 
 @NgModule({
   declarations: [
-    MetricChartComponent,
+    MetricChartStaticComponent,
+    MetricChartDynComponent,
     AvailChartComponent
   ],
   imports: [
     HttpModule
   ],
   exports: [
-    MetricChartComponent,
+    MetricChartStaticComponent,
+    MetricChartDynComponent,
     AvailChartComponent
   ]
 })
